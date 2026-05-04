@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/Announcement_model.dart';
 import 'package:younifirst_app/services/announcement_api_service.dart';
 import 'package:younifirst_app/services/event_api_service.dart';
+import 'package:younifirst_app/services/notification_service.dart';
 import 'package:younifirst_app/pages/announcement/AnnouncementDetail_pages.dart';
 import 'package:younifirst_app/pages/event/EventDetail_pages.dart';
 
@@ -21,6 +22,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   void initState() {
     super.initState();
     _load();
+    // Tandai semua pengumuman sudah dilihat saat halaman dibuka
+    NotificationService.markAnnouncementsAsRead();
   }
 
   Future<void> _load() async {

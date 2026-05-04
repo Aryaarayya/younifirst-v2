@@ -207,22 +207,43 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Container(
-        height: 45,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const TextField(
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: "Mulai cari...",
-            hintStyle: TextStyle(color: Colors.white70),
-            prefixIcon: Icon(CupertinoIcons.search, color: Colors.white),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const TextField(
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Mulai cari...",
+                  hintStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(CupertinoIcons.search, color: Colors.white),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Container(
+            height: 45,
+            width: 45,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
+              onPressed: () {
+                // Filter action
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

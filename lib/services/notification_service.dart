@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:younifirst_app/services/announcement_api_service.dart';
 
 // ─── Background message handler (HARUS top-level function) ───────────────────
 @pragma('vm:entry-point')
@@ -232,9 +234,31 @@ class NotificationService {
     }
   }
 
-  // ─── Unread count (gunakan announcement count) ────────────────────────────
+  // ─── Unread count ─────────────────────────────────────────────────────────
+  // Menghitung pengumuman baru sejak terakhir user membuka halaman Announcement
   static Future<int> getUnreadCount() async {
-    return 0; // Di-update dari AnnouncementApiService
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastSeenCount = prefs.getInt('last_seen_announcement_count') ?? 0;
+      final announcements = await AnnouncementApiService.getAnnouncements();
+      final currentCount = announcements.length;
+      final unread = currentCount - lastSeenCount;
+      return unread > 0 ? unread : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // ─── Tandai semua pengumuman sudah dibaca ─────────────────────────────────
+  // Dipanggil saat user membuka halaman Announcement
+  static Future<void> markAnnouncementsAsRead() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final announcements = await AnnouncementApiService.getAnnouncements();
+      await prefs.setInt('last_seen_announcement_count', announcements.length);
+    } catch (e) {
+      debugPrint('Gagal menandai pengumuman sebagai dibaca: $e');
+    }
   }
 
   static Future<void> addNotification(String title, String body,
