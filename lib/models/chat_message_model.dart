@@ -1,0 +1,63 @@
+class ChatMessageModel {
+  final String id;
+  final String teamId;
+  final String senderId;
+  final String senderName;
+  final String message;
+  final String createdAt;
+
+  ChatMessageModel({
+    required this.id,
+    required this.teamId,
+    required this.senderId,
+    required this.senderName,
+    required this.message,
+    required this.createdAt,
+  });
+
+  factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
+    return ChatMessageModel(
+      id: json['id']?.toString() ?? json['message_id']?.toString() ?? '',
+      teamId: json['team_id']?.toString() ?? '',
+      senderId: json['user_id']?.toString() ??
+          json['sender_id']?.toString() ?? '',
+      senderName: json['user']?['name'] ??
+          json['sender_name'] ??
+          json['user_name'] ??
+          'Anggota',
+      message: json['message']?.toString() ?? json['content']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? DateTime.now().toIso8601String(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'team_id': teamId,
+        'message': message,
+      };
+
+  /// Waktu relatif
+  String get timeAgo {
+    try {
+      final dt = DateTime.parse(createdAt).toLocal();
+      final diff = DateTime.now().difference(dt);
+      if (diff.inMinutes < 1) return 'Baru saja';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} mnt lalu';
+      if (diff.inHours < 24) return '${diff.inHours} jam lalu';
+      return '${diff.inDays} hari lalu';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Format jam HH:mm
+  String get timeLabel {
+    try {
+      final dt = DateTime.parse(createdAt).toLocal();
+      final h = dt.hour.toString().padLeft(2, '0');
+      final m = dt.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    } catch (_) {
+      return '';
+    }
+  }
+}
