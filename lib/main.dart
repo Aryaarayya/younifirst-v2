@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart'; // Temporarily disabled
-// import 'package:firebase_messaging/firebase_messaging.dart'; // Temporarily disabled
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:younifirst_app/widgets/bottom_navbar.dart';
-// import 'package:younifirst_app/services/notification_service.dart'; // Temporarily disabled
+import 'package:younifirst_app/services/notification_service.dart';
 import 'package:younifirst_app/pages/event/EventDetail_pages.dart';
 import 'package:younifirst_app/pages/team/TeamDetail_pages.dart';
 import 'package:younifirst_app/pages/announcement/Announcement_pages.dart';
@@ -15,14 +15,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // // Init Firebase (Temporarily disabled)
-  // await Firebase.initializeApp();
+  // Init Firebase
+  await Firebase.initializeApp();
 
-  // // Daftarkan background message handler
-  // FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  // Daftarkan background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // // Init FCM + local notifications
-  // await NotificationService.initialize(navKey: navigatorKey);
+  // Init FCM + local notifications
+  await NotificationService.initialize(navKey: navigatorKey);
 
   runApp(const MyApp());
 }

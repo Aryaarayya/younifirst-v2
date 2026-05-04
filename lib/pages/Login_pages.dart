@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/pages/lupa_katasandi/Lupa_katasandi.dart';
 import 'package:younifirst_app/widgets/bottom_navbar.dart';
 import 'package:younifirst_app/services/auth_service.dart';
+import 'package:younifirst_app/services/notification_service.dart';
 
 class Login_pages extends StatefulWidget {
   const Login_pages({super.key});
@@ -25,15 +26,13 @@ class _Login_pagesState extends State<Login_pages> {
     }
 
     try {
-      // Menggunakan login payload sesuai request (loginWithFirebase)
-      
-      // TODO: Ganti dengan token FCM asli dari FirebaseMessaging.instance.getToken()
-      String dummyFcmToken = "fcm_token_dummy_dari_perangkat_flutter_123";
+      // Mengambil FCM Token asli dari FirebaseMessaging (melalui NotificationService)
+      String fcmToken = await NotificationService.getFcmToken() ?? "fcm_token_dummy_dari_perangkat_flutter_123";
       
       await AuthService.loginWithFirebase(
         email: _emailController.text,
         password: _passwordController.text,
-        fcmToken: dummyFcmToken,
+        fcmToken: fcmToken,
       );
       return true; // Jika sukses
     } catch (e) {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "932459408663",
+    "project_id": "younifirst-app",
+    "storage_bucket": "younifirst-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932459408663:android:854b114f4c951f322fdb52",
+        "android_client_info": {
+          "package_name": "com.younifirst"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC436ZedN5JdE4O-GD0jTlJtyJSnbsuscE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
