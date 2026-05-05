@@ -91,11 +91,11 @@ class _SplashscreenState extends State<Splashscreen>
   Widget build(BuildContext context) {
     final double w = MediaQuery.of(context).size.width;
 
-    // Ukuran responsif berdasarkan lebar layar
-    final double logoSize   = w * 0.40;   // lingkaran utama
-    final double topiSize   = w * 0.38;   // topi wisuda (sedikit lebih lebar dari logo)
-    final double bintangSize = w * 0.10;  // bintang kecil
-    final double textWidth  = w * 0.50;   // teks Younifirst
+    // Ukuran responsif berdasarkan lebar layar disesuaikan dengan desain
+    final double logoSize   = w * 0.35;   // Lingkaran utama ("C")
+    final double topiSize   = w * 0.46;   // Topi wisuda (lebih lebar dari "C")
+    final double bintangSize = w * 0.11;  // Bintang kecil
+    final double textWidth  = w * 0.55;   // Teks Younifirst
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,7 +107,7 @@ class _SplashscreenState extends State<Splashscreen>
 
             // ─── Grup Logo (Topi + Lingkaran + Bintang) ───
             SizedBox(
-              width: logoSize + bintangSize,
+              width: logoSize, // Gunakan logoSize sebagai acuan tengah
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
@@ -131,9 +131,9 @@ class _SplashscreenState extends State<Splashscreen>
                     ),
                   ),
 
-                  // 🎓 Topi Wisuda — tepat di atas logo, overlap ke bawah
+                  // 🎓 Topi Wisuda — tepat di atas logo, overlap ke bawah agar menyatu
                   Positioned(
-                    top: -(topiSize * 0.38),
+                    top: -(topiSize * 0.10), // Disesuaikan: angka negatif diperkecil agar topi lebih turun dan menyatu
                     child: SlideTransition(
                       position: topAnimation,
                       child: FadeTransition(
@@ -146,10 +146,10 @@ class _SplashscreenState extends State<Splashscreen>
                     ),
                   ),
 
-                  // ✨ Bintang — pojok kanan atas logo
+                  // ✨ Bintang — menempel di kanan "C"
                   Positioned(
-                    top: logoSize * 0.05,
-                    right: 0,
+                    top: logoSize * 0.2,
+                    right: -(bintangSize * 0.1), // Disesuaikan: agar bintang sedikit bersinggungan/menyentuh tepi "C"
                     child: SlideTransition(
                       position: rightAnimation,
                       child: FadeTransition(
@@ -165,7 +165,7 @@ class _SplashscreenState extends State<Splashscreen>
               ),
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: 40), // Jarak antara logo dan teks diperbesar sedikit
 
             // 📝 Younifirst (dari bawah)
             SlideTransition(
