@@ -1,44 +1,46 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:younifirst_app/models/chat_message_model.dart';
 import 'package:younifirst_app/services/auth_service.dart';
 
-/// ChatService menggunakan Firebase Firestore untuk real-time chat.
+/// ChatService menggunakan Firebase Realtime Database untuk real-time chat.
 class ChatService {
-  static final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static final FirebaseDatabase _db = FirebaseDatabase.instance;
 
-  // ─── Real-time stream (onSnapshot) ──────────────────────────────────────────
-  /// Menghasilkan Stream pesan dari Firestore.
+  // ─── Real-time stream ────────────────────────────────────────────────────────
+  /// Menghasilkan Stream pesan dari Realtime Database.
   static Stream<List<ChatMessageModel>> getMessagesStream(String teamId) {
-    return _db
-        .collection('rooms')
-        .doc(teamId)
-        .collection('messages')
-        .orderBy('created_at', descending: false)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id; // Menyimpan ID dokumen
-        
-        // Konversi Timestamp dari Firestore menjadi String ISO 8601
-        if (data['created_at'] is Timestamp) {
-          data['created_at'] = (data['created_at'] as Timestamp).toDate().toIso8601String();
-        } else if (data['created_at'] == null) {
-          data['created_at'] = DateTime.now().toIso8601String(); // Fallback jika pesan baru saja dikirim dan belum di-sync
+    final ref = _db.ref('rooms/$teamId/messages');
+
+    return ref.orderByChild('created_at').onValue.map((event) {
+      final data = event.snapshot.value;
+      if (data == null) return [];
+
+      final Map<dynamic, dynamic> rawMap = data as Map<dynamic, dynamic>;
+
+      final List<ChatMessageModel> messages = rawMap.entries.map((entry) {
+        final Map<String, dynamic> msgData =
+            Map<String, dynamic>.from(entry.value as Map);
+
+        // Gunakan key dokumen sebagai ID
+        msgData['id'] = entry.key.toString();
+
+        // Pastikan field 'message' ada (support field 'text' juga)
+        if (msgData['text'] != null && msgData['message'] == null) {
+          msgData['message'] = msgData['text'];
         }
 
-        // Support untuk mapping 'text' -> 'message' karena model mungkin mencari 'message'
-        if (data['text'] != null && data['message'] == null) {
-          data['message'] = data['text'];
-        }
-
-        return ChatMessageModel.fromJson(data);
+        return ChatMessageModel.fromJson(msgData);
       }).toList();
+
+      // Urutkan berdasarkan created_at ascending
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+      return messages;
     });
   }
 
-  // ─── POST message (Firestore add) ──────────────────────────────────────────
+  // ─── POST message (Realtime Database push) ───────────────────────────────────
   static Future<void> sendMessage(String teamId, String message) async {
     try {
       final userId = AuthService.loggedInUserId;
@@ -48,17 +50,16 @@ class ChatService {
         throw Exception('Anda belum login.');
       }
 
-      await _db
-          .collection('rooms')
-          .doc(teamId)
-          .collection('messages')
-          .add({
-        'message': message, // Field pesan
-        'text': message, // Opsional, sesuai contoh yang Anda berikan
+      final ref = _db.ref('rooms/$teamId/messages');
+      final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch;
+
+      await ref.push().set({
+        'message': message,
+        'text': message,
         'sender_id': userId,
         'sender_name': userName,
         'team_id': teamId,
-        'created_at': FieldValue.serverTimestamp(), // Waktu server
+        'created_at': timestamp, // Milliseconds epoch untuk sorting
       });
     } catch (e) {
       throw Exception('Gagal mengirim pesan: $e');
