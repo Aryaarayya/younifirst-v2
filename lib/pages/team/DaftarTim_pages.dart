@@ -48,9 +48,13 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
       _showSuccessDialog();
     } catch (e) {
       if (!mounted) return;
+      String errorMsg = e.toString().replaceAll('Exception: ', '');
+      if (errorMsg.contains("already a member or have a pending request")) {
+        errorMsg = "Anda sudah menjadi anggota atau memiliki pengajuan yang sedang diproses.";
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text(errorMsg),
             backgroundColor: Colors.red),
       );
     } finally {

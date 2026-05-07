@@ -200,7 +200,6 @@ class TeamApiService {
         body: jsonEncode({
           'action': action, // 'accept' or 'reject'
           'status': statusVal, // fallback if backend expects 'status'
-          '_method': 'PUT' // in case backend uses PUT
         }), 
       );
       print('RESPOND API RESPONSE [${response.statusCode}]: ${response.body}');

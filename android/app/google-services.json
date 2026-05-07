@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "932459408663",
+    "firebase_url": "https://younifirst-app-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "younifirst-app",
     "storage_bucket": "younifirst-app.firebasestorage.app"
   },

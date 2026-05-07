@@ -6,7 +6,7 @@
     <application
         android:label="Younifirst"
         android:name="${applicationName}"
-        android:icon="@mipmap/logo">
+        android:icon="@mipmap/logo_aplikasi">
         <activity
             android:name=".MainActivity"
             android:exported="true"

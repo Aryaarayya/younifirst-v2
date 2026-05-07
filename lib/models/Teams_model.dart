@@ -36,10 +36,19 @@ class TeamModel {
           .map((m) => (m['name'] ?? m['user_name'] ?? '').toString())
           .where((n) => n.isNotEmpty)
           .toList();
-      // Check if current user is in the members list
       if (currentUserId != null) {
-        memberFound = members.any((m) =>
-            m['user_id']?.toString() == currentUserId);
+        memberFound = members.any((m) {
+          final uid1 = m['user_id']?.toString();
+          final uid2 = m['id']?.toString();
+          final uid3 = m['member_id']?.toString();
+          final nestedUid1 = m['user']?['id']?.toString();
+          final nestedUid2 = m['user']?['user_id']?.toString();
+          return uid1 == currentUserId || 
+                 uid2 == currentUserId || 
+                 uid3 == currentUserId || 
+                 nestedUid1 == currentUserId || 
+                 nestedUid2 == currentUserId;
+        });
       }
     }
     final isOwner = currentUserId != null && createdBy == currentUserId;

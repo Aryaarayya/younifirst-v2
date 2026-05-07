@@ -43,70 +43,46 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      body: Stack(
-        children: [
-          Container(
-            height: 200,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF3D5AFE), Color(0xFF1A237E)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Tim Saya',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Text(
-                        'Tim Saya',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.refresh, color: Colors.white),
-                        onPressed: _load,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                              color: Colors.white))
-                      : _error != null
-                          ? _buildError()
-                          : _teams.isEmpty
-                              ? _buildEmpty()
-                              : RefreshIndicator(
-                                  onRefresh: _load,
-                                  color: const Color(0xFF3D5AFE),
-                                  child: ListView.builder(
-                                    padding: const EdgeInsets.all(16),
-                                    itemCount: _teams.length,
-                                    itemBuilder: (_, i) =>
-                                        _buildTeamCard(_teams[i]),
-                                  ),
-                                ),
-                ),
-              ],
-            ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black),
+            onPressed: () {},
           ),
         ],
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF3D5AFE)))
+            : _error != null
+                ? _buildError()
+                : _teams.isEmpty
+                    ? _buildEmpty()
+                    : RefreshIndicator(
+                        onRefresh: _load,
+                        color: const Color(0xFF3D5AFE),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _teams.length,
+                          itemBuilder: (_, i) => _buildTeamCard(_teams[i]),
+                        ),
+                      ),
       ),
     );
   }
@@ -126,10 +102,7 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-              color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
-        ],
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,92 +114,217 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8EAFF),
+                      color: const Color(0xFFEEF2FF),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.groups_outlined,
-                        color: Color(0xFF3D5AFE), size: 18),
+                        color: Color(0xFF3D5AFE), size: 20),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Text(
                     t.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
+                        fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                 ],
               ),
               _statusChip(displayStatus),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           // Lomba
-          Text(
-            '→ ${t.lombaName}',
-            style: const TextStyle(
-                color: Color(0xFF3D5AFE),
-                fontWeight: FontWeight.w500,
-                fontSize: 13),
+          Row(
+            children: [
+              const Icon(Icons.arrow_forward, size: 18, color: Color(0xFF3D5AFE)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  t.lombaName,
+                  style: const TextStyle(
+                      color: Color(0xFF3D5AFE),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
 
           // Desc
           Text(
             t.description,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: Colors.black54),
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
           ),
+          const SizedBox(height: 12),
+          Divider(color: Colors.grey.shade200, height: 1),
           const SizedBox(height: 12),
 
-          // Stats
-          Text(
-            '${t.joinedMembers}/${t.maxMembers} Anggota',
-            style: const TextStyle(
-                color: Color(0xFF3D5AFE),
-                fontWeight: FontWeight.w500,
-                fontSize: 12),
+          // Stats (Avatars + Count)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: List.generate(
+                  t.joinedMembers.clamp(0, 4),
+                  (i) => Align(
+                    widthFactor: 0.7,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Colors.grey[300],
+                        child: t.memberNames.length > i
+                            ? Text(
+                                t.memberNames[i][0].toUpperCase(),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black54),
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                '${t.joinedMembers}/${maxMm} Anggota',
+                style: const TextStyle(
+                    color: Color(0xFF3D5AFE),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Action buttons
           if (!isPending)
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
+            if (t.isOwner)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeamApplicationsPage(
+                            teamId: t.id,
+                            teamName: t.name,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.description_outlined,
+                          size: 16, color: Color(0xFF3D5AFE)),
+                      label: const Text(
+                        'Lihat Lamaran Masuk',
+                        style: TextStyle(
+                            color: Color(0xFF3D5AFE),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF3D5AFE)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => TeamApplicationsPage(
-                          teamId: t.id,
-                          teamName: t.name,
-                        ),
+                        builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
                       ),
-                    ),
-                    icon: const Icon(Icons.description_outlined,
-                        size: 16, color: Color(0xFF3D5AFE)),
-                    label: const Text(
-                      'Lamaran Masuk',
-                      style: TextStyle(
-                          color: Color(0xFF3D5AFE),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFF3D5AFE)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                          borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Chat Tim',
+                          style: TextStyle(
+                              color: Color(0xFF3D5AFE),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF3D5AFE)),
+                      ],
                     ),
                   ),
+                ],
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: Color(0xFF3D5AFE)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Buka Chat Tim',
+                        style: TextStyle(
+                          color: Color(0xFF3D5AFE),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
+                          Positioned(
+                            right: -4,
+                            top: -4,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Text(
+                                '2',
+                                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 10),
-                _buildChatButton(t),
-              ],
-            )
+              )
           else
             Container(
               width: double.infinity,
@@ -234,8 +332,7 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
               decoration: BoxDecoration(
                 color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(10),
-                border:
-                    Border.all(color: Colors.orange.shade200),
+                border: Border.all(color: Colors.orange.shade200),
               ),
               child: Row(
                 children: [
@@ -250,28 +347,6 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildChatButton(TeamModel t) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              TeamChatPage(teamId: t.id, teamName: t.name),
-        ),
-      ),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFF3D5AFE),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Icon(Icons.chat_bubble_outline,
-            color: Colors.white, size: 20),
       ),
     );
   }

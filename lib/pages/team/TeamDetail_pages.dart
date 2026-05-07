@@ -349,7 +349,33 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                       ),
                     ),
                   ),
-                ] else if (!isOwner) ...[
+                ] else if (t.isMember) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
+                        ),
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                      label: const Text(
+                        'BUKA CHAT TIM',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3D5AFE),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ] else ...[
                   Expanded(child: _buildApplyButton(t)),
                 ],
               ],
