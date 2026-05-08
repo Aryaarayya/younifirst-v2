@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:younifirst_app/pages/announcement/Announcement_pages.dart';
-import 'package:younifirst_app/services/notification_service.dart';
+import 'package:younifirst_app/views/announcement/Announcement_pages.dart';
+import 'package:younifirst_app/services/input/notification_service.dart';
 
 class NotificationBell extends StatefulWidget {
   final Color iconColor;

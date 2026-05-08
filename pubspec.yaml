@@ -25,6 +25,7 @@ dependencies:
   dotted_border: ^3.1.0
   firebase_auth: ^5.7.0
   firebase_database: ^11.1.5
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -50,6 +51,7 @@ flutter:
   - assets/images/item_login.png
   - assets/images/logo.png
   - assets/images/logo_putih.png
+  - assets/images/logo_aplikasi.png
 
   uses-material-design: true
   

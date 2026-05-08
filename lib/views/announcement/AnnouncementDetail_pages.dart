@@ -1,0 +1,323 @@
+import 'package:flutter/material.dart';
+import 'package:younifirst_app/models/Announcement_model.dart';
+import 'package:younifirst_app/views/team/TeamApplications_pages.dart';
+import 'package:younifirst_app/views/team/TeamChat_pages.dart';
+import 'package:younifirst_app/services/api/team_api_service.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
+
+class AnnouncementDetailPage extends StatefulWidget {
+  final AnnouncementModel announcement;
+
+  const AnnouncementDetailPage({Key? key, required this.announcement})
+      : super(key: key);
+
+  @override
+  State<AnnouncementDetailPage> createState() => _AnnouncementDetailPageState();
+}
+
+class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
+  late AnnouncementModel _item;
+
+  @override
+  void initState() {
+    super.initState();
+    _item = widget.announcement;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final category = _item.category ?? 'umum';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      body: Stack(
+        children: [
+          // Header biru
+          Container(
+            height: 200,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3D5AFE), Color(0xFF1A237E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+
+          SafeArea(
+            child: Column(
+              children: [
+                // AppBar custom
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Text(
+                        'Detail Pengumuman',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 48), // placeholder agar judul tetap center
+                    ],
+                  ),
+                ),
+
+                // Card konten
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 100),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 6))
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Badge kategori + status
+                              Row(
+                                children: [
+                                  _CategoryBadge(category: category),
+                                  const SizedBox(width: 8),
+                                  if (_item.status != null)
+                                    _StatusBadge(status: _item.status!),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Judul
+                              Text(
+                                _item.title,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Info user + waktu
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: const Color(0xFFE8EAFF),
+                                    child: Text(
+                                      (_item.userNama ?? 'U').substring(0, 1).toUpperCase(),
+                                      style: const TextStyle(
+                                          color: Color(0xFF3D5AFE),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _item.userNama ?? 'Pengguna',
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                        Text(
+                                          _item.timeAgo,
+                                          style: const TextStyle(
+                                              fontSize: 11, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              const Divider(color: Colors.black12),
+                              const SizedBox(height: 16),
+
+                              // Isi konten
+                              Text(
+                                _item.content,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // ─── Tombol aksi khusus Tim ───────────────────────
+                        if (category == 'team' || category == 'pengajuan_tim')
+                          _TeamActionButtons(announcement: _item),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Helper widgets ────────────────────────────────────────────────────────────
+
+class _CategoryBadge extends StatelessWidget {
+  final String category;
+  const _CategoryBadge({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, Map<String, dynamic>> map = {
+      'event': {'label': 'Event', 'color': Colors.orange, 'icon': Icons.calendar_today},
+      'team': {'label': 'Team', 'color': Colors.green, 'icon': Icons.group},
+      'barang': {'label': 'Barang', 'color': Colors.purple, 'icon': Icons.inventory_2_outlined},
+      'umum': {'label': 'Umum', 'color': const Color(0xFF3D5AFE), 'icon': Icons.campaign_outlined},
+    };
+    final info = map[category] ?? map['umum']!;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: (info['color'] as Color).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(info['icon'] as IconData, color: info['color'] as Color, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            info['label'] as String,
+            style: TextStyle(
+                color: info['color'] as Color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final isConfirmed = status == 'confirmed';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isConfirmed
+            ? Colors.green.withValues(alpha: 0.12)
+            : Colors.orange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        isConfirmed ? '✓ Dikonfirmasi' : '⏳ Menunggu',
+        style: TextStyle(
+          color: isConfirmed ? Colors.green : Colors.orange,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Team Action Buttons ───────────────────────────────────────────────────────
+class _TeamActionButtons extends StatelessWidget {
+  final AnnouncementModel announcement;
+  const _TeamActionButtons({required this.announcement});
+
+  @override
+  Widget build(BuildContext context) {
+    final teamId = announcement.id;
+    final teamName = announcement.title
+        .replaceAll('Pengajuan Tim: ', '')
+        .trim();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TeamApplicationsPage(
+                    teamId: teamId,
+                    teamName: teamName,
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.description_outlined,
+                  color: Color(0xFF3D5AFE), size: 18),
+              label: const Text(
+                'Lihat Lamaran Masuk',
+                style: TextStyle(
+                    color: Color(0xFF3D5AFE),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF3D5AFE)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TeamChatPage(
+                  teamId: teamId,
+                  teamName: teamName,
+                ),
+              ),
+            ),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3D5AFE),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.chat_bubble_outline,
+                  color: Colors.white, size: 22),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

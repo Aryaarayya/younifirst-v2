@@ -1,0 +1,678 @@
+import 'package:flutter/material.dart';
+import 'package:younifirst_app/views/event/UpdateEvent_pages.dart';
+import 'package:younifirst_app/services/api/event_api_service.dart';
+
+class EventDetailPage extends StatefulWidget {
+  final String eventId;
+
+  const EventDetailPage({Key? key, required this.eventId}) : super(key: key);
+
+  @override
+  _EventDetailPageState createState() => _EventDetailPageState();
+}
+
+class _EventDetailPageState extends State<EventDetailPage> {
+  bool _isLoading = true;
+  Map<String, dynamic>? eventData;
+  List<Map<String, dynamic>> relatedEvents = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEventDetail();
+  }
+
+  Future<void> _fetchEventDetail() async {
+    try {
+      final data = await EventApiService.getEventDetail(widget.eventId);
+      
+      // Fetch related events (same category)
+      List<Map<String, dynamic>> related = [];
+      try {
+        final allEvents = await EventApiService.getEvents();
+        final categoryId = data['category_id']?.toString();
+        related = allEvents
+            .map((e) => e.toJson())
+            .where((e) => e['category_id']?.toString() == categoryId && e['id']?.toString() != widget.eventId)
+            .toList()
+            .cast<Map<String, dynamic>>();
+      } catch (e) {
+        print("Gagal mengambil related events: $e");
+      }
+
+      setState(() {
+        eventData = data;
+        relatedEvents = related;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Gagal mengambil detail event: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal memuat event: ${e.toString().replaceAll('Exception: ', '')}")),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _deleteEvent() async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Event'),
+        content: const Text('Apakah Anda yakin ingin menghapus event ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirm) return;
+
+    try {
+      await EventApiService.deleteEvent(widget.eventId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Event berhasil dihapus')),
+        );
+        Navigator.pop(context, true); // Return true so previous page can refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return "Tanggal Belum Ditentukan";
+    try {
+      DateTime dt = DateTime.parse(dateStr);
+      // Hardcode format untuk mockup (Bisa pakai package intl jika butuh dinamis)
+      List<String> months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      List<String> days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      
+      String dayName = days[dt.weekday == 7 ? 0 : dt.weekday];
+      return "$dayName, ${dt.day} ${months[dt.month - 1]} ${dt.year}";
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  String _formatTime(String? start, String? end) {
+    try {
+      String startTime = "";
+      String endTime = "";
+
+      if (start != null && start.isNotEmpty) {
+        DateTime dt = DateTime.parse(start);
+        startTime = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+      }
+      if (end != null && end.isNotEmpty) {
+        DateTime dt = DateTime.parse(end);
+        endTime = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+      }
+
+      if (startTime.isNotEmpty && endTime.isNotEmpty) {
+        return "$startTime - $endTime WIB";
+      } else if (startTime.isNotEmpty) {
+        return "$startTime WIB";
+      }
+      return "Waktu Belum Ditentukan";
+    } catch (e) {
+      return "-";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (eventData == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(backgroundColor: Colors.white, elevation: 0),
+        body: const Center(child: Text("Data event tidak ditemukan.")),
+      );
+    }
+
+    String rawImage = eventData!['image_url'] ?? eventData!['poster'] ?? '';
+    if (rawImage.isNotEmpty && !rawImage.startsWith('http') && !rawImage.startsWith('assets/')) {
+        String path = rawImage.startsWith('/') ? rawImage.substring(1) : rawImage;
+        if (!path.startsWith('storage/')) path = 'storage/$path';
+        rawImage = 'https://enlighten-resupply-usable.ngrok-free.dev/$path';
+    }
+    String imageUrl = rawImage;
+    bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
+    String title = eventData!['title'] ?? 'Tanpa Judul';
+    String location = eventData!['location'] ?? 'Lokasi belum ditentukan';
+    String description = eventData!['description'] ?? 'Belum ada deskripsi untuk event ini.';
+    
+    // Parse category name (jika ada, sesuaikan kalau dari backend beda)
+    String category = "Event";
+    if (eventData!['category_id']?.toString() == "1") category = "Kompetisi";
+    if (eventData!['category_id']?.toString() == "2") category = "Seminar";
+    if (eventData!['category_id']?.toString() == "3") category = "Pameran";
+    if (eventData!['category_id']?.toString() == "4") category = "Turnamen";
+    if (eventData!['category_id']?.toString() == "5") category = "Konser";
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 400.0,
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16.0, top: 8, bottom: 8),
+              child: InkWell(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), shape: BoxShape.circle),
+                  child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+                ),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0, top: 8, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), shape: BoxShape.circle),
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+                    onSelected: (value) async {
+                      if (value == 'bagikan') {
+                        // Logic bagikan
+                      } else if (value == 'laporkan') {
+                        // Logic laporkan
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      const PopupMenuItem(
+                        value: 'bagikan',
+                        child: Row(
+                          children: [Icon(Icons.share_outlined, size: 18), SizedBox(width: 8), Text('Bagikan')],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'laporkan',
+                        child: Row(
+                          children: [Icon(Icons.flag_outlined, size: 18), SizedBox(width: 8), Text('Laporkan')],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Image
+                  isNetworkImage
+                    ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (c,e,s) => _buildPlaceholder())
+                    : _buildPlaceholder(),
+                  
+                  // Expand icon bottom right
+                  Positioned(
+                    bottom: 50,
+                    right: 20,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.unfold_more, color: Colors.white, size: 20),
+                    ),
+                  ),
+
+                  // Curved bottom container overlay
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar (aesthetic)
+                  Center(
+                    child: Container(
+                      width: 60,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title and badge
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, height: 1.3),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3D5AFE),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          category,
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  const Divider(color: Colors.black12, height: 1),
+                  const SizedBox(height: 24),
+
+                  // Date
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: const Color(0xFFF3F6FF), shape: BoxShape.circle),
+                        child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _formatDate(eventData!['start_date']),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatTime(eventData!['start_date'], eventData!['end_date']),
+                              style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Location
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: const Color(0xFFF3F6FF), shape: BoxShape.circle),
+                        child: const Icon(Icons.location_on_rounded, color: Color(0xFF3D5AFE), size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              location,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Area lokasi detail event",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                            ),
+                            const SizedBox(height: 12),
+                            InkWell(
+                              onTap: () {
+                                // Logic maps
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF3D5AFE),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF3D5AFE).withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    )
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.location_on_rounded, color: Colors.white, size: 16),
+                                    SizedBox(width: 8),
+                                    Text("Lihat lokasi di Maps", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+                  const Divider(color: Colors.black12, height: 1),
+                  const SizedBox(height: 24),
+
+                  // Description
+                  const Text("Tentang Event", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Text.rich(
+                    TextSpan(
+                      text: description.length > 200 ? description.substring(0, 200) + "... " : description,
+                      style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
+                      children: [
+                        if (description.length > 200)
+                          const TextSpan(
+                            text: "Lebih banyak...",
+                            style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+                  const Divider(color: Colors.black12, height: 1),
+                  const SizedBox(height: 24),
+
+                  // Author profile
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 28,
+                            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150'),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                eventData!['creator_name'] ?? "rona_naa",
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "1 jam lalu",
+                                style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: const Icon(Icons.favorite, color: Colors.redAccent, size: 28),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  const Divider(color: Colors.black12, height: 1),
+                  const SizedBox(height: 24),
+
+                  // Related Events Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Event Lainnya",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "LIHAT SEMUA",
+                          style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+
+          // Related Events List View
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white,
+              height: 450, // Match list height from Event_pages
+              padding: const EdgeInsets.only(bottom: 30),
+              child: relatedEvents.isEmpty
+                ? const Center(child: Text("Tidak ada event serupa", style: TextStyle(color: Colors.grey)))
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: relatedEvents.length,
+                    itemBuilder: (context, index) {
+                      final ev = relatedEvents[index];
+                      return _buildRelatedEventCard(
+                        id: ev['id']?.toString() ?? '',
+                        title: ev['title'] ?? '',
+                        dateText: ev['start_date'] != null ? _formatDate(ev['start_date']) : 'Tanggal Belum Ditentukan',
+                        locationText: ev['location'] ?? 'Lokasi Belum Ditentukan',
+                        likes: ev['likes_count']?.toString() ?? '0',
+                        imageUrl: ev['image_url'] ?? ev['poster'] ?? '',
+                      );
+                    },
+                  ),
+            ),
+          ),
+          
+          SliverPadding(padding: EdgeInsets.only(bottom: 40)), // Safe area bottom
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey.shade300,
+      child: Image.asset('assets/images/Younifirst.png', fit: BoxFit.cover),
+    );
+  }
+
+  Widget _buildRelatedEventCard({
+    required String id,
+    required String title,
+    required String dateText,
+    required String locationText,
+    required String likes,
+    required String imageUrl,
+  }) {
+    bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
+    if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
+        String path = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+        if (!path.startsWith('storage/')) path = 'storage/$path';
+        imageUrl = 'https://enlighten-resupply-usable.ngrok-free.dev/$path';
+        isNetworkImage = true;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => EventDetailPage(eventId: id)),
+        );
+      },
+      child: Container(
+        width: 280,
+        margin: const EdgeInsets.only(right: 16, bottom: 10, top: 5, left: 5),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  child: isNetworkImage
+                      ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (c,e,s) => _buildPlaceholder())
+                      : _buildPlaceholder(),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_month, size: 16, color: Color(0xFF3D5AFE)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          dateText,
+                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF3D5AFE)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          locationText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Divider(color: Colors.grey.withOpacity(0.2), thickness: 1),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.favorite_border, size: 22, color: Colors.black.withOpacity(0.7)),
+                          const SizedBox(width: 8),
+                          Text(
+                            likes,
+                            style: TextStyle(color: Colors.black.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3D5AFE),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Row(
+                          children: const [
+                            Text("Mulai", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            SizedBox(width: 6),
+                            Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}

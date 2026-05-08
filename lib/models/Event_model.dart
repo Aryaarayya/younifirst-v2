@@ -52,4 +52,17 @@ class EventModel {
       categoryId: json['category_id']?.toString() ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date,
+      'time': time,
+      'location': location,
+      'image_url': imageUrl,
+      'likes_count': likesCount,
+      'category_id': categoryId,
+    };
+  }
 }

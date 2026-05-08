@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:younifirst_app/widgets/bottom_navbar.dart';
-import 'package:younifirst_app/services/notification_service.dart';
-import 'package:younifirst_app/pages/event/EventDetail_pages.dart';
-import 'package:younifirst_app/pages/team/TeamDetail_pages.dart';
-import 'package:younifirst_app/pages/announcement/Announcement_pages.dart';
-import 'pages/Splashscreen.dart';
-import 'pages/Login_pages.dart';
+import 'package:younifirst_app/services/input/notification_service.dart';
+import 'package:younifirst_app/views/event/EventDetail_pages.dart';
+import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
+import 'package:younifirst_app/views/announcement/Announcement_pages.dart';
+import 'views/Splashscreen.dart';
+import 'views/Login_pages.dart';
+import 'package:provider/provider.dart';
+import 'package:younifirst_app/viewmodels/announcement_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/team_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 
 /// Navigator key global untuk navigasi dari notifikasi
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -24,7 +30,18 @@ void main() async {
   // Init FCM + local notifications
   await NotificationService.initialize(navKey: navigatorKey);
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AnnouncementViewModel()),
+        ChangeNotifierProvider(create: (_) => EventViewModel()),
+        ChangeNotifierProvider(create: (_) => TeamViewModel()),
+        ChangeNotifierProvider(create: (_) => BarangViewModel()),
+        ChangeNotifierProvider(create: (_) => ProfilViewModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
