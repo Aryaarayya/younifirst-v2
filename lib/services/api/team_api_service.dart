@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:younifirst_app/services/input/api_client.dart';
 
 class TeamApiService {
@@ -109,9 +110,25 @@ class TeamApiService {
   }
 
   // ─── POST daftar ke tim ───────────────────────────────────────────────────
-  static Future<bool> applyToTeam(String teamId) async {
+  static Future<bool> applyToTeam(String teamId, {Map<String, String>? data, String? filePath}) async {
     try {
-      final response = await ApiClient.post('$endpoint/$teamId/join');
+      final request = ApiClient.multipartRequest('POST', '$endpoint/$teamId/join');
+      
+      if (data != null) {
+        request.fields.addAll(data);
+      }
+
+      if (filePath != null && filePath.isNotEmpty) {
+        // Use http.MultipartFile.fromPath for real file upload
+        request.files.add(await http.MultipartFile.fromPath(
+          'cv', // Expected field name by backend
+          filePath,
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
       } else {

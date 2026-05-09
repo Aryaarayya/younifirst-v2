@@ -16,6 +16,18 @@ class ChatMessageModel {
   });
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
+    String createdAtStr;
+    final rawCreatedAt = json['created_at'];
+    
+    if (rawCreatedAt is int) {
+      // Jika integer (milliseconds from ChatService), ubah ke ISO8601
+      createdAtStr = DateTime.fromMillisecondsSinceEpoch(rawCreatedAt, isUtc: true).toIso8601String();
+    } else if (rawCreatedAt is String) {
+      createdAtStr = rawCreatedAt;
+    } else {
+      createdAtStr = DateTime.now().toIso8601String();
+    }
+
     return ChatMessageModel(
       id: json['id']?.toString() ?? json['message_id']?.toString() ?? '',
       teamId: json['team_id']?.toString() ?? '',
@@ -26,7 +38,7 @@ class ChatMessageModel {
           json['user_name'] ??
           'Anggota',
       message: json['message']?.toString() ?? json['content']?.toString() ?? '',
-      createdAt: json['created_at']?.toString() ?? DateTime.now().toIso8601String(),
+      createdAt: createdAtStr,
     );
   }
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GlobalTeamApplicationsPage extends StatefulWidget {
   const GlobalTeamApplicationsPage({Key? key}) : super(key: key);
@@ -13,15 +15,17 @@ class GlobalTeamApplicationsPage extends StatefulWidget {
 class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage> {
   List<TeamModel> _myTeams = [];
   List<Map<String, dynamic>> _allApplications = [];
+  Map<String, List<Map<String, dynamic>>> _groupedApplications = {};
+  Set<String> _expandedTeamIds = {};
   bool _isLoading = true;
   String? _error;
   String _selectedFilter = 'Semua';
 
   final List<Map<String, dynamic>> _filters = [
-    {'label': 'Semua', 'icon': Icons.check_circle, 'color': Colors.blue},
-    {'label': 'Menunggu', 'icon': Icons.access_time, 'color': Colors.blue},
-    {'label': 'Diterima', 'icon': Icons.check_circle_outline, 'color': Colors.blue},
-    {'label': 'Ditolak', 'icon': Icons.cancel_outlined, 'color': Colors.blue},
+    {'label': 'Semua', 'icon': Icons.check_circle_rounded},
+    {'label': 'Menunggu', 'icon': Icons.access_time_rounded},
+    {'label': 'Diterima', 'icon': Icons.check_circle_outline_rounded},
+    {'label': 'Ditolak', 'icon': Icons.cancel_outlined},
   ];
 
   @override
@@ -38,32 +42,47 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     try {
       final teams = await TeamApiService.getMyTeams();
       
-      // If the user has teams, fetch applications for all of them
-      List<Map<String, dynamic>> apps = [];
-      for (var t in teams) {
-        if (t.isOwner || t.isMember) { // Only fetch if they have some management role, though any of myTeams works
-          try {
-            final teamApps = await TeamApiService.getTeamApplications(
-              t.id,
-              status: _selectedFilter.toLowerCase(),
-            );
-            // attach team info
-            for (var a in teamApps) {
-              a['team_name'] = t.name;
-              a['team_id'] = t.id;
-              print('DEBUG GLOBAL APP PARSED: $a');
-            }
-            apps.addAll(teamApps);
-          } catch (e) {
-            // ignore error for a single team and continue
+      // Filter only teams where the user is the owner
+      final ownerTeams = teams.where((t) => t.isOwner).toList();
+      
+      Map<String, List<Map<String, dynamic>>> grouped = {};
+      List<Map<String, dynamic>> allApps = [];
+
+      for (var t in ownerTeams) {
+        try {
+          final teamApps = await TeamApiService.getTeamApplications(
+            t.id,
+            status: _selectedFilter.toLowerCase(),
+          );
+
+          // attach team info and filter out the owner
+          final filteredApps = teamApps.where((a) {
+            final applicantId = a['user_id']?.toString() ?? a['member_id']?.toString() ?? '';
+            return applicantId != t.createdBy;
+          }).toList();
+
+          for (var a in filteredApps) {
+            a['team_name'] = t.name;
+            a['team_id'] = t.id;
           }
+          
+          grouped[t.id] = filteredApps;
+          allApps.addAll(filteredApps);
+          
+          // Default expand teams that have applications
+          if (filteredApps.isNotEmpty) {
+            _expandedTeamIds.add(t.id);
+          }
+        } catch (e) {
+          grouped[t.id] = [];
         }
       }
 
       if (mounted) {
         setState(() {
-          _myTeams = teams;
-          _allApplications = apps;
+          _myTeams = ownerTeams;
+          _allApplications = allApps;
+          _groupedApplications = grouped;
         });
       }
     } catch (e) {
@@ -82,19 +101,29 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     _loadData();
   }
 
+  void _toggleExpand(String teamId) {
+    setState(() {
+      if (_expandedTeamIds.contains(teamId)) {
+        _expandedTeamIds.remove(teamId);
+      } else {
+        _expandedTeamIds.add(teamId);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: false,
         title: const Text('Lamaran Masuk',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -105,31 +134,26 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
-          child: Column(
-            children: [
-              Divider(height: 1, color: Colors.grey.shade200),
-              Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                alignment: Alignment.centerLeft,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _filters.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final f = _filters[index];
-                    final isSelected = _selectedFilter == f['label'];
-                    return _buildFilterChip(
-                      label: f['label'],
-                      icon: f['icon'],
-                      isSelected: isSelected,
-                      onTap: () => _onFilterChanged(f['label']),
-                    );
-                  },
-                ),
-              ),
-              Divider(height: 1, color: Colors.grey.shade200),
-            ],
+          child: Container(
+            color: Colors.white,
+            height: 60,
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: _filters.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final f = _filters[index];
+                final isSelected = _selectedFilter == f['label'];
+                return _buildFilterChip(
+                  label: f['label'],
+                  icon: f['icon'],
+                  isSelected: isSelected,
+                  onTap: () => _onFilterChanged(f['label']),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -140,18 +164,18 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
               ? _buildError()
               : _myTeams.isEmpty
                   ? _buildEmptyNoTeams()
-                  : _allApplications.isEmpty
-                      ? _buildEmptyNoApps()
-                      : RefreshIndicator(
-                          onRefresh: _loadData,
-                          color: const Color(0xFF3D5AFE),
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _allApplications.length,
-                            itemBuilder: (_, i) =>
-                                _buildApplicationCard(_allApplications[i]),
-                          ),
-                        ),
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      color: const Color(0xFF3D5AFE),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        itemCount: _myTeams.length,
+                        itemBuilder: (_, i) {
+                          final team = _myTeams[i];
+                          return _buildTeamSection(team);
+                        },
+                      ),
+                    ),
     );
   }
 
@@ -167,9 +191,10 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF3D5AFE) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE).withOpacity(0.5),
+            color: isSelected ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE).withOpacity(0.4),
+            width: 1,
           ),
         ),
         child: Row(
@@ -177,16 +202,16 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 18,
               color: isSelected ? Colors.white : const Color(0xFF3D5AFE),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? Colors.white : const Color(0xFF3D5AFE),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 13,
+                fontSize: 14,
               ),
             ),
           ],
@@ -195,23 +220,113 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     );
   }
 
+  Widget _buildTeamSection(TeamModel team) {
+    final apps = _groupedApplications[team.id] ?? [];
+    final isExpanded = _expandedTeamIds.contains(team.id);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          // Header Tim
+          InkWell(
+            onTap: () => _toggleExpand(team.id),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8EAFF),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.groups_outlined,
+                        color: Color(0xFF3D5AFE), size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          team.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                        Text(
+                          '${apps.length} lamaran',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    color: Colors.grey.shade400,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          if (isExpanded) ...[
+            if (apps.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 20),
+                child: Text('Belum ada lamaran', style: TextStyle(color: Colors.grey)),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                itemCount: apps.length,
+                separatorBuilder: (_, __) => Divider(height: 32, color: Colors.grey.shade100),
+                itemBuilder: (_, i) => _buildApplicationCard(apps[i]),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildApplicationCard(Map<String, dynamic> app) {
-    final name = app['user_name'] ??
-        app['user']?['name'] ??
-        app['applicant_name'] ??
-        'Pelamar';
-    final status = (app['member_status'] ?? app['status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? app['id']?.toString() ?? '';
-    final email = app['user_email']?.toString() ?? '';
-    final nim = app['nim']?.toString() ?? '';
-    final teamName = app['team_name'] ?? 'Tim';
+    final name = app['user_name'] ?? app['user']?['name'] ?? 'Pelamar';
+    final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
+    final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? '';
     final teamId = app['team_id'] ?? '';
+    final role = app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final createdAt = app['created_at']?.toString() ?? '';
-    String timeAgo = '';
+    final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung dengan tim ini...';
+    final cvUrl = app['cv'] ?? app['cv_url'] ?? app['cv_path'] ?? '';
+    
+    String timeAgo = 'Baru saja';
     try {
       final dt = DateTime.parse(createdAt).toLocal();
       final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 60) {
+      if (diff.inSeconds < 60) {
+        timeAgo = '${diff.inSeconds} dtk lalu';
+      } else if (diff.inMinutes < 60) {
         timeAgo = '${diff.inMinutes} mnt lalu';
       } else if (diff.inHours < 24) {
         timeAgo = '${diff.inHours} jam lalu';
@@ -220,94 +335,228 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
       }
     } catch (_) {}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: const Color(0xFFE8EAFF),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                      color: Color(0xFF3D5AFE),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 50,
+                height: 50,
+                color: const Color(0xFFE8EAFF),
+                child: (app['user_photo'] != null) 
+                  ? Image.network(app['user_photo'], fit: BoxFit.cover)
+                  : Center(
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text('Mendaftar ke $teamName',
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF3D5AFE), fontWeight: FontWeight.w500)),
-                    if (timeAgo.isNotEmpty)
-                      Text(timeAgo,
-                          style: const TextStyle(
-                              fontSize: 11, color: Colors.grey)),
-                  ],
-                ),
+                          color: Color(0xFF3D5AFE),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
               ),
-              _statusChip(status),
-            ],
-          ),
-
-          // Accept / Reject buttons for pending
-          if (status == 'pending' && memberId.isNotEmpty && teamId.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _handleRespond(teamId, memberId, 'reject'),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    child: const Text('Tolak',
-                        style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      _statusBadge(status),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _handleRespond(teamId, memberId, 'accept'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3D5AFE),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      elevation: 0,
-                    ),
-                    child: const Text('Terima',
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        role,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF3D5AFE),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        timeAgo,
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13)),
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          bio,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey.shade600,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            if (status == 'pending') ...[
+              Expanded(
+                child: _actionButton(
+                  label: 'Tolak',
+                  icon: Icons.close_rounded,
+                  color: Colors.red,
+                  isFilled: false,
+                  onTap: () => _handleRespond(teamId, memberId, 'reject'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _actionButton(
+                  label: 'Terima',
+                  icon: Icons.check_rounded,
+                  color: Colors.green,
+                  isFilled: false,
+                  onTap: () => _handleRespond(teamId, memberId, 'accept'),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              flex: 2,
+              child: _actionButton(
+                label: 'Lihat Detail CV',
+                icon: Icons.assignment_outlined,
+                color: const Color(0xFF3D5AFE),
+                isFilled: true,
+                showArrow: true,
+                onTap: () async {
+                  if (cvUrl.isNotEmpty) {
+                    final uri = Uri.parse(cvUrl);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Tidak dapat membuka CV')),
+                      );
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('CV tidak tersedia')),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _actionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isFilled,
+    bool showArrow = false,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isFilled ? color : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: isFilled ? null : Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: isFilled ? Colors.white : color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isFilled ? Colors.white : color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (showArrow) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_rounded, size: 14, color: Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    Color color;
+    String label;
+    IconData icon;
+    
+    if (['accepted', 'approved', 'active', 'diterima', 'setuju'].contains(status)) {
+      color = Colors.green;
+      label = 'Diterima';
+      icon = Icons.check_circle_outline_rounded;
+    } else if (['rejected', 'ditolak', 'tidak setuju'].contains(status)) {
+      color = Colors.red;
+      label = 'Ditolak';
+      icon = Icons.cancel_outlined;
+    } else {
+      color = Colors.orange;
+      label = 'Menunggu';
+      icon = Icons.access_time_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -337,34 +586,6 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     }
   }
 
-  Widget _statusChip(String status) {
-    Color bg;
-    Color fg;
-    String label;
-    if (status == 'accepted' || status == 'approved') {
-      bg = Colors.green.shade100;
-      fg = Colors.green.shade700;
-      label = 'Diterima';
-    } else if (status == 'rejected') {
-      bg = Colors.red.shade100;
-      fg = Colors.red.shade700;
-      label = 'Ditolak';
-    } else {
-      bg = Colors.orange.shade100;
-      fg = Colors.orange.shade800;
-      label = 'Menunggu';
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration:
-          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Text(label,
-          style: TextStyle(
-              color: fg, fontSize: 12, fontWeight: FontWeight.w600)),
-    );
-  }
-
-  // Exact UI from the mockup "Belum ada tim"
   Widget _buildEmptyNoTeams() {
     return Center(
       child: Padding(
@@ -372,24 +593,20 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Using a placeholder icon as illustration, since actual illustration asset is unknown
-            Icon(Icons.person_search_outlined, size: 120, color: const Color(0xFF3D5AFE).withOpacity(0.8)),
+            Icon(Icons.person_search_outlined, size: 100, color: const Color(0xFF3D5AFE).withOpacity(0.5)),
             const SizedBox(height: 24),
             const Text(
               'Belum ada tim',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Colors.black87),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             const Text(
-              'Kamu belum membuat tim. Mulai buat\ntim dan atur lamaran masuk tim disini!',
+              'Kamu belum membuat tim. Mulai buat tim dan atur lamaran masuk di sini!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 14, height: 1.5),
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
+            const SizedBox(height: 24),
+            ElevatedButton(
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
@@ -397,45 +614,12 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                 );
                 if (result == true) _loadData();
               },
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Buat Tim'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3D5AFE),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // UI when there are teams but NO applications
-  Widget _buildEmptyNoApps() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_outlined, size: 80, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            const Text(
-              'Belum ada lamaran',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Colors.black87),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Belum ada pendaftar di tim yang kamu buat.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 14, height: 1.5),
+              child: const Text('Buat Tim', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -452,10 +636,9 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
           const SizedBox(height: 12),
           Text(_error!, textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          ElevatedButton.icon(
+          ElevatedButton(
             onPressed: _loadData,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Coba Lagi'),
+            child: const Text('Coba Lagi'),
           ),
         ],
       ),

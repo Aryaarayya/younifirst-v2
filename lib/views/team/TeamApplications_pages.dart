@@ -180,8 +180,10 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         app['user']?['name'] ??
         app['applicant_name'] ??
         'Pelamar';
-    final status = (app['member_status'] ?? app['status'] ?? 'pending').toString().toLowerCase();
+    final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
     final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? app['id']?.toString() ?? '';
+    final role = app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
+    final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
     final email = app['user_email']?.toString() ?? '';
     final nim = app['nim']?.toString() ?? '';
     final createdAt = app['created_at']?.toString() ?? '';
@@ -243,6 +245,19 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
               ),
               _statusChip(status),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            role,
+            style: const TextStyle(
+                fontSize: 13, color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            bio,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
 
           // Accept / Reject buttons for pending
@@ -320,7 +335,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
     Color bg;
     Color fg;
     String label;
-    if (status == 'accepted' || status == 'approved') {
+    if (['accepted', 'approved', 'active', 'diterima', 'setuju'].contains(status)) {
       bg = Colors.green.shade100;
       fg = Colors.green.shade700;
       label = 'Diterima';

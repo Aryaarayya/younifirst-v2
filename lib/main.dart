@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:younifirst_app/widgets/bottom_navbar.dart';
 import 'package:younifirst_app/services/input/notification_service.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/views/event/EventDetail_pages.dart';
 import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
 import 'package:younifirst_app/views/announcement/Announcement_pages.dart';
@@ -29,6 +30,9 @@ void main() async {
 
   // Init FCM + local notifications
   await NotificationService.initialize(navKey: navigatorKey);
+
+  // Load Auth data (UserID, Token)
+  await AuthService.loadStoredAuth();
 
   runApp(
     MultiProvider(

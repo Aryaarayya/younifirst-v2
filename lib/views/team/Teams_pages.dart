@@ -287,13 +287,14 @@ class _TeamsPageState extends State<TeamsPage> {
           itemCount: filtered.length,
           itemBuilder: (context, index) {
             final t = filtered[index];
-            final uid = AuthService.loggedInUserId;
-            final isOwner = uid != null && t.createdBy == uid;
+            final uid = AuthService.loggedInUserId ?? '';
+            final isOwner = uid.isNotEmpty && t.createdBy == uid;
+            final isMember = t.isMember || isOwner;
             int maxMm = t.maxMembers > 0 ? t.maxMembers : 4;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: _teamCard(t, isOwner, maxMm),
+              child: _teamCard(t, isOwner, isMember, maxMm),
             );
           },
         ),
@@ -301,7 +302,7 @@ class _TeamsPageState extends State<TeamsPage> {
     );
   }
 
-  Widget _teamCard(TeamModel t, bool isOwner, int maxMm) {
+  Widget _teamCard(TeamModel t, bool isOwner, bool isMember, int maxMm) {
     String displayStatus = t.status;
     if (t.status.toLowerCase() == 'approved') {
       displayStatus = t.joinedMembers < maxMm ? 'Open' : 'Full';
@@ -309,6 +310,7 @@ class _TeamsPageState extends State<TeamsPage> {
     
     final isOpen = displayStatus.toLowerCase() == 'open';
     final isPending = displayStatus.toLowerCase() == 'pending';
+    final uid = AuthService.loggedInUserId ?? 'Unknown';
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -424,59 +426,60 @@ class _TeamsPageState extends State<TeamsPage> {
                 ),
               ],
             ),
-            if (t.isMember) ...[
+            if (t.isAcceptedMember) ...[
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: OutlinedButton.icon(
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
                     ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: Color(0xFF3D5AFE)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, 
+                      color: Color(0xFF3D5AFE), size: 18),
+                  label: const Text(
+                    'Buka Chat Tim',
+                    style: TextStyle(
+                      color: Color(0xFF3D5AFE),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Buka Chat Tim',
-                        style: TextStyle(
-                          color: Color(0xFF3D5AFE),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
-                          Positioned(
-                            right: -4,
-                            top: -4,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Text(
-                                '2',
-                                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: Color(0xFF3D5AFE), width: 1.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                ),
+              ),
+            ] else if (t.isMember) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.hourglass_bottom,
+                        color: Colors.blue.shade700, size: 16),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Menunggu Konfirmasi',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
             ],

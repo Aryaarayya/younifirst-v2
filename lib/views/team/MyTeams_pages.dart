@@ -3,7 +3,7 @@ import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
-import 'package:younifirst_app/views/team/TeamApplications_pages.dart';
+import 'package:younifirst_app/views/team/GlobalTeamApplications_pages.dart';
 import 'package:younifirst_app/views/team/TeamChat_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/team_viewmodel.dart';
@@ -205,10 +205,7 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => TeamApplicationsPage(
-                            teamId: t.id,
-                            teamName: t.name,
-                          ),
+                          builder: (_) => const GlobalTeamApplicationsPage(),
                         ),
                       ),
                       icon: const Icon(Icons.description_outlined,
@@ -259,7 +256,7 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                   ),
                 ],
               )
-            else
+            else if (t.isAcceptedMember)
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -311,6 +308,31 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                       ),
                     ],
                   ),
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.hourglass_bottom,
+                        color: Colors.blue.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Menunggu Persetujuan Tim',
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               )
           else

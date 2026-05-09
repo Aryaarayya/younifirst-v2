@@ -3,12 +3,13 @@ import 'package:http/http.dart' as http;
 import 'package:younifirst_app/services/input/auth_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'https://enlighten-resupply-usable.ngrok-free.dev/api';
+  static const String baseUrl = 'https://pointed-nanometer-slam.ngrok-free.dev/api';
 
   static Map<String, String> get headers {
     Map<String, String> h = {
       'ngrok-skip-browser-warning': '69420',
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     };
     if (AuthService.authToken != null) {
       h['Authorization'] = 'Bearer ${AuthService.authToken}';

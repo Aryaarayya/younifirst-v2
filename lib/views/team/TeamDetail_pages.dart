@@ -349,7 +349,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                       ),
                     ),
                   ),
-                ] else if (t.isMember) ...[
+                ] else if (t.isAcceptedMember) ...[
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => Navigator.push(
@@ -372,6 +372,26 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                             borderRadius: BorderRadius.circular(30)),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         elevation: 0,
+                      ),
+                    ),
+                  ),
+                ] else if (t.isMember) ...[
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'MENUNGGU KONFIRMASI',
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
                       ),
                     ),
                   ),

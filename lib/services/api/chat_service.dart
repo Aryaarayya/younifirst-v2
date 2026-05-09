@@ -10,31 +10,31 @@ class ChatService {
   // ─── Real-time stream ────────────────────────────────────────────────────────
   /// Menghasilkan Stream pesan dari Realtime Database.
   static Stream<List<ChatMessageModel>> getMessagesStream(String teamId) {
-    final ref = _db.ref('rooms/$teamId/messages');
+    final ref = _db.ref('chat_rooms/$teamId/messages');
 
     return ref.orderByChild('created_at').onValue.map((event) {
-      final data = event.snapshot.value;
-      if (data == null) return [];
+      final snapshot = event.snapshot;
+      if (!snapshot.exists) return [];
 
-      final Map<dynamic, dynamic> rawMap = data as Map<dynamic, dynamic>;
-
-      final List<ChatMessageModel> messages = rawMap.entries.map((entry) {
+      final List<ChatMessageModel> messages = [];
+      
+      // Menggunakan children agar urutan dari orderByChild tetap terjaga
+      for (final child in snapshot.children) {
+        if (child.value == null) continue;
+        
         final Map<String, dynamic> msgData =
-            Map<String, dynamic>.from(entry.value as Map);
+            Map<String, dynamic>.from(child.value as Map);
 
         // Gunakan key dokumen sebagai ID
-        msgData['id'] = entry.key.toString();
+        msgData['id'] = child.key;
 
-        // Pastikan field 'message' ada (support field 'text' juga)
+        // Pastikan field 'message' ada
         if (msgData['text'] != null && msgData['message'] == null) {
           msgData['message'] = msgData['text'];
         }
 
-        return ChatMessageModel.fromJson(msgData);
-      }).toList();
-
-      // Urutkan berdasarkan created_at ascending
-      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        messages.add(ChatMessageModel.fromJson(msgData));
+      }
 
       return messages;
     });
@@ -50,7 +50,7 @@ class ChatService {
         throw Exception('Anda belum login.');
       }
 
-      final ref = _db.ref('rooms/$teamId/messages');
+      final ref = _db.ref('chat_rooms/$teamId/messages');
       final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch;
 
       await ref.push().set({

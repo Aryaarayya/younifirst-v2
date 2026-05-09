@@ -15,6 +15,14 @@ class AuthService {
   static String? get loggedInUserId => userId;
   static String? get loggedInUserName => userName;
 
+  static Future<void> loadStoredAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    authToken = prefs.getString('auth_token');
+    userId = prefs.getString('user_id');
+    userName = prefs.getString('user_name');
+    debugPrint('🔐 Loaded Auth: UserID=$userId, Token=${authToken != null ? "Exist" : "Null"}');
+  }
+
   static Future<void> logout() async {
     authToken = null;
     userId = null;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class DaftarTimPage extends StatefulWidget {
   final String teamId;
@@ -18,7 +20,8 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
   final TextEditingController _keteranganCtrl = TextEditingController();
   bool _isLoading = false;
   
-  // You can add file picking logic here if needed
+  // Actual file picker logic
+  String? _selectedFilePath;
   String? _selectedFileName;
 
   @override
@@ -40,9 +43,16 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
 
     setState(() => _isLoading = true);
     try {
-      // Saat ini API backend hanya mengirimkan teamId tanpa payload form.
-      // Jika nanti backend sudah update, kita bisa mengirim file dan form data di sini.
-      await TeamApiService.applyToTeam(widget.teamId);
+      await TeamApiService.applyToTeam(
+        widget.teamId, 
+        data: {
+          'role': _peranCtrl.text,
+          'peran': _peranCtrl.text,
+          'description': _keteranganCtrl.text,
+          'keterangan': _keteranganCtrl.text,
+        },
+        filePath: _selectedFilePath
+      );
 
       if (!mounted) return;
       _showSuccessDialog();
@@ -175,11 +185,24 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
-                      onTap: () {
-                        // Dummy file picker tap
-                        setState(() {
-                          _selectedFileName = "cv_saya.pdf";
-                        });
+                      onTap: () async {
+                        try {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                          );
+
+                          if (result != null) {
+                            setState(() {
+                              _selectedFilePath = result.files.single.path;
+                              _selectedFileName = result.files.single.name;
+                            });
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: Colors.red),
+                          );
+                        }
                       },
                       child: DottedBorder(
                         options: RoundedRectDottedBorderOptions(
