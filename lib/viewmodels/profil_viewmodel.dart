@@ -20,6 +20,8 @@ class ProfilViewModel extends ChangeNotifier {
 
     try {
       final data = await UserApiService.getCurrentUser();
+      debugPrint("📸 User data fetched: $data");
+      debugPrint("📸 Photo field: '${data['photo']}'");
       _userData = data;
     } catch (e) {
       debugPrint("Error fetching user data: $e");

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
@@ -11,7 +12,15 @@ class UserApiService {
     try {
       final response = await ApiClient.get(endpoint);
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        // Laravel biasanya mengembalikan { "data": { ... } } atau langsung { ... }
+        if (decoded is Map<String, dynamic>) {
+          if (decoded.containsKey('data') && decoded['data'] is Map) {
+            return Map<String, dynamic>.from(decoded['data']);
+          }
+          return decoded;
+        }
+        throw Exception('Format response tidak sesuai');
       } else {
         throw Exception('Gagal mengambil data user: ${response.statusCode}');
       }
@@ -29,18 +38,34 @@ class UserApiService {
       request.fields['_method'] = 'PUT';
       request.fields.addAll(data);
 
+      debugPrint('📤 Update URL: ${request.url}');
+      debugPrint('📤 Fields: ${request.fields}');
+      debugPrint('📤 imageFile: $imageFile');
+
       if (imageFile != null) {
+        debugPrint('📤 File exists: ${imageFile.existsSync()}');
+        debugPrint('📤 File path: ${imageFile.path}');
+        debugPrint('📤 File size: ${imageFile.lengthSync()} bytes');
         request.files.add(await http.MultipartFile.fromPath(
           'photo',
           imageFile.path,
         ));
+        debugPrint('📤 Files attached: ${request.files.length}');
+      } else {
+        debugPrint('📤 No image file provided');
       }
 
-      final response = await request.send();
+      debugPrint('📤 Request headers: ${request.headers}');
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      debugPrint('📤 Update profile response: ${response.statusCode} - ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
+      debugPrint('Error updating profile: $e');
       return false;
     }
   }
+
 }
 

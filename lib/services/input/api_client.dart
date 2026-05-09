@@ -41,7 +41,11 @@ class ApiClient {
   static http.MultipartRequest multipartRequest(String method, String endpoint) {
     final url = Uri.parse('$baseUrl/$endpoint');
     final request = http.MultipartRequest(method, url);
-    request.headers.addAll(headers);
+    // Jangan sertakan Content-Type karena multipart/form-data 
+    // akan di-set otomatis oleh library dengan boundary yang benar
+    final multipartHeaders = Map<String, String>.from(headers);
+    multipartHeaders.remove('Content-Type');
+    request.headers.addAll(multipartHeaders);
     return request;
   }
 }

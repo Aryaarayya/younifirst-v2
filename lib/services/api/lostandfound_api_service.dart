@@ -15,7 +15,9 @@ class LostFoundApiService {
   static String getFullUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http')) return path;
-    return 'https://enlighten-resupply-usable.ngrok-free.dev/storage/$path';
+    // Menggunakan base URL yang sama dengan ApiClient
+    final storageBase = ApiClient.baseUrl.replaceAll('/api', '');
+    return '$storageBase/storage/$path';
   }
 
    // --- REST API LOST & FOUND ---
