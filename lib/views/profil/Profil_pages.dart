@@ -87,7 +87,7 @@ class _ProfilPageState extends State<ProfilPage> {
                             radius: 50,
                             backgroundColor: Color(0xFF3D5AF1),
                             backgroundImage: (_userData?['photo'] != null && _userData!['photo'].toString().isNotEmpty)
-                                ? NetworkImage(LostFoundApiService.getFullUrl(_userData!['photo']))
+                                ? NetworkImage('${LostFoundApiService.getFullUrl(_userData!['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}')
                                 : null,
                             child: (_userData?['photo'] == null || _userData!['photo'].toString().isEmpty)
                                 ? Text(

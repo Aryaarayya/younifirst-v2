@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
 
@@ -46,9 +47,29 @@ class UserApiService {
         debugPrint('📤 File exists: ${imageFile.existsSync()}');
         debugPrint('📤 File path: ${imageFile.path}');
         debugPrint('📤 File size: ${imageFile.lengthSync()} bytes');
+        
+        String ext = imageFile.path.split('.').last.toLowerCase();
+        String mimeSubtype = (ext == 'png') ? 'png' : ((ext == 'jpg' || ext == 'jpeg') ? 'jpeg' : 'jpg');
+
         request.files.add(await http.MultipartFile.fromPath(
           'photo',
           imageFile.path,
+          contentType: MediaType('image', mimeSubtype),
+        ));
+        request.files.add(await http.MultipartFile.fromPath(
+          'avatar',
+          imageFile.path,
+          contentType: MediaType('image', mimeSubtype),
+        ));
+        request.files.add(await http.MultipartFile.fromPath(
+          'image',
+          imageFile.path,
+          contentType: MediaType('image', mimeSubtype),
+        ));
+        request.files.add(await http.MultipartFile.fromPath(
+          'profile_photo',
+          imageFile.path,
+          contentType: MediaType('image', mimeSubtype),
         ));
         debugPrint('📤 Files attached: ${request.files.length}');
       } else {

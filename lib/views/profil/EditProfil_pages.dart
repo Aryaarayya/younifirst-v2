@@ -158,7 +158,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
                       backgroundImage: _imageFile != null 
                           ? FileImage(_imageFile!) 
                           : (widget.userData['photo'] != null 
-                              ? NetworkImage(LostFoundApiService.getFullUrl(widget.userData['photo'])) 
+                              ? NetworkImage('${LostFoundApiService.getFullUrl(widget.userData['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}') 
                               : null) as ImageProvider?,
                       child: _imageFile == null && widget.userData['photo'] == null
                           ? Icon(Icons.person, size: 50, color: Color(0xFF3D5AF1))
