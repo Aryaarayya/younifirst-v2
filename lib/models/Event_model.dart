@@ -47,11 +47,32 @@ class EventModel {
       print('⚠️ WARNING: Event ID kosong! Keys tersedia: ${json.keys.toList()}');
     }
 
+    String formattedDate = json['date']?.toString() ?? '';
+    String formattedTime = json['time']?.toString() ?? '';
+    final startDateStr = json['start_date']?.toString();
+
+    if (formattedDate.isEmpty && startDateStr != null && startDateStr.isNotEmpty) {
+      try {
+        DateTime dt = DateTime.parse(startDateStr);
+        List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+        formattedDate = "${dt.day} ${months[dt.month - 1]} ${dt.year}";
+        if (formattedTime.isEmpty) {
+          formattedTime = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB";
+        }
+      } catch (e) {
+        formattedDate = startDateStr;
+      }
+    }
+
+    if (formattedDate.isEmpty) {
+      formattedDate = 'Tanggal tidak diketahui';
+    }
+
     return EventModel(
       id: parsedId,
       title: json['title'] ?? 'Tanpa Judul',
-      date: json['date'] ?? 'Tanggal tidak diketahui',
-      time: json['time'] ?? '',
+      date: formattedDate,
+      time: formattedTime,
       location: json['location'] ?? 'Lokasi tidak diketahui',
       imageUrl: _getFullImageUrl(json['poster_url'] ?? json['poster']),
       likesCount: json['likes_count']?.toString() ?? '0',

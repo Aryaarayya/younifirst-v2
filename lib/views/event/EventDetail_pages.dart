@@ -210,23 +210,31 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
                     onSelected: (value) async {
-                      if (value == 'bagikan') {
+                      if (value == 'edit') {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateEventPage(eventId: widget.eventId)));
+                      } else if (value == 'hapus') {
+                        _deleteEvent();
+                      } else if (value == 'bagikan') {
                         // Logic bagikan
-                      } else if (value == 'laporkan') {
-                        // Logic laporkan
                       }
                     },
                     itemBuilder: (BuildContext context) => [
                       const PopupMenuItem(
-                        value: 'bagikan',
+                        value: 'edit',
                         child: Row(
-                          children: [Icon(Icons.share_outlined, size: 18), SizedBox(width: 8), Text('Bagikan')],
+                          children: [Icon(Icons.edit_outlined, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Edit', style: TextStyle(color: Colors.black87))],
                         ),
                       ),
                       const PopupMenuItem(
-                        value: 'laporkan',
+                        value: 'hapus',
                         child: Row(
-                          children: [Icon(Icons.flag_outlined, size: 18), SizedBox(width: 8), Text('Laporkan')],
+                          children: [Icon(Icons.delete_outline, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Colors.black87))],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'bagikan',
+                        child: Row(
+                          children: [Icon(Icons.share_outlined, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Colors.black87))],
                         ),
                       ),
                     ],
@@ -321,92 +329,107 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const Divider(color: Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
-                  // Date
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: const Color(0xFFF3F6FF), shape: BoxShape.circle),
-                        child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 22),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _formatDate(eventData!['start_date']),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _formatTime(eventData!['start_date'], eventData!['end_date']),
-                              style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Location
-                  Row(
+                  // Date and Location Section
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: const Color(0xFFF3F6FF), shape: BoxShape.circle),
-                        child: const Icon(Icons.location_on_rounded, color: Color(0xFF3D5AFE), size: 22),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              location,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Area lokasi detail event",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
-                            ),
-                            const SizedBox(height: 12),
-                            InkWell(
-                              onTap: () {
-                                // Logic maps
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF3D5AFE),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF3D5AFE).withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    )
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(Icons.location_on_rounded, color: Colors.white, size: 16),
-                                    SizedBox(width: 8),
-                                    Text("Lihat lokasi di Maps", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                                  ],
+                      // Start Date
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                                child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 20),
+                              ),
+                              // Dotted line
+                              Container(
+                                height: 20,
+                                width: 2,
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: List.generate(4, (index) => Container(width: 2, height: 3, color: const Color(0xFF3D5AFE))),
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _formatDate(eventData!['start_date']),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _formatTime(eventData!['start_date'], eventData!['end_date']),
+                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
+                      
+                      // End Date
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                            child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 20),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _formatDate(eventData!['end_date']),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _formatTime(eventData!['start_date'], eventData!['end_date']),
+                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+
+                      // Location
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                            child: const Icon(Icons.location_on_rounded, color: Color(0xFF3D5AFE), size: 20),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -496,37 +519,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           }
                         },
                         child: Container(
-                          width: 55,
-                          height: 55,
+                          width: 50,
+                          height: 50,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
+                            border: Border.all(color: Colors.grey.shade300, width: 1),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                                child: Icon(
-                                  _isLiked ? Icons.favorite : Icons.favorite_border,
-                                  key: ValueKey(_isLiked),
-                                  color: _isLiked ? Colors.redAccent : Colors.grey,
-                                  size: 24,
-                                ),
+                          child: Center(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              child: Icon(
+                                _isLiked ? Icons.favorite : Icons.favorite_border,
+                                key: ValueKey(_isLiked),
+                                color: _isLiked ? Colors.redAccent : Colors.black87,
+                                size: 24,
                               ),
-                              Text(
-                                '$_likesCount',
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

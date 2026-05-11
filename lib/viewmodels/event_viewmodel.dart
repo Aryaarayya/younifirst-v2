@@ -64,15 +64,29 @@ class EventViewModel extends ChangeNotifier {
     try {
       await _loadLikedEvents(); // Reload likes for the current user
       final fetchedEvents = await EventApiService.getEvents();
+      final prefs = await SharedPreferences.getInstance();
       
       _events = fetchedEvents.map((e) {
         bool locallyLiked = _likedEventIds.contains(e.id);
         String finalLikesCount = e.likesCount;
         
-        // Jika di lokal di-like tapi di server count-nya '0', kita tampilkan '1' 
+        // Coba ambil dari cache global jika backend mengembalikan 0
+        if (finalLikesCount == '0' || finalLikesCount == '') {
+          final cachedCount = prefs.getString('global_likes_${e.id}');
+          if (cachedCount != null) {
+            finalLikesCount = cachedCount;
+          }
+        }
+        
+        // Jika di lokal di-like tapi di server count-nya masih '0', kita tampilkan setidaknya '1' 
         // agar user tidak merasa like-nya hilang saat refresh.
         if (locallyLiked && (finalLikesCount == '0' || finalLikesCount == '')) {
           finalLikesCount = '1';
+        }
+        
+        // Update cache global jika backend mengembalikan lebih dari 0
+        if (finalLikesCount != '0' && finalLikesCount != '') {
+          prefs.setString('global_likes_${e.id}', finalLikesCount);
         }
         
         return e.copyWith(
@@ -146,8 +160,10 @@ class EventViewModel extends ChangeNotifier {
     );
     notifyListeners();
     
-    // Simpan ke local storage
+    // Simpan ke local storage (user specific + global likes count)
     await _saveLikedEvents();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('global_likes_${eventId}', _events[index].likesCount);
 
     // 2. Panggil API Backend
     try {
@@ -173,6 +189,9 @@ class EventViewModel extends ChangeNotifier {
           likesCount: serverLikesCount,
         );
         notifyListeners();
+        
+        // Simpan update terakhir dari server ke global cache
+        await prefs.setString('global_likes_${eventId}', serverLikesCount);
       }
     } catch (e) {
       debugPrint('Toggle Like API error: $e');
