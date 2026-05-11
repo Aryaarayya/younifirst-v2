@@ -372,12 +372,13 @@ class _EventPageState extends State<EventPage> {
             final ev = popularEvents[index];
               return _buildEventCard(
                 id: ev.id,
-                imageUrl: ev.imageUrl, // Bisa ditambahkan network logic jika url valid
+                imageUrl: ev.imageUrl,
                 title: ev.title,
                 date: ev.date,
                 time: ev.time,
                 location: ev.location,
                 likes: ev.likesCount,
+                isLiked: ev.isLiked,
                 viewModel: viewModel,
               );
           },
@@ -396,6 +397,7 @@ class _EventPageState extends State<EventPage> {
     required String time,
     required String location,
     required String likes,
+    required bool isLiked,
     required EventViewModel viewModel,
   }) {
     bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
@@ -507,7 +509,19 @@ class _EventPageState extends State<EventPage> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.favorite_border, size: 22, color: Colors.black.withOpacity(0.7)),
+                          GestureDetector(
+                            onTap: () => viewModel.toggleLike(id),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              child: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                key: ValueKey(isLiked),
+                                size: 22,
+                                color: isLiked ? Colors.redAccent : Colors.black.withOpacity(0.7),
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             likes,
@@ -687,7 +701,7 @@ class _EventPageState extends State<EventPage> {
             time: ev.time,
             location: ev.location,
             likes: ev.likesCount,
-            liked: int.tryParse(ev.likesCount) != null && int.parse(ev.likesCount) > 0, // dummy logic for liked statis
+            isLiked: ev.isLiked,
             viewModel: viewModel,
           );
         },
@@ -703,7 +717,7 @@ class _EventPageState extends State<EventPage> {
     required String time,
     required String location,
     required String likes,
-    required bool liked,
+    required bool isLiked,
     required EventViewModel viewModel,
   }) {
     bool isSkeleton = title == "Loading...";
@@ -837,12 +851,20 @@ class _EventPageState extends State<EventPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        children: [
-                          Icon(Icons.favorite_border,
-                              size: 18,
-                              color: isSkeleton
-                                  ? Colors.grey[300]
-                                  : Colors.black.withOpacity(0.6)),
+                         children: [
+                          GestureDetector(
+                            onTap: () => viewModel.toggleLike(id),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              child: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                key: ValueKey(isLiked),
+                                size: 18,
+                                color: isLiked ? Colors.redAccent : Colors.black.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           isSkeleton
                               ? Container(height: 10, width: 15, color: Colors.grey[200])

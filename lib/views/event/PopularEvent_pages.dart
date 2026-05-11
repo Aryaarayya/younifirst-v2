@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/Event_model.dart';
 import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:younifirst_app/views/event/EventDetail_pages.dart';
+import 'package:provider/provider.dart';
+import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
 
 class PopularEventPage extends StatefulWidget {
   @override
@@ -28,10 +30,17 @@ class _PopularEventPageState extends State<PopularEventPage> {
     });
 
     try {
-      final fetchedEvents = await EventApiService.getEvents();
+      final viewModel = context.read<EventViewModel>();
+      await viewModel.fetchEvents();
+      
       setState(() {
-        // Tampilkan semua event (atau filter populer jika backend mendukung)
-        events = fetchedEvents;
+        events = viewModel.events;
+        // Urutkan berdasarkan likes terbanyak
+        events.sort((a, b) {
+          final likesA = int.tryParse(a.likesCount) ?? 0;
+          final likesB = int.tryParse(b.likesCount) ?? 0;
+          return likesB.compareTo(likesA);
+        });
         _filterByCategory();
         isLoading = false;
       });
@@ -217,7 +226,8 @@ class _PopularEventPageState extends State<PopularEventPage> {
             time: ev.time,
             location: ev.location,
             likes: ev.likesCount,
-            liked: int.tryParse(ev.likesCount) != null && int.parse(ev.likesCount) > 0,
+            isLiked: ev.isLiked,
+            eventIndex: index,
           );
         },
       ),
@@ -307,7 +317,8 @@ class _PopularEventPageState extends State<PopularEventPage> {
     required String time,
     required String location,
     required String likes,
-    required bool liked,
+    required bool isLiked,
+    required int eventIndex,
   }) {
     bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
 
@@ -417,7 +428,34 @@ class _PopularEventPageState extends State<PopularEventPage> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.favorite, size: 14, color: liked ? Colors.red : Colors.grey),
+                          GestureDetector(
+                            onTap: () async {
+                              final ev = filteredEvents[eventIndex];
+                              final viewModel = context.read<EventViewModel>();
+                              
+                              // Toggle via ViewModel
+                              await viewModel.toggleLike(ev.id);
+                              
+                              // Update local UI state dari ViewModel
+                              if (mounted) {
+                                setState(() {
+                                  // Cari event terbaru di ViewModel
+                                  final updatedEv = viewModel.events.firstWhere((e) => e.id == ev.id);
+                                  filteredEvents[eventIndex] = updatedEv;
+                                });
+                              }
+                            },
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              child: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                key: ValueKey(isLiked),
+                                size: 14,
+                                color: isLiked ? Colors.redAccent : Colors.grey,
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             likes,

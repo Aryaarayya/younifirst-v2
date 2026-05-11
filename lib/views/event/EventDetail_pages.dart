@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/views/event/UpdateEvent_pages.dart';
 import 'package:younifirst_app/services/api/event_api_service.dart';
+import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:provider/provider.dart';
+import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
 
 class EventDetailPage extends StatefulWidget {
   final String eventId;
@@ -15,6 +18,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
   bool _isLoading = true;
   Map<String, dynamic>? eventData;
   List<Map<String, dynamic>> relatedEvents = [];
+  bool _isLiked = false;
+  int _likesCount = 0;
 
   @override
   void initState() {
@@ -43,6 +48,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       setState(() {
         eventData = data;
         relatedEvents = related;
+        _likesCount = int.tryParse(data['likes_count']?.toString() ?? '0') ?? 0;
+        _isLiked = data['is_liked'] == true || data['is_liked'] == 1;
         _isLoading = false;
       });
     } catch (e) {
@@ -155,7 +162,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (rawImage.isNotEmpty && !rawImage.startsWith('http') && !rawImage.startsWith('assets/')) {
         String path = rawImage.startsWith('/') ? rawImage.substring(1) : rawImage;
         if (!path.startsWith('storage/')) path = 'storage/$path';
-        rawImage = 'https://enlighten-resupply-usable.ngrok-free.dev/$path';
+        rawImage = '${ApiClient.baseUrl.replaceAll('/api', '')}/$path';
     }
     String imageUrl = rawImage;
     bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
@@ -456,21 +463,72 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           ),
                         ],
                       ),
-                      Container(
-                        width: 55,
-                        height: 55,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
+                      GestureDetector(
+                        onTap: () async {
+                          // Toggle like
+                          final wasLiked = _isLiked;
+                          setState(() {
+                            _isLiked = !wasLiked;
+                            _likesCount = wasLiked 
+                                ? (_likesCount - 1).clamp(0, 999999) 
+                                : _likesCount + 1;
+                          });
+                          try {
+                            final result = await EventApiService.toggleLike(widget.eventId);
+                            if (mounted && result['success'] == true) {
+                              setState(() {
+                                _isLiked = result['is_liked'] ?? _isLiked;
+                                _likesCount = int.tryParse(result['likes_count']?.toString() ?? '') ?? _likesCount;
+                              });
+                            }
+                            // Juga update di viewModel agar sinkron
+                            if (mounted) {
+                              context.read<EventViewModel>().toggleLike(widget.eventId);
+                            }
+                          } catch (e) {
+                            // Revert
+                            if (mounted) {
+                              setState(() {
+                                _isLiked = wasLiked;
+                                _likesCount = wasLiked ? _likesCount + 1 : (_likesCount - 1).clamp(0, 999999);
+                              });
+                            }
+                          }
+                        },
+                        child: Container(
+                          width: 55,
+                          height: 55,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                                child: Icon(
+                                  _isLiked ? Icons.favorite : Icons.favorite_border,
+                                  key: ValueKey(_isLiked),
+                                  color: _isLiked ? Colors.redAccent : Colors.grey,
+                                  size: 24,
+                                ),
+                              ),
+                              Text(
+                                '$_likesCount',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: const Icon(Icons.favorite, color: Colors.redAccent, size: 28),
                       ),
                     ],
                   ),
@@ -554,7 +612,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
         String path = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
         if (!path.startsWith('storage/')) path = 'storage/$path';
-        imageUrl = 'https://enlighten-resupply-usable.ngrok-free.dev/$path';
+        imageUrl = '${ApiClient.baseUrl.replaceAll('/api', '')}/$path';
         isNetworkImage = true;
     }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -178,6 +179,28 @@ class EventApiService {
       }
     } catch (e) {
       throw Exception('Gagal menghapus event: $e');
+    }
+  }
+
+  // ─── POST toggle like event ───────────────────────────────────────────
+  static Future<Map<String, dynamic>> toggleLike(String eventId) async {
+    try {
+      final response = await ApiClient.post('$endpoint/$eventId/like');
+      debugPrint('Toggle Like Response: ${response.statusCode} - ${response.body}');
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body);
+        // Backend returns status: 'liked' or 'unliked'
+        final String? status = decoded['status']?.toString().toLowerCase();
+        return {
+          'success': true,
+          'likes_count': decoded['likes_count'] ?? decoded['data']?['likes_count'],
+          'is_liked': status == 'liked' ? true : (status == 'unliked' ? false : null),
+        };
+      } else {
+        throw Exception('Status ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Gagal toggle like event: $e');
     }
   }
 }

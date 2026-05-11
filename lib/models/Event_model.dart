@@ -1,3 +1,5 @@
+import 'package:younifirst_app/services/input/api_client.dart';
+
 class EventModel {
   final String id;
   final String title;
@@ -7,6 +9,8 @@ class EventModel {
   final String imageUrl;
   final String likesCount;
   final String categoryId;
+  final bool? _isLiked;
+  bool get isLiked => _isLiked ?? false;
 
   EventModel({
     required this.id,
@@ -17,7 +21,8 @@ class EventModel {
     required this.imageUrl,
     required this.likesCount,
     this.categoryId = '',
-  });
+    bool isLiked = false,
+  }) : _isLiked = isLiked;
 
   static String _getFullImageUrl(String? path) {
     if (path == null || path.isEmpty) return 'assets/images/Younifirst.png';
@@ -28,7 +33,8 @@ class EventModel {
     if (!cleanPath.startsWith('storage/')) {
       cleanPath = 'storage/$cleanPath';
     }
-    return 'https://enlighten-resupply-usable.ngrok-free.dev/$cleanPath';
+    final storageBase = ApiClient.baseUrl.replaceAll('/api', '');
+    return '$storageBase/$cleanPath';
   }
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +56,24 @@ class EventModel {
       imageUrl: _getFullImageUrl(json['poster_url'] ?? json['poster']),
       likesCount: json['likes_count']?.toString() ?? '0',
       categoryId: json['category_id']?.toString() ?? '',
+      isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
+    );
+  }
+
+  EventModel copyWith({
+    String? likesCount,
+    bool? isLiked,
+  }) {
+    return EventModel(
+      id: id,
+      title: title,
+      date: date,
+      time: time,
+      location: location,
+      imageUrl: imageUrl,
+      likesCount: likesCount ?? this.likesCount,
+      categoryId: categoryId,
+      isLiked: isLiked ?? this.isLiked,
     );
   }
 
@@ -66,3 +90,4 @@ class EventModel {
     };
   }
 }
+
