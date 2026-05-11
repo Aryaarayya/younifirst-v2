@@ -4,6 +4,7 @@ import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
+import 'package:younifirst_app/services/input/api_client.dart';
 
 class UpdateEventPage extends StatefulWidget {
   final String eventId;
@@ -104,7 +105,8 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
         if (rawImage.isNotEmpty && !rawImage.startsWith('http') && !rawImage.startsWith('assets/')) {
            String path = rawImage.startsWith('/') ? rawImage.substring(1) : rawImage;
            if (!path.startsWith('storage/')) path = 'storage/$path';
-           _existingImageUrl = 'https://enlighten-resupply-usable.ngrok-free.dev/$path';
+           final storageBase = ApiClient.baseUrl.replaceAll('/api', '');
+           _existingImageUrl = '$storageBase/$path';
         } else {
            _existingImageUrl = rawImage;
         }
