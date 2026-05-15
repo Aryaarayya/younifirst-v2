@@ -182,7 +182,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
     final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? app['id']?.toString() ?? '';
-    final role = app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
+    final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
     final email = app['user_email']?.toString() ?? '';
     final nim = app['nim']?.toString() ?? '';

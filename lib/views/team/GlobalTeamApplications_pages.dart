@@ -315,7 +315,7 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
     final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? '';
     final teamId = app['team_id'] ?? '';
-    final role = app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
+    final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final createdAt = app['created_at']?.toString() ?? '';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung dengan tim ini...';
     final cvUrl = app['cv'] ?? app['cv_url'] ?? app['cv_path'] ?? '';

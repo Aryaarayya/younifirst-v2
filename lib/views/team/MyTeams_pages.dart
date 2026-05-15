@@ -198,35 +198,10 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
           // Action buttons
           if (!isPending)
             if (t.isOwner)
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const GlobalTeamApplicationsPage(),
-                        ),
-                      ),
-                      icon: const Icon(Icons.description_outlined,
-                          size: 16, color: Color(0xFF3D5AFE)),
-                      label: const Text(
-                        'Lihat Lamaran Masuk',
-                        style: TextStyle(
-                            color: Color(0xFF3D5AFE),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF3D5AFE)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton(
+              if (displayStatus.toLowerCase() == 'full')
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -234,28 +209,88 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       side: const BorderSide(color: Color(0xFF3D5AFE)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'Chat Tim',
+                          'Buka Chat Tim',
+                          style: TextStyle(
+                            color: Color(0xFF3D5AFE),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const GlobalTeamApplicationsPage(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.description_outlined,
+                            size: 16, color: Color(0xFF3D5AFE)),
+                        label: const Text(
+                          'Lihat Lamaran Masuk',
                           style: TextStyle(
                               color: Color(0xFF3D5AFE),
                               fontSize: 12,
                               fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF3D5AFE)),
-                      ],
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF3D5AFE)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              )
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF3D5AFE)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Chat Tim',
+                            style: TextStyle(
+                                color: Color(0xFF3D5AFE),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF3D5AFE)),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
             else if (t.isAcceptedMember)
               SizedBox(
                 width: double.infinity,

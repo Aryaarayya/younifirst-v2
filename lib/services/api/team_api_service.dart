@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http_parser/http_parser.dart';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:http/http.dart' as http;
@@ -83,15 +85,16 @@ class TeamApiService {
   static Future<List<Map<String, dynamic>>> getTeamApplications(
       String teamId, {String? status}) async {
     String query = '';
-    if (status != null && status != 'semua') {
-      if (status == 'menunggu') query = '?status=pending';
-      else if (status == 'diterima') query = '?status=approved';
+    if (status != null) {
+      if (status == 'semua') query = '?status=all';
+      else if (status == 'menunggu') query = '?status=pending';
+      else if (status == 'diterima') query = '?status=active';
       else if (status == 'ditolak') query = '?status=rejected';
       else query = '?status=$status';
     }
 
     try {
-      final response = await ApiClient.get('$endpoint/$teamId/members$query');
+      final response = await ApiClient.get('$endpoint/$teamId/applications$query');
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = jsonDecode(response.body);
         List<dynamic> list = [];
@@ -109,8 +112,38 @@ class TeamApiService {
     }
   }
 
+  // ─── GET lamaran saya ─────────────────────────────────────────────────────
+  static Future<List<Map<String, dynamic>>> getMyApplications({String? status}) async {
+    String query = '';
+    if (status != null) {
+      if (status == 'semua') query = '?status=all';
+      else if (status == 'menunggu') query = '?status=pending';
+      else if (status == 'diterima') query = '?status=active';
+      else if (status == 'ditolak') query = '?status=rejected';
+      else query = '?status=$status';
+    }
+
+    try {
+      final response = await ApiClient.get('$endpoint/my-applications$query');
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body);
+        List<dynamic> list = [];
+        if (decoded is Map && decoded.containsKey('data')) {
+          list = decoded['data'] is List ? decoded['data'] : [];
+        } else if (decoded is List) {
+          list = decoded;
+        }
+        return list.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Gagal memuat lamaran saya: $e');
+    }
+  }
+
   // ─── POST daftar ke tim ───────────────────────────────────────────────────
-  static Future<bool> applyToTeam(String teamId, {Map<String, String>? data, String? filePath}) async {
+  static Future<bool> applyToTeam(String teamId, {Map<String, String>? data, String? filePath, Uint8List? fileBytes, String? fileName}) async {
     try {
       final request = ApiClient.multipartRequest('POST', '$endpoint/$teamId/join');
       
@@ -118,8 +151,16 @@ class TeamApiService {
         request.fields.addAll(data);
       }
 
-      if (filePath != null && filePath.isNotEmpty) {
-        // Use http.MultipartFile.fromPath for real file upload
+      if (fileBytes != null && fileName != null) {
+        final isPdf = fileName.toLowerCase().endsWith('.pdf');
+        request.files.add(http.MultipartFile.fromBytes(
+          'cv',
+          fileBytes,
+          filename: fileName,
+          contentType: MediaType(isPdf ? 'application' : 'image', isPdf ? 'pdf' : 'jpeg'),
+        ));
+      } else if (filePath != null && filePath.isNotEmpty) {
+        // Fallback
         request.files.add(await http.MultipartFile.fromPath(
           'cv', // Expected field name by backend
           filePath,
@@ -160,7 +201,7 @@ class TeamApiService {
   // ─── POST accept/reject lamaran ───────────────────────────────────────────
   static Future<bool> respondToJoin(String teamId, String memberId, String action) async {
     try {
-      final statusVal = action == 'accept' ? 'approved' : 'rejected';
+      final statusVal = action == 'accept' ? 'active' : 'rejected';
       final response = await ApiClient.post(
         '$endpoint/$teamId/members/$memberId/respond',
         body: jsonEncode({

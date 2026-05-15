@@ -72,11 +72,13 @@ class TeamModel {
           bool match = false;
           String mStatus = '';
           if (m is Map) {
-            match = m.values.any((v) {
-              final valStr = v?.toString()?.trim();
-              if (valStr == null) return false;
-              return valStr == cleanUid || (numericUid != null && valStr == numericUid);
-            });
+            final mUserId = m['user_id']?.toString()?.trim() ?? 
+                            m['user']?['id']?.toString()?.trim() ?? 
+                            m['id']?.toString()?.trim();
+                            
+            if (mUserId != null && mUserId.isNotEmpty) {
+              match = mUserId == cleanUid || (numericUid != null && mUserId == numericUid);
+            }
             if (match) {
               mStatus = (m['member_status'] ?? m['status'] ?? m['membership_status'] ?? '').toString().toLowerCase();
             }

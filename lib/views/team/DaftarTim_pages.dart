@@ -3,6 +3,7 @@ import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
 class DaftarTimPage extends StatefulWidget {
   final String teamId;
@@ -23,6 +24,7 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
   // Actual file picker logic
   String? _selectedFilePath;
   String? _selectedFileName;
+  Uint8List? _selectedFileBytes;
 
   @override
   void dispose() {
@@ -46,12 +48,15 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
       await TeamApiService.applyToTeam(
         widget.teamId, 
         data: {
+          'proposed_role': _peranCtrl.text,
+          'description': _keteranganCtrl.text,
           'role': _peranCtrl.text,
           'peran': _peranCtrl.text,
-          'description': _keteranganCtrl.text,
           'keterangan': _keteranganCtrl.text,
         },
-        filePath: _selectedFilePath
+        filePath: _selectedFilePath,
+        fileBytes: _selectedFileBytes,
+        fileName: _selectedFileName,
       );
 
       if (!mounted) return;
@@ -190,12 +195,22 @@ class _DaftarTimPageState extends State<DaftarTimPage> {
                           FilePickerResult? result = await FilePicker.platform.pickFiles(
                             type: FileType.custom,
                             allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                            withData: true,
                           );
 
                           if (result != null) {
+                            final path = result.files.single.path;
+                            Uint8List? bytes = result.files.single.bytes;
+                            
+                            // Jika withData gagal tapi path ada (di mobile), baca manual
+                            if (bytes == null && path != null) {
+                              bytes = await File(path).readAsBytes();
+                            }
+
                             setState(() {
-                              _selectedFilePath = result.files.single.path;
+                              _selectedFilePath = path;
                               _selectedFileName = result.files.single.name;
+                              _selectedFileBytes = bytes;
                             });
                           }
                         } catch (e) {
