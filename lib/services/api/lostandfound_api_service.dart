@@ -182,6 +182,52 @@ class LostFoundApiService {
     }
   }
 
+  static Future<bool> updateLostFound({
+    required String lostFoundId,
+    required String type,
+    required String itemName,
+    required String location,
+    required String description,
+    File? imageFile,
+  }) async {
+    try {
+      // Laravel typically uses POST with _method=PUT for multipart updates
+      var request = ApiClient.multipartRequest('POST', '$endpoint/$lostFoundId');
+      request.fields['_method'] = 'PUT';
+      
+      String status = type == 'Ditemukan' ? 'found' : 'lost';
+      
+      request.fields['item_name'] = itemName;
+      request.fields['description'] = description;
+      request.fields['location'] = location;
+      request.fields['status'] = status;
+
+      if (imageFile != null) {
+        String ext = imageFile.path.split('.').last.toLowerCase();
+        String mimeSubtype = ext == 'png' ? 'png' : 'jpeg';
+        
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'photo',
+            imageFile.path,
+            contentType: MediaType('image', mimeSubtype),
+          ),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      } else {
+        throw Exception('Status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Gagal memperbarui data: $e');
+    }
+  }
+
   static Future<LostFoundModel> getLostFoundById(String id) async {
     try {
       final response = await ApiClient.get('$endpoint/$id');

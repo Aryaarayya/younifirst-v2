@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
+import 'EditBarang_pages.dart';
 
 class BarangPage extends StatefulWidget {
   @override
@@ -21,6 +22,13 @@ class _BarangPageState extends State<BarangPage> {
   // Real-time search variables
   final TextEditingController _searchController = TextEditingController();
   int _unreadNotificationCount = 0;
+  final Set<String> _expandedDescriptions = {};
+  
+  final List<String> _commonEmojis = [
+    '😀', '😂', '😍', '🤣', '😊', '🙏', '😭', '😘', '👍', '✨', 
+    '🔥', '🥰', '👏', '🤔', '🙌', '🎉', '😎', '🤩', '💡', '📍',
+    '📢', '📦', '🔑', '🎒', '📱', '⌚', '💳', '📄', '🚲', '👟'
+  ];
   
   @override
   void initState() {
@@ -406,11 +414,42 @@ class _BarangPageState extends State<BarangPage> {
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opsi ditekan')));
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                padding: EdgeInsets.zero,
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditBarangPage(item: item)),
+                    );
+                    if (result == true) _fetchData();
+                  } else if (value == 'finish') {
+                    _showFinishConfirmation(context, item);
+                  } else if (value == 'report') {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan telah dikirim')));
+                  }
                 },
-                child: const Icon(Icons.more_horiz, color: Colors.black54),
+                itemBuilder: (context) {
+                  bool isOwner = item.userId == AuthService.loggedInUserId;
+                  return [
+                    if (isOwner) ...[
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 8), Text('Edit Postingan')]),
+                      ),
+                      const PopupMenuItem(
+                        value: 'finish',
+                        child: Row(children: [Icon(Icons.check_circle_outline, size: 20), SizedBox(width: 8), Text('Selesaikan')]),
+                      ),
+                    ] else ...[
+                      const PopupMenuItem(
+                        value: 'report',
+                        child: Row(children: [Icon(Icons.report_gmailerrorred, size: 20, color: Colors.red), SizedBox(width: 8), Text('Laporkan', style: TextStyle(color: Colors.red))]),
+                      ),
+                    ]
+                  ];
+                },
               ),
             ],
           ),
@@ -490,17 +529,38 @@ class _BarangPageState extends State<BarangPage> {
           const SizedBox(height: 12),
           
           // Description
-          RichText(
-            text: TextSpan(
-              style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
-              children: [
-                TextSpan(text: '${item.description} '),
-                TextSpan(
-                  text: 'selengkapnya...',
-                  style: TextStyle(color: Colors.grey.shade500),
+          Builder(
+            builder: (context) {
+              bool isExpanded = _expandedDescriptions.contains(item.lostfoundId);
+              bool isLong = item.description.length > 150;
+              String displayDesc = (isLong && !isExpanded) 
+                  ? '${item.description.substring(0, 150)}...' 
+                  : item.description;
+
+              return GestureDetector(
+                onTap: () {
+                  if (isLong) {
+                    setState(() {
+                      if (isExpanded) _expandedDescriptions.remove(item.lostfoundId);
+                      else _expandedDescriptions.add(item.lostfoundId);
+                    });
+                  }
+                },
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+                    children: [
+                      TextSpan(text: '$displayDesc '),
+                      if (isLong)
+                        TextSpan(
+                          text: isExpanded ? 'lebih sedikit' : 'selengkapnya...',
+                          style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.bold),
+                        ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           
@@ -998,7 +1058,7 @@ class _BarangPageState extends State<BarangPage> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {}, // Emoji picker could go here
+                          onTap: () => _showEmojiPicker(context, controller),
                           child: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.black87, size: 22),
                         ),
                       ],
@@ -1118,6 +1178,62 @@ class _BarangPageState extends State<BarangPage> {
       }
     }
   }
+  void _showEmojiPicker(BuildContext context, TextEditingController controller) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          height: 300,
+          child: Column(
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
+              ),
+              const Text("Pilih Emoji", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                  ),
+                  itemCount: _commonEmojis.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        final text = controller.text;
+                        final selection = controller.selection;
+                        final newText = text.replaceRange(
+                          selection.start >= 0 ? selection.start : text.length,
+                          selection.end >= 0 ? selection.end : text.length,
+                          _commonEmojis[index],
+                        );
+                        controller.text = newText;
+                        controller.selection = TextSelection.collapsed(
+                          offset: (selection.start >= 0 ? selection.start : text.length) + _commonEmojis[index].length,
+                        );
+                        Navigator.pop(context);
+                      },
+                      child: Center(
+                        child: Text(_commonEmojis[index], style: const TextStyle(fontSize: 28)),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showProfanityWarning(BuildContext context, List<String> detectedWords) {
     showDialog(
       context: context,
