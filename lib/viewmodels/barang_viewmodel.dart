@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/lost_found_model.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
 
 class BarangViewModel extends ChangeNotifier {
   List<LostFoundModel> _allData = [];
@@ -29,6 +30,9 @@ class BarangViewModel extends ChangeNotifier {
     try {
       final data = await LostFoundApiService.getLostAndFound();
       _allData = data;
+      
+      // Cleanup expired posts belonging to current user in background
+      _cleanupExpiredPosts();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       debugPrint("Fetch Barang Error: $e");
@@ -69,7 +73,28 @@ class BarangViewModel extends ChangeNotifier {
           item.location.toLowerCase().contains(query) ||
           item.userName.toLowerCase().contains(query);
 
-      return matchesFilter && matchesSearch;
+      return matchesFilter && matchesSearch && !item.isExpired;
     }).toList();
   }
+
+  /// Automatically deletes expired posts belonging to the logged-in user from the server.
+  Future<void> _cleanupExpiredPosts() async {
+    final String? currentUserId = AuthService.loggedInUserId;
+    if (currentUserId == null) return;
+
+    final expiredMine = _allData.where((item) => item.isExpired && item.userId == currentUserId).toList();
+    
+    if (expiredMine.isEmpty) return;
+
+    debugPrint("Cleaning up ${expiredMine.length} expired posts...");
+    
+    for (var item in expiredMine) {
+      try {
+        await LostFoundApiService.deleteLostFound(item.lostfoundId);
+      } catch (e) {
+        debugPrint("Failed to auto-delete expired post ${item.lostfoundId}: $e");
+      }
+    }
+  }
 }
+

@@ -40,7 +40,24 @@ class LostFoundModel {
     this.isCompleted = false,
   });
 
+  /// Returns true if the post is older than 7 days.
+  bool get isExpired {
+    if (createdAt == null || createdAt!.isEmpty) return false;
+    try {
+      // Handle standard ISO or YYYY-MM-DD HH:MM:SS formats
+      DateTime createdDate = DateTime.parse(createdAt!);
+      final difference = DateTime.now().difference(createdDate).inDays;
+      return difference > 7;
+    } catch (e) {
+      // If it's a relative time string (like dummy data) or failed to parse,
+      // we assume it's not expired yet or handle manually.
+      // For real API data, this should be a valid date string.
+      return false;
+    }
+  }
+
   // Helper getter for backward compatibility (int id)
+
   int get id {
     return int.tryParse(lostfoundId) ?? lostfoundId.hashCode;
   }
