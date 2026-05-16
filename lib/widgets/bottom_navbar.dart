@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:younifirst_app/views/barang/barang_pages.dart';
 import 'package:younifirst_app/views/event/Event_pages.dart';
 import 'package:younifirst_app/views/Home_pages.dart';
@@ -40,11 +41,11 @@ class _BottomNavbarState extends State<BottomNavbar> {
         },
 
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Event"),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: "Teams"),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: "Barang"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
+          BottomNavigationBarItem(icon: Icon(_currentIndex == 0 ? Icons.home_filled : Icons.home_outlined), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: "Event"),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: "Teams"),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: "Barang"),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profil"),
         ],
       ),
     );
