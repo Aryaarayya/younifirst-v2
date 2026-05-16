@@ -117,7 +117,7 @@ class LostFoundApiService {
 
   static Future<bool> addComment(String lostFoundId, String commentMessage, {String? parentId}) async {
     try {
-      String finalMessage = parentId != null ? '[re:$parentId] $commentMessage' : commentMessage;
+      String finalMessage = (parentId != null && parentId.isNotEmpty) ? '[re:$parentId] $commentMessage' : commentMessage;
       final response = await ApiClient.post(
         '$endpoint/$lostFoundId/comments',
         body: jsonEncode({

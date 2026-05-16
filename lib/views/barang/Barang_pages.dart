@@ -9,6 +9,8 @@ import 'package:younifirst_app/widgets/notification_bell.dart';
 import 'BarangHilang_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
+import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
 
 class BarangPage extends StatefulWidget {
   @override
@@ -251,18 +253,18 @@ class _BarangPageState extends State<BarangPage> {
             padding: EdgeInsets.all(32.0),
             child: CircularProgressIndicator(color: Colors.white),
           ))
-        : viewModel.filteredData.isEmpty
-          ? viewModel.searchQuery.isNotEmpty || viewModel.selectedFilterIndex != 0
+        : viewModel.allData.isEmpty
+          ? _buildStaticFallbackList(viewModel)
+          : viewModel.filteredData.isEmpty
             ? _buildNoResultsFound()
-            : _buildStaticFallbackList(viewModel) // If really empty on server, show fallback for demo
-          : ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: viewModel.filteredData.length,
-              itemBuilder: (context, index) {
-                return _buildBarangCard(viewModel.filteredData[index]);
-              },
-            ),
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: viewModel.filteredData.length,
+                itemBuilder: (context, index) {
+                  return _buildBarangCard(viewModel.filteredData[index]);
+                },
+              ),
     );
   }
 
@@ -329,9 +331,25 @@ class _BarangPageState extends State<BarangPage> {
       ),
     ];
 
-    List<LostFoundModel> displayed = dummyData;
-    if (viewModel.selectedFilterIndex != 0) {
-      displayed = dummyData.where((d) => d.type == viewModel.filters[viewModel.selectedFilterIndex]).toList();
+    String query = viewModel.searchQuery.toLowerCase();
+    List<LostFoundModel> displayed = dummyData.where((item) {
+      // Filter by type
+      bool matchesFilter = true;
+      if (viewModel.selectedFilterIndex != 0) {
+        matchesFilter = item.type == viewModel.filters[viewModel.selectedFilterIndex];
+      }
+
+      // Filter by search query
+      bool matchesSearch = item.itemName.toLowerCase().contains(query) ||
+          item.description.toLowerCase().contains(query) ||
+          item.location.toLowerCase().contains(query) ||
+          item.userName.toLowerCase().contains(query);
+
+      return matchesFilter && matchesSearch;
+    }).toList();
+
+    if (displayed.isEmpty && (viewModel.searchQuery.isNotEmpty || viewModel.selectedFilterIndex != 0)) {
+      return _buildNoResultsFound();
     }
 
     return ListView.builder(
@@ -574,10 +592,27 @@ class _BarangPageState extends State<BarangPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Komentar postingan", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
+                        Row(
+                          children: [
+                            const Text("Komentar postingan", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.read<BarangViewModel>().allData.firstWhere((element) => element.lostfoundId == lostFoundId).commentsCount.toString(),
+                              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.sort, color: Colors.black87),
+                              onPressed: () {},
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
                         )
                       ],
                     ),
@@ -772,15 +807,26 @@ class _BarangPageState extends State<BarangPage> {
     Function(CommentModel) onReply,
     Function(CommentModel) onEdit,
   ) {
+    double horizontalPadding = 16.0;
+    double avatarSize = isReply ? 12 : 16;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.only(
+        left: horizontalPadding, 
+        right: horizontalPadding, 
+        top: 6, 
+        bottom: 6
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
-            radius: isReply ? 14 : 18,
+            radius: avatarSize,
             backgroundColor: const Color(0xFF3D5AFE),
-            child: Text((comment.userName ?? 'U')[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 12)),
+            backgroundImage: comment.userAvatar != null ? NetworkImage(comment.userAvatar!) : null,
+            child: comment.userAvatar == null 
+              ? Text((comment.userName ?? 'U')[0].toUpperCase(), style: TextStyle(color: Colors.white, fontSize: isReply ? 10 : 12))
+              : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -789,33 +835,64 @@ class _BarangPageState extends State<BarangPage> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(comment.userName ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        Text(comment.createdAt.length > 10 ? comment.createdAt.substring(0, 10) : comment.createdAt, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(comment.userName ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              const SizedBox(width: 8),
+                              Text(
+                                _timeAgo(comment.createdAt), 
+                                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            comment.commentTextOnly, 
+                            style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87)
+                          ),
+                        ],
+                      ),
                     ),
                     _buildCommentMenu(comment, onEdit, onRefresh),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(comment.commentTextOnly, style: const TextStyle(fontSize: 14, height: 1.3)),
-                if (!isReply)
-                  GestureDetector(
-                    onTap: () => onReply(comment),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text("Balas", style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => onReply(comment),
+                  child: Text("Balas", style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _timeAgo(String dateTimeString) {
+    if (dateTimeString.isEmpty) return 'Baru saja';
+    try {
+      DateTime dateTime = DateTime.parse(dateTimeString);
+      Duration diff = DateTime.now().difference(dateTime);
+      if (diff.inDays >= 1) {
+        return '${diff.inDays} hari lalu';
+      } else if (diff.inHours >= 1) {
+        return '${diff.inHours} jam lalu';
+      } else if (diff.inMinutes >= 1) {
+        return '${diff.inMinutes} mnt lalu';
+      } else {
+        return 'Baru saja';
+      }
+    } catch (e) {
+      // If it's already a relative string (like in dummy data)
+      return dateTimeString;
+    }
   }
 
   Widget _buildCommentMenu(CommentModel comment, Function(CommentModel) onEdit, VoidCallback onRefresh) {
@@ -858,49 +935,86 @@ class _BarangPageState extends State<BarangPage> {
     String actionText = editingComment != null ? "Mengedit komentar..." : "Membalas ${replyingTo?.userName}...";
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (isDirectAction)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Icon(editingComment != null ? Icons.edit : Icons.reply, size: 16, color: const Color(0xFF3D5AFE)),
+                    Icon(editingComment != null ? Icons.edit : Icons.reply, size: 14, color: const Color(0xFF3D5AFE)),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(actionText, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
-                    GestureDetector(onTap: onCancel, child: const Icon(Icons.cancel, size: 18, color: Colors.grey)),
+                    Expanded(child: Text(actionText, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF3D5AFE)))),
+                    GestureDetector(onTap: onCancel, child: const Icon(Icons.cancel, size: 16, color: Colors.grey)),
                   ],
                 ),
               ),
             Row(
               children: [
+                Consumer<ProfilViewModel>(
+                  builder: (context, profilVM, child) {
+                    String? avatarUrl;
+                    if (profilVM.userData != null) {
+                      avatarUrl = profilVM.userData!['photo'] ?? profilVM.userData!['avatar'] ?? profilVM.userData!['profile_photo'];
+                    }
+                    
+                    return CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: avatarUrl != null ? NetworkImage(LostFoundApiService.getFullUrl(avatarUrl)) : null,
+                      child: avatarUrl == null ? const Icon(Icons.person, color: Colors.grey, size: 20) : null,
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Container(
-                    decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(24)),
-                    child: TextField(
-                      controller: controller,
-                      maxLines: null,
-                      decoration: const InputDecoration(
-                        hintText: "Tambah komentar...",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: controller,
+                            maxLines: null,
+                            style: const TextStyle(fontSize: 14),
+                            decoration: const InputDecoration(
+                              hintText: "Tambahkan komentar...",
+                              hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {}, // Emoji picker could go here
+                          child: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.black87, size: 22),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: isSending 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.send, color: Color(0xFF3D5AFE)),
-                  onPressed: isSending ? null : onSend,
-                ),
+                if (isSending)
+                  const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                else
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Color(0xFF3D5AFE), size: 24),
+                    onPressed: onSend,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
               ],
             ),
           ],
