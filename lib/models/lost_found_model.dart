@@ -1,3 +1,6 @@
+import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
+
 class LostFoundModel {
   final String lostfoundId;
   final String? userId;
@@ -86,23 +89,13 @@ class LostFoundModel {
         ?? json['user_avatar'];
 
     // Handle photo: could be relative path, full URL, or null
-    // DB column is varchar(255) storing file path
-    const String serverBase = 'https://enlighten-resupply-usable.ngrok-free.dev';
     String? imageUrl;
     if (json['photo'] != null && json['photo'].toString().isNotEmpty) {
-      String photoStr = json['photo'].toString();
-      if (photoStr.startsWith('http')) {
-        // Already a full URL
-        imageUrl = photoStr;
-      } else {
-        // Relative path from backend — construct full URL
-        // Try both /storage/ prefix and direct path
-        imageUrl = '$serverBase/storage/$photoStr';
-      }
+      imageUrl = LostFoundApiService.getFullUrl(json['photo'].toString());
     } else if (json['image_url'] != null) {
-      imageUrl = json['image_url'];
+      imageUrl = LostFoundApiService.getFullUrl(json['image_url'].toString());
     } else if (json['image'] != null) {
-      imageUrl = json['image'];
+      imageUrl = LostFoundApiService.getFullUrl(json['image'].toString());
     }
 
     return LostFoundModel(
