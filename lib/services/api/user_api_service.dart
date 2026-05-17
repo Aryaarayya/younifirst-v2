@@ -50,25 +50,11 @@ class UserApiService {
         
         String ext = imageFile.path.split('.').last.toLowerCase();
         String mimeSubtype = (ext == 'png') ? 'png' : ((ext == 'jpg' || ext == 'jpeg') ? 'jpeg' : 'jpg');
-
+        
         request.files.add(await http.MultipartFile.fromPath(
           'photo',
           imageFile.path,
-          contentType: MediaType('image', mimeSubtype),
-        ));
-        request.files.add(await http.MultipartFile.fromPath(
-          'avatar',
-          imageFile.path,
-          contentType: MediaType('image', mimeSubtype),
-        ));
-        request.files.add(await http.MultipartFile.fromPath(
-          'image',
-          imageFile.path,
-          contentType: MediaType('image', mimeSubtype),
-        ));
-        request.files.add(await http.MultipartFile.fromPath(
-          'profile_photo',
-          imageFile.path,
+          filename: imageFile.path.split('/').last,
           contentType: MediaType('image', mimeSubtype),
         ));
         debugPrint('📤 Files attached: ${request.files.length}');

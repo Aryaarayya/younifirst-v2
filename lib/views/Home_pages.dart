@@ -24,7 +24,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Map<String, dynamic>? _userData;
   List<LostFoundModel> _lostFoundItems = [];
   List<EventModel> _events = [];
   List<TeamModel> _teams = [];
@@ -50,17 +49,15 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isLoading = true);
     try {
       final results = await Future.wait([
-        UserApiService.getCurrentUser(),
         LostFoundApiService.getLostAndFound(),
         EventApiService.getEvents(),
         TeamApiService.getTeams(),
       ]);
 
       setState(() {
-        _userData = results[0] as Map<String, dynamic>;
-        _lostFoundItems = results[1] as List<LostFoundModel>;
-        _events = results[2] as List<EventModel>;
-        _teams = results[3] as List<TeamModel>;
+        _lostFoundItems = results[0] as List<LostFoundModel>;
+        _events = results[1] as List<EventModel>;
+        _teams = results[2] as List<TeamModel>;
         _isLoading = false;
       });
     } catch (e) {
@@ -83,28 +80,36 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final String userName = _userData?['name'] ?? 'User';
-    final String userAvatar = LostFoundApiService.getFullUrl(_userData?['photo']);
+    return Consumer<ProfilViewModel>(
+      builder: (context, profilViewModel, child) {
+        final _userProfileData = profilViewModel.userData;
+        final String userName = _userProfileData?['name'] ?? 'User';
+        final String userAvatar = (_userProfileData?['photo'] != null && _userProfileData!['photo'].toString().isNotEmpty)
+            ? '${LostFoundApiService.getFullUrl(_userProfileData['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}'
+            : '';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      body: RefreshIndicator(
-        onRefresh: _fetchData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Stack(
-            children: [
-              Container(
-                height: 320,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3D5AFE),
-                ),
-              ),
-              SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(userName, userAvatar),
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await profilViewModel.fetchUserData();
+              await _fetchData();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Stack(
+                children: [
+                  Container(
+                    height: 320,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF3D5AFE),
+                    ),
+                  ),
+                  SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(userName, userAvatar),
                     const SizedBox(height: 16),
                     _buildSearchBar(),
                     const SizedBox(height: 16),
@@ -114,9 +119,9 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.only(top: 20),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.only(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
                           topRight: Radius.circular(20),
                         ),
@@ -131,7 +136,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
+  },
+);
+}
 
   Widget _buildHeader(String name, String avatar) {
     return Padding(
@@ -326,9 +333,9 @@ class _HomePageState extends State<HomePage> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
                 ),
@@ -431,7 +438,7 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF3D5AFE) : Colors.white,
+          color: active ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           border: Border.all(color: active ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE).withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(20),
         ),
@@ -508,10 +515,10 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   _searchQuery.isEmpty ? "Popular Events 🔥" : "Events Relevan",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 GestureDetector(
@@ -608,7 +615,7 @@ class _HomePageState extends State<HomePage> {
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -776,7 +783,7 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.4),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.4),
                     children: [
                       TextSpan(text: '$displayDesc '),
                       if (isLong)
@@ -1274,7 +1281,7 @@ class _HomePageState extends State<HomePage> {
         width: 240,
         margin: const EdgeInsets.only(right: 16, bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
@@ -1290,11 +1297,11 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(event.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87)),
                   const SizedBox(height: 8),
-                  Row(children: [const Icon(Icons.calendar_today, size: 12, color: Color(0xFF3D5AFE)), const SizedBox(width: 4), Expanded(child: Text("${event.date} • ${event.time}", style: const TextStyle(color: Colors.black54, fontSize: 10)))]),
+                  Row(children: [const Icon(Icons.calendar_today, size: 12, color: Color(0xFF3D5AFE)), const SizedBox(width: 4), Expanded(child: Text("${event.date} • ${event.time}", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black54, fontSize: 10)))]),
                   const SizedBox(height: 4),
-                  Row(children: [const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF3D5AFE)), const SizedBox(width: 4), Expanded(child: Text(event.location, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black54, fontSize: 10)))]),
+                  Row(children: [const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF3D5AFE)), const SizedBox(width: 4), Expanded(child: Text(event.location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black54, fontSize: 10)))]),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1318,6 +1325,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildEventsHorizontalList() {
     if (_events.isEmpty) return const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text("Tidak ada event terbaru"));
-    return SizedBox(height: 270, child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: _events.length, itemBuilder: (context, index) => _buildMiniEventCard(_events[index])));
+    return SizedBox(height: 290, child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: _events.length, itemBuilder: (context, index) => _buildMiniEventCard(_events[index])));
   }
 }
