@@ -225,17 +225,17 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).iconTheme.color ?? Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Posting Lost and Found",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
       ),
@@ -379,7 +379,7 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(

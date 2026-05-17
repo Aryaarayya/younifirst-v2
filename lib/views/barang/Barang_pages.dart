@@ -55,7 +55,7 @@ class _BarangPageState extends State<BarangPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<BarangViewModel>(
         builder: (context, viewModel, child) {
           return RefreshIndicator(
@@ -377,7 +377,7 @@ class _BarangPageState extends State<BarangPage> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -548,7 +548,7 @@ class _BarangPageState extends State<BarangPage> {
                 },
                 child: RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.4),
                     children: [
                       TextSpan(text: '$displayDesc '),
                       if (isLong)
@@ -572,7 +572,7 @@ class _BarangPageState extends State<BarangPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade300),
               ),
@@ -580,7 +580,7 @@ class _BarangPageState extends State<BarangPage> {
                 children: [
                   Text("Beri Komentar...", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                   const Spacer(),
-                  const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.black87),
+                  Icon(Icons.chat_bubble_outline, size: 18, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
                   if (item.commentsCount > 0) ...[
                     const SizedBox(width: 4),
                     Text(item.commentsCount.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -632,9 +632,9 @@ class _BarangPageState extends State<BarangPage> {
           builder: (context, setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 children: [
@@ -1181,7 +1181,7 @@ class _BarangPageState extends State<BarangPage> {
   void _showEmojiPicker(BuildContext context, TextEditingController controller) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return Container(
