@@ -44,8 +44,7 @@ class TeamModel {
                          json['is_approved'] == true ||
                          json['is_approved'] == 1 ||
                          json['is_approved'] == 'true' ||
-                         ['approved', 'accepted', 'active', 'diterima', 'setuju'].contains(json['membership_status']?.toString().toLowerCase()) ||
-                         ['approved', 'accepted', 'active', 'diterima', 'setuju'].contains(json['user_status']?.toString().toLowerCase());
+                         ['approved', 'accepted', 'active', 'diterima', 'setuju'].contains(json['membership_status']?.toString().toLowerCase());
 
     bool memberFound = isAcceptedRaw ||
                       json['is_member'] == true || 

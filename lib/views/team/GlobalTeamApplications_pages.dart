@@ -4,6 +4,9 @@ import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:younifirst_app/services/input/api_client.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class GlobalTeamApplicationsPage extends StatefulWidget {
   const GlobalTeamApplicationsPage({Key? key}) : super(key: key);
@@ -69,7 +72,6 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
           grouped[t.id] = filteredApps;
           allApps.addAll(filteredApps);
           
-          // Default expand teams that have applications
           if (filteredApps.isNotEmpty) {
             _expandedTeamIds.add(t.id);
           }
@@ -318,7 +320,19 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final createdAt = app['created_at']?.toString() ?? '';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung dengan tim ini...';
-    final cvUrl = app['cv'] ?? app['cv_url'] ?? app['cv_path'] ?? '';
+    String cvUrl = app['cv']?.toString() ?? app['cv_url']?.toString() ?? app['cv_path']?.toString() ?? app['portfolio_url']?.toString() ?? app['portfolio']?.toString() ?? '';
+    if (cvUrl.isEmpty && app['user'] is Map) {
+      cvUrl = app['user']['cv']?.toString() ?? app['user']['cv_url']?.toString() ?? app['user']['cv_path']?.toString() ?? app['user']['portfolio_url']?.toString() ?? app['user']['portfolio']?.toString() ?? '';
+    }
+    if (cvUrl.isEmpty && app['member'] is Map) {
+      cvUrl = app['member']['cv']?.toString() ?? app['member']['cv_url']?.toString() ?? app['member']['cv_path']?.toString() ?? app['member']['portfolio_url']?.toString() ?? app['member']['portfolio']?.toString() ?? '';
+    }
+    if (cvUrl == 'null') cvUrl = '';
+
+    if (cvUrl.isNotEmpty && !cvUrl.startsWith('http')) {
+      final baseDomain = ApiClient.baseUrl.replaceAll('/api', '');
+      cvUrl = cvUrl.startsWith('/') ? '$baseDomain$cvUrl' : '$baseDomain/storage/$cvUrl';
+    }
     
     String timeAgo = 'Baru saja';
     try {
@@ -452,9 +466,15 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                 onTap: () async {
                   if (cvUrl.isNotEmpty) {
                     final uri = Uri.parse(cvUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    } else {
+                    try {
+                      bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      if (!launched) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tidak dapat membuka CV')),
+                        );
+                      }
+                    } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Tidak dapat membuka CV')),

@@ -159,10 +159,20 @@ class TeamApiService {
           filename: fileName,
           contentType: MediaType(isPdf ? 'application' : 'image', isPdf ? 'pdf' : 'jpeg'),
         ));
+        request.files.add(http.MultipartFile.fromBytes(
+          'portfolio',
+          fileBytes,
+          filename: fileName,
+          contentType: MediaType(isPdf ? 'application' : 'image', isPdf ? 'pdf' : 'jpeg'),
+        ));
       } else if (filePath != null && filePath.isNotEmpty) {
         // Fallback
         request.files.add(await http.MultipartFile.fromPath(
           'cv', // Expected field name by backend
+          filePath,
+        ));
+        request.files.add(await http.MultipartFile.fromPath(
+          'portfolio',
           filePath,
         ));
       }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:younifirst_app/services/input/api_client.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class TeamApplicationsPage extends StatefulWidget {
   final String teamId;
@@ -45,9 +49,6 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         widget.teamId,
         status: _selectedFilter.toLowerCase(),
       );
-      if (apps.isNotEmpty) {
-        print('DEBUG APPS IN TEAM_APPS: ${apps.first}');
-      }
       if (mounted) setState(() => _applications = apps);
     } catch (e) {
       if (mounted)
@@ -186,6 +187,19 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
     final email = app['user_email']?.toString() ?? '';
     final nim = app['nim']?.toString() ?? '';
+    String cvUrl = app['cv']?.toString() ?? app['cv_url']?.toString() ?? app['cv_path']?.toString() ?? app['portfolio_url']?.toString() ?? app['portfolio']?.toString() ?? '';
+    if (cvUrl.isEmpty && app['user'] is Map) {
+      cvUrl = app['user']['cv']?.toString() ?? app['user']['cv_url']?.toString() ?? app['user']['cv_path']?.toString() ?? app['user']['portfolio_url']?.toString() ?? app['user']['portfolio']?.toString() ?? '';
+    }
+    if (cvUrl.isEmpty && app['member'] is Map) {
+      cvUrl = app['member']['cv']?.toString() ?? app['member']['cv_url']?.toString() ?? app['member']['cv_path']?.toString() ?? app['member']['portfolio_url']?.toString() ?? app['member']['portfolio']?.toString() ?? '';
+    }
+    if (cvUrl == 'null') cvUrl = '';
+
+    if (cvUrl.isNotEmpty && !cvUrl.startsWith('http')) {
+      final baseDomain = ApiClient.baseUrl.replaceAll('/api', '');
+      cvUrl = cvUrl.startsWith('/') ? '$baseDomain$cvUrl' : '$baseDomain/storage/$cvUrl';
+    }
     final createdAt = app['created_at']?.toString() ?? '';
     String timeAgo = '';
     try {
@@ -260,11 +274,10 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
             style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
 
-          // Accept / Reject buttons for pending
-          if (status == 'pending' && memberId.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              if (status == 'pending' && memberId.isNotEmpty) ...[
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => _handleRespond(memberId, 'reject'),
@@ -281,12 +294,12 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
                             fontSize: 13)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _handleRespond(memberId, 'accept'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3D5AFE),
+                      backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -299,9 +312,49 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
                             fontSize: 13)),
                   ),
                 ),
+                const SizedBox(width: 8),
               ],
-            ),
-          ],
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    if (cvUrl.isNotEmpty) {
+                      final uri = Uri.parse(cvUrl);
+                      try {
+                        bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        if (!launched) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tidak dapat membuka CV')),
+                          );
+                        }
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tidak dapat membuka CV')),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('CV tidak tersedia')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.assignment_outlined, size: 16),
+                  label: const Text('Lihat Detail CV',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D5AFE),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
