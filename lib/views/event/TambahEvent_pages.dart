@@ -230,18 +230,11 @@ class _TambahEventPageState extends State<TambahEventPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Menggunakan icon centang besar sebagai pengganti ilustrasi
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF0F3FF),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check_circle,
-                          size: 80,
-                          color: Color(0xFF3D5AFE),
-                        ),
+                      // Menggunakan ilustrasi dari asset
+                      Image.asset(
+                        'assets/pop-up/pengajuan-event-tim.png',
+                        width: 150,
+                        height: 150,
                       ),
                       const SizedBox(height: 24),
                       const Text(
