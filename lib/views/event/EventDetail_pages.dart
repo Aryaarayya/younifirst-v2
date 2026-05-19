@@ -4,6 +4,7 @@ import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
+import 'package:share_plus/share_plus.dart';
 
 class EventDetailPage extends StatefulWidget {
   final String eventId;
@@ -215,7 +216,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       } else if (value == 'hapus') {
                         _deleteEvent();
                       } else if (value == 'bagikan') {
-                        // Logic bagikan
+                        final String eventLink = 'https://younifirst.com/event/${widget.eventId}';
+                        final String shareText = 'Yuk ikuti event menarik ini: $title!\n\nLihat detailnya dan daftar sekarang melalui link berikut:\n$eventLink';
+                        Share.share(shareText, subject: 'Event: $title');
                       }
                     },
                     itemBuilder: (BuildContext context) => [
