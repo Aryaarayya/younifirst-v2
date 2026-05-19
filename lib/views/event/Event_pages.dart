@@ -29,7 +29,7 @@ class _EventPageState extends State<EventPage> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -41,12 +41,12 @@ class _EventPageState extends State<EventPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     "Filter",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -147,7 +147,7 @@ class _EventPageState extends State<EventPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D5AFE) : Colors.white,
+          color: isSelected ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
             color: const Color(0xFF3D5AFE).withOpacity(isSelected ? 1.0 : 0.4),
@@ -180,7 +180,7 @@ class _EventPageState extends State<EventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<EventViewModel>(
         builder: (context, viewModel, child) {
           return SingleChildScrollView(
@@ -422,7 +422,7 @@ class _EventPageState extends State<EventPage> {
         width: 280,
         margin: const EdgeInsets.only(right: 16, bottom: 10, top: 5, left: 5),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -468,8 +468,8 @@ class _EventPageState extends State<EventPage> {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -575,10 +575,10 @@ class _EventPageState extends State<EventPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Pilih berdasarkan Kategori ✨",
             style: TextStyle(
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
                 fontSize: 16,
                 fontWeight: FontWeight.bold),
           ),
@@ -625,7 +625,7 @@ class _EventPageState extends State<EventPage> {
         margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D5AFE) : Colors.white,
+          color: isSelected ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(25),
           boxShadow: isSelected ? [
             BoxShadow(
@@ -743,7 +743,7 @@ class _EventPageState extends State<EventPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
@@ -797,8 +797,8 @@ class _EventPageState extends State<EventPage> {
                           title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
                         ),
                   const SizedBox(height: 8),
                   Row(

@@ -36,7 +36,7 @@ class _TeamsPageState extends State<TeamsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<TeamViewModel>(
         builder: (context, viewModel, child) {
           return SingleChildScrollView(
@@ -155,7 +155,7 @@ class _TeamsPageState extends State<TeamsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
@@ -231,8 +231,8 @@ class _TeamsPageState extends State<TeamsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: const TextStyle(
@@ -321,9 +321,9 @@ class _TeamsPageState extends State<TeamsPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +380,7 @@ class _TeamsPageState extends State<TeamsPage> {
               t.description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
             ),
             const SizedBox(height: 12),
             Divider(color: Colors.grey.shade200, height: 1),
