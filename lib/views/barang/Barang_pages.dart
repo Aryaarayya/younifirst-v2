@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:younifirst_app/models/lost_found_model.dart';
 import 'package:younifirst_app/models/comment_model.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
@@ -50,6 +51,16 @@ class _BarangPageState extends State<BarangPage> {
 
   void _fetchData() {
     context.read<BarangViewModel>().fetchBarang();
+  }
+
+  String _formatTimestamp(String? timestamp) {
+    if (timestamp == null || timestamp.isEmpty) return 'Baru saja';
+    DateTime? parsed = DateTime.tryParse(timestamp);
+    if (parsed != null) {
+      DateTime wibTime = parsed.isUtc ? parsed.add(const Duration(hours: 7)) : parsed;
+      return "${DateFormat('dd MMM yyyy HH:mm').format(wibTime)} WIB";
+    }
+    return timestamp;
   }
 
   @override
@@ -408,7 +419,7 @@ class _BarangPageState extends State<BarangPage> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
-                      item.createdAt ?? 'Baru saja',
+                      _formatTimestamp(item.createdAt),
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
