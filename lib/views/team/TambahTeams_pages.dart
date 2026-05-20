@@ -72,17 +72,10 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF0F3FF),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_circle,
-                      size: 80,
-                      color: Color(0xFF3D5AFE),
-                    ),
+                  Image.asset(
+                    'assets/pop-up/pengajuan-event-tim.png',
+                    width: 150,
+                    height: 150,
                   ),
                   const SizedBox(height: 24),
                   const Text(
