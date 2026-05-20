@@ -12,6 +12,7 @@ class TeamModel {
   final bool isOwner;
   final bool isMember;
   final bool isAcceptedMember;
+  final bool isLiked;
   final List<String> memberNames;
 
   TeamModel({
@@ -26,6 +27,7 @@ class TeamModel {
     this.isOwner = false,
     this.isMember = false,
     this.isAcceptedMember = false,
+    this.isLiked = false,
     this.memberNames = const [],
   });
 
@@ -114,6 +116,7 @@ class TeamModel {
       isOwner: isOwner,
       isMember: isOwner || memberFound,
       isAcceptedMember: isOwner || isAcceptedRaw || isAcceptedByList,
+      isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
       memberNames: names,
     );
   }

@@ -19,6 +19,7 @@ class LostFoundModel {
   final int likesCount;
   final int commentsCount;
   final bool isCompleted;
+  final bool isLiked;
 
   LostFoundModel({
     required this.lostfoundId,
@@ -38,6 +39,7 @@ class LostFoundModel {
     this.likesCount = 0,
     this.commentsCount = 0,
     this.isCompleted = false,
+    this.isLiked = false,
   });
 
   /// Returns true if the post is older than 7 days.
@@ -133,6 +135,7 @@ class LostFoundModel {
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['total_comments'] ?? json['comments_count'] ?? 0,
       isCompleted: json['is_completed'] == 1 || json['is_completed'] == true,
+      isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
     );
   }
 

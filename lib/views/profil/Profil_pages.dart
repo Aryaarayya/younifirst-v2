@@ -7,6 +7,7 @@ import 'package:younifirst_app/views/profil/Notifikasi_pages.dart';
 import 'package:younifirst_app/views/profil/Keamanan_pages.dart';
 import 'package:younifirst_app/views/profil/Pengaturan_pages.dart';
 import 'package:younifirst_app/views/profil/PusatBantuan_pages.dart';
+import 'package:younifirst_app/views/profil/PostinganAnda_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 
@@ -89,7 +90,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.school_outlined, color: Colors.white, size: 28),
+                              Icon(Icons.person_outline, color: Colors.white, size: 28),
                               SizedBox(width: 12),
                               Text(
                                 "Profil",
@@ -258,7 +259,10 @@ class _ProfilPageState extends State<ProfilPage> {
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfilPage(userData: _userData!))).then((_) => viewModel.fetchUserData());
                                   }),
                                   menuItem(Icons.feed_outlined, "Postingan Anda", () {
-                                    // TODO: Implement navigasi Postingan Anda
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const PostinganAndaPage()),
+                                    );
                                   }),
                                   menuItem(Icons.notifications_none, "Pengaturan Notifikasi", () {
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => NotifikasiPage()));

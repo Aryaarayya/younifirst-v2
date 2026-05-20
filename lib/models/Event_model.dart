@@ -9,6 +9,7 @@ class EventModel {
   final String imageUrl;
   final String likesCount;
   final String categoryId;
+  final String createdBy;
   final bool? _isLiked;
   bool get isLiked => _isLiked ?? false;
 
@@ -21,6 +22,7 @@ class EventModel {
     required this.imageUrl,
     required this.likesCount,
     this.categoryId = '',
+    this.createdBy = '',
     bool isLiked = false,
   }) : _isLiked = isLiked;
 
@@ -77,6 +79,24 @@ class EventModel {
       imageUrl: _getFullImageUrl(json['poster_url'] ?? json['poster']),
       likesCount: json['likes_count']?.toString() ?? '0',
       categoryId: json['category_id']?.toString() ?? '',
+      createdBy: () {
+        final rawCreatedBy = json['created_by'];
+        if (rawCreatedBy != null) {
+          if (rawCreatedBy is Map) {
+            return (rawCreatedBy['id'] ?? rawCreatedBy['user_id'] ?? rawCreatedBy['uid'] ?? '').toString();
+          }
+          return rawCreatedBy.toString();
+        }
+        final rawUser = json['user'];
+        if (rawUser != null && rawUser is Map) {
+          return (rawUser['id'] ?? rawUser['user_id'] ?? rawUser['uid'] ?? '').toString();
+        }
+        final rawCreator = json['creator'];
+        if (rawCreator != null && rawCreator is Map) {
+          return (rawCreator['id'] ?? rawCreator['user_id'] ?? rawCreator['uid'] ?? '').toString();
+        }
+        return (json['userId'] ?? json['user_id'] ?? '').toString();
+      }(),
       isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
     );
   }
@@ -94,6 +114,7 @@ class EventModel {
       imageUrl: imageUrl,
       likesCount: likesCount ?? this.likesCount,
       categoryId: categoryId,
+      createdBy: createdBy,
       isLiked: isLiked ?? this.isLiked,
     );
   }
@@ -108,6 +129,7 @@ class EventModel {
       'image_url': imageUrl,
       'likes_count': likesCount,
       'category_id': categoryId,
+      'created_by': createdBy,
     };
   }
 }
