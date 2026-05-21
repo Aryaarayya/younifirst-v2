@@ -43,6 +43,7 @@ class AuthService {
     String role = "user",
     String status = "active",
     String? fcmToken,
+    bool remember = false,
   }) async {
     final url = Uri.parse('$baseUrl/login');
     
@@ -60,6 +61,7 @@ class AuthService {
           "password": password,
           "role": role,
           "status": status,
+          "remember": remember,
           if (fcmToken != null) "fcm_token": fcmToken,
         }),
       );

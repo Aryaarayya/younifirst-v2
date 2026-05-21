@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:younifirst_app/views/lupa_katasandi/Lupa_katasandi.dart';
 import 'package:younifirst_app/widgets/bottom_navbar.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
@@ -20,6 +21,7 @@ class _Login_pagesState extends State<Login_pages> {
   // State
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void initState() {
@@ -27,8 +29,20 @@ class _Login_pagesState extends State<Login_pages> {
     _passwordFocusNode.addListener(() {
       setState(() {});
     });
+    _loadSavedEmail();
   }
   
+  Future<void> _loadSavedEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    if (savedEmail != null && savedEmail.isNotEmpty) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _rememberMe = true;
+      });
+    }
+  }
+
   // Future untuk proses login api
   Future<bool> _loginProcess() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -43,6 +57,7 @@ class _Login_pagesState extends State<Login_pages> {
         email: _emailController.text,
         password: _passwordController.text,
         fcmToken: fcmToken,
+        remember: _rememberMe,
       );
       return true; // Jika sukses
     } catch (e) {
@@ -97,6 +112,14 @@ class _Login_pagesState extends State<Login_pages> {
       if (!mounted) return;
 
       if (success) {
+        // Simpan atau hapus email berdasarkan checkbox Ingat Saya
+        final prefs = await SharedPreferences.getInstance();
+        if (_rememberMe) {
+          await prefs.setString('saved_email', _emailController.text);
+        } else {
+          await prefs.remove('saved_email');
+        }
+
         // Jika login berhasil, navigasi ke halaman berikutnya
         Navigator.pushReplacement(
           context,
@@ -312,27 +335,60 @@ class _Login_pagesState extends State<Login_pages> {
 
                 SizedBox(height: 12),
 
-                // LUPA PASSWORD
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                          builder: (context) => Lupa_katasandi(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Ingat Saya Checkbox
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: _rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                            activeColor: Color(0xFF3D5AF1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                    child: Text(
-                      "Lupa Kata Sandi?",
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        SizedBox(width: 8),
+                        Text(
+                          "Ingat Saya",
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Lupa Kata Sandi
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) => Lupa_katasandi(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Lupa Kata Sandi?",
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                       
                 SizedBox(height: 30),
