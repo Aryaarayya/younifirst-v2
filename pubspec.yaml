@@ -53,6 +53,7 @@ flutter:
   - assets/images/logo_putih.png
   - assets/images/logo_aplikasi.png
   - assets/pop-up/pengajuan-event-tim.png
+  - assets/pop-up/lamaran-tim.png
   
   uses-material-design: true
   

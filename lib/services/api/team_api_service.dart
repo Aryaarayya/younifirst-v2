@@ -228,6 +228,45 @@ class TeamApiService {
       throw Exception('Gagal merespon lamaran: $e');
     }
   }
+
+  // ─── POST submit laporan juara ────────────────────────────────────────────
+  static Future<bool> submitReport(
+    String teamId,
+    Map<String, String> data,
+    String? buktiMenangPath,
+    String? dokumentasiPath,
+  ) async {
+    try {
+      final request = ApiClient.multipartRequest('POST', '$endpoint/$teamId/report');
+      
+      request.fields.addAll(data);
+
+      if (buktiMenangPath != null && buktiMenangPath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'bukti_menang', 
+          buktiMenangPath,
+        ));
+      }
+
+      if (dokumentasiPath != null && dokumentasiPath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'dokumentasi_kegiatan', 
+          dokumentasiPath,
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      } else {
+        throw Exception('Status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Gagal mengirim laporan: $e');
+    }
+  }
 }
 
 
