@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:younifirst_app/views/Home_pages.dart';
+import 'package:younifirst_app/services/api/forgot_password_service.dart';
+import 'package:younifirst_app/views/lupa_katasandi/AturUlangKatasandi.dart';
 
 class VerifikasiKode extends StatefulWidget {
   final String email;
@@ -20,13 +21,13 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
   @override
   void initState() {
     super.initState();
-    _otpControllers = List.generate(6, (index) => TextEditingController());
-    _focusNodes = List.generate(6, (index) => FocusNode());
+    _otpControllers = List.generate(4, (index) => TextEditingController());
+    _focusNodes = List.generate(4, (index) => FocusNode());
     _startResendTimer();
   }
   
   void _startResendTimer() {
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 1), () {
       if (mounted && _resendTime > 0) {
         setState(() {
           _resendTime--;
@@ -45,8 +46,9 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
   }
   
   void _handleVerification() async {
-    if (_otpCode.length != 6) {
-      _showSnackBar('Masukkan kode verifikasi 6 digit', Colors.red);
+    final otp = _otpCode;
+    if (otp.length != 4) {
+      _showSnackBar('Masukkan kode verifikasi 4 digit', Colors.red);
       return;
     }
     
@@ -55,23 +57,27 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
     });
     
     try {
-      // Simulasi verifikasi OTP
-      await Future.delayed(Duration(seconds: 2));
+      final result = await ForgotPasswordService.verifyOtp(widget.email, otp);
       
       if (!mounted) return;
       
-      // Contoh: kode benar = 123456
-      if (_otpCode == '123456') {
-        _showSnackBar('Verifikasi berhasil!', Colors.green);
+      if (result['success']) {
+        _showSnackBar(result['message'], Colors.green);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(
+            builder: (context) => AturUlangKatasandi(
+              email: widget.email,
+              otp: otp,
+            ),
+          ),
         );
       } else {
-        _showSnackBar('Kode verifikasi salah', Colors.red);
+        _showSnackBar(result['message'], Colors.red);
         _clearOtp();
       }
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar('Terjadi kesalahan: $e', Colors.red);
     } finally {
       if (mounted) {
@@ -89,17 +95,38 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
     _focusNodes[0].requestFocus();
   }
   
-  void _resendCode() {
+  void _resendCode() async {
     if (!_canResend) return;
     
     setState(() {
-      _canResend = false;
-      _resendTime = 25;
-      _clearOtp();
+      _isLoading = true;
     });
-    _startResendTimer();
     
-    _showSnackBar('Kode verifikasi baru telah dikirim', Colors.blue);
+    try {
+      final result = await ForgotPasswordService.sendOtp(widget.email);
+      if (!mounted) return;
+      
+      if (result['success']) {
+        setState(() {
+          _canResend = false;
+          _resendTime = 25;
+          _clearOtp();
+        });
+        _startResendTimer();
+        _showSnackBar(result['message'], Colors.green);
+      } else {
+        _showSnackBar(result['message'], Colors.red);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Gagal mengirim ulang kode: $e', Colors.red);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
   
   void _showSnackBar(String message, Color color) {
@@ -107,7 +134,7 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
       SnackBar(
         content: Text(message),
         backgroundColor: color,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -126,208 +153,178 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Verifikasi Email',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 20),
-              
-              // Icon Email
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF3D5AF1).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.mark_email_read_outlined,
-                    size: 40,
-                    color: Color(0xFF3D5AF1),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                
+                // 🔵 ICON matching Mockup 2
+                Center(
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE0E7FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mail_outline,
+                      size: 40,
+                      color: Color(0xFF3D5AF1),
+                    ),
                   ),
                 ),
-              ),
-              
-              SizedBox(height: 24),
-              
-              // Title
-              Center(
-                child: Text(
+                
+                const SizedBox(height: 20),
+                
+                // Title
+                const Text(
                   "Periksa Email",
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-              ),
-              
-              SizedBox(height: 12),
-              
-              // Email info
-              Center(
-                child: Text(
+                
+                const SizedBox(height: 10),
+                
+                // Subtitle / Email Info
+                const Text(
                   "Masukkan kode verifikasi yang dikirim ke",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.grey,
                   ),
                 ),
-              ),
-              
-              SizedBox(height: 4),
-              
-              Center(
-                child: Text(
+                
+                const SizedBox(height: 4),
+                
+                Text(
                   widget.email,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3D5AF1),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
-              ),
-              
-              SizedBox(height: 40),
-              
-              // OTP Input Fields
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 50,
-                    height: 60,
-                    child: TextField(
-                      controller: _otpControllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                
+                const SizedBox(height: 40),
+                
+                // OTP Input Fields (4 rounded boxes matching mockup)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(4, (index) {
+                    return SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: TextField(
+                        controller: _otpControllers[index],
+                        focusNode: _focusNodes[index],
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        maxLength: 1,
+                        enabled: !_isLoading,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: '-',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF3D5AF1), width: 1.5),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          if (value.length == 1 && index < 3) {
+                            _focusNodes[index + 1].requestFocus();
+                          } else if (value.isEmpty && index > 0) {
+                            _focusNodes[index - 1].requestFocus();
+                          }
+                          
+                          // Auto verify when all fields filled
+                          if (_otpCode.length == 4) {
+                            _handleVerification();
+                          }
+                        },
                       ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF3D5AF1), width: 2),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        if (value.length == 1 && index < 5) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                        
-                        // Auto verify when all fields filled
-                        if (_otpCode.length == 6) {
-                          _handleVerification();
-                        }
-                      },
-                    ),
-                  );
-                }),
-              ),
-              
-              SizedBox(height: 40),
-              
-              // Resend Section
-              Center(
-                child: Column(
+                    );
+                  }),
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Resend Section
+                Column(
                   children: [
-                    Text(
+                    const Text(
                       "Tidak menerima kode?",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: Colors.grey,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _resendCode,
+                      onTap: _isLoading ? null : _resendCode,
                       child: Text(
                         _canResend 
                           ? "Kirim Ulang Kode"
-                          : "Kirim Ulang Kode ($_resendTime s)",
+                          : "Kirim Ulang Kode ( ${_resendTime}s )",
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                           color: _canResend 
-                            ? Color(0xFF3D5AF1) 
-                            : Colors.grey[400],
+                            ? const Color(0xFF3D5AF1) 
+                            : Colors.grey.shade500,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              
-              SizedBox(height: 30),
-              
-              // Verify Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleVerification,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF3D5AF1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 30.0),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3D5AF1)),
                     ),
                   ),
-                  child: _isLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          "VERIFIKASI",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
