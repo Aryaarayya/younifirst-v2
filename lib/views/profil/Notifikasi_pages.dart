@@ -8,20 +8,23 @@ class NotifikasiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Pengaturan Notifikasi',
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 17,
           ),
@@ -33,7 +36,7 @@ class NotifikasiPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             children: [
               // Info card
-              _buildInfoCard(),
+              _buildInfoCard(context),
               const SizedBox(height: 16),
 
               // Notification toggle cards container
@@ -45,26 +48,27 @@ class NotifikasiPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: const Text(
+      child: Text(
         'Pilih jenis notifikasi yang ingin Anda terima. Anda tetap dapat melihat notifikasi di dalam Aplikasi',
         style: TextStyle(
           fontSize: 14,
-          color: Color(0xFF444444),
+          color: isDark ? Colors.grey[300] : const Color(0xFF444444),
           height: 1.5,
         ),
       ),
@@ -72,13 +76,14 @@ class NotifikasiPage extends StatelessWidget {
   }
 
   Widget _buildToggleGroup(BuildContext context, SettingsViewModel settings) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -87,6 +92,7 @@ class NotifikasiPage extends StatelessWidget {
       child: Column(
         children: [
           _buildNotifTile(
+            context,
             title: 'Event',
             subtitle: 'Event baru dan update',
             value: settings.notifEvent,
@@ -94,8 +100,9 @@ class NotifikasiPage extends StatelessWidget {
             isFirst: true,
             isLast: false,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildNotifTile(
+            context,
             title: 'Tim',
             subtitle: 'Aktivitas tim dan grup yang diikuti',
             value: settings.notifTim,
@@ -103,8 +110,9 @@ class NotifikasiPage extends StatelessWidget {
             isFirst: false,
             isLast: false,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildNotifTile(
+            context,
             title: 'Lost and Found',
             subtitle: 'Postingan dan komentar lost and found',
             value: settings.notifLostFound,
@@ -112,8 +120,9 @@ class NotifikasiPage extends StatelessWidget {
             isFirst: false,
             isLast: false,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildNotifTile(
+            context,
             title: 'Announcement',
             subtitle: 'Announcement/pemberitahuan baru',
             value: settings.notifAnnouncement,
@@ -126,17 +135,18 @@ class NotifikasiPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(
+  Widget _buildDivider(BuildContext context) {
+    return Divider(
       height: 1,
       thickness: 1,
       indent: 16,
       endIndent: 16,
-      color: Color(0xFFEEEEEE),
+      color: Theme.of(context).dividerColor,
     );
   }
 
-  Widget _buildNotifTile({
+  Widget _buildNotifTile(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required bool value,
@@ -144,6 +154,7 @@ class NotifikasiPage extends StatelessWidget {
     required bool isFirst,
     required bool isLast,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -154,18 +165,18 @@ class NotifikasiPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF888888),
+                    color: isDark ? Colors.grey[400] : const Color(0xFF888888),
                     height: 1.4,
                   ),
                 ),
@@ -181,7 +192,7 @@ class NotifikasiPage extends StatelessWidget {
               activeThumbColor: Colors.white,
               activeTrackColor: const Color(0xFF3D5AFE),
               inactiveThumbColor: Colors.white,
-              inactiveTrackColor: const Color(0xFFDDDDDD),
+              inactiveTrackColor: isDark ? Colors.grey[800] : const Color(0xFFDDDDDD),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),

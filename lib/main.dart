@@ -66,6 +66,9 @@ class MyApp extends StatelessWidget {
             brightness: Brightness.light,
             primaryColor: const Color(0xFF3D5AF1),
             scaffoldBackgroundColor: const Color(0xFFF3F4F6),
+            cardColor: Colors.white,
+            dividerColor: const Color(0xFFE2E8F0),
+            dialogBackgroundColor: Colors.white,
             fontFamily: 'Inter',
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
@@ -73,17 +76,33 @@ class MyApp extends StatelessWidget {
               iconTheme: IconThemeData(color: Colors.black),
               titleTextStyle: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Colors.white,
+              selectedItemColor: Color(0xFF3D5AF1),
+              unselectedItemColor: Colors.grey,
+              elevation: 8,
+            ),
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             primaryColor: const Color(0xFF3D5AF1),
-            scaffoldBackgroundColor: const Color(0xFF121212),
+            scaffoldBackgroundColor: const Color(0xFF000000), // Instagram Deep Black
+            cardColor: const Color(0xFF121212), // Elevated cards/tiles
+            canvasColor: const Color(0xFF121212),
+            dialogBackgroundColor: const Color(0xFF1A1A1A),
+            dividerColor: const Color(0xFF262626), // Instagram divider
             fontFamily: 'Inter',
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF1E1E1E),
+              backgroundColor: Color(0xFF000000),
               elevation: 0,
               iconTheme: IconThemeData(color: Colors.white),
               titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Color(0xFF000000),
+              selectedItemColor: Color(0xFF3D5AF1),
+              unselectedItemColor: Colors.grey,
+              elevation: 0,
             ),
           ),
           builder: (context, child) {

@@ -11,6 +11,13 @@ import 'package:younifirst_app/views/profil/PostinganAnda_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 
+String _cacheBustedUrl(String url) {
+  if (url.contains('?')) {
+    return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+  return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+}
+
 class ProfilPage extends StatefulWidget {
   @override
   _ProfilPageState createState() => _ProfilPageState();
@@ -41,8 +48,8 @@ class _ProfilPageState extends State<ProfilPage> {
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
           return Scaffold(
-            backgroundColor: Color(0xFFF3F4F6),
-            body: Center(child: CircularProgressIndicator()),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            body: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -52,6 +59,12 @@ class _ProfilPageState extends State<ProfilPage> {
         final nim = _userData?['nim'] ?? '-';
         final prodi = _userData?['prodi'] ?? '-';
         final initials = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'U';
+        // Gunakan photo (storage path) jika ada, jika tidak fallback ke photo_url (avatar generated)
+        final String? rawPhoto = _userData?['photo']?.toString();
+        final String? photoUrl = _userData?['photo_url']?.toString();
+        final String? displayPhotoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+            ? LostFoundApiService.getFullUrl(rawPhoto)
+            : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
         
         // Parse Angkatan and Bergabung
         String angkatan = '-';
@@ -69,14 +82,16 @@ class _ProfilPageState extends State<ProfilPage> {
         }
 
         return Scaffold(
-          backgroundColor: Color(0xFFF3F4F6),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Stack(
             children: [
-              // Blue background at the top
+              // Blue background at the top (becomes dark grey in dark mode to blend gracefully)
               Container(
                 height: 280,
                 decoration: BoxDecoration(
-                  color: Color(0xFF3D5AF1),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF121212)
+                      : const Color(0xFF3D5AF1),
                 ),
               ),
               SafeArea(
@@ -147,15 +162,15 @@ class _ProfilPageState extends State<ProfilPage> {
                           children: [
                             // CARD PROFILE
                             Container(
-                              padding: EdgeInsets.all(24),
+                              padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                                     blurRadius: 20,
-                                    offset: Offset(0, 10),
+                                    offset: const Offset(0, 10),
                                   )
                                 ],
                               ),
@@ -167,25 +182,25 @@ class _ProfilPageState extends State<ProfilPage> {
                                     height: 100,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      gradient: (_userData?['photo'] == null || _userData!['photo'].toString().isEmpty)
+                                      gradient: displayPhotoUrl == null
                                           ? LinearGradient(
                                               colors: [Colors.cyan.shade300, Colors.purple.shade400],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
                                             )
                                           : null,
-                                      image: (_userData?['photo'] != null && _userData!['photo'].toString().isNotEmpty)
+                                      image: displayPhotoUrl != null
                                           ? DecorationImage(
-                                              image: NetworkImage('${LostFoundApiService.getFullUrl(_userData!['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}'),
+                                              image: NetworkImage(_cacheBustedUrl(displayPhotoUrl)),
                                               fit: BoxFit.cover,
                                             )
                                           : null,
                                     ),
-                                    child: (_userData?['photo'] == null || _userData!['photo'].toString().isEmpty)
+                                    child: displayPhotoUrl == null
                                         ? Center(
                                             child: Text(
                                               initials,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 36,
                                                 fontWeight: FontWeight.bold,
@@ -195,27 +210,29 @@ class _ProfilPageState extends State<ProfilPage> {
                                         : null,
                                   ),
 
-                                  SizedBox(height: 20),
+                                  const SizedBox(height: 20),
 
                                   Text(
                                     name,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
 
-                                  SizedBox(height: 6),
+                                  const SizedBox(height: 6),
 
                                   Text(
                                     email,
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[600],
                                       fontSize: 15,
                                     ),
                                   ),
 
-                                  SizedBox(height: 24),
+                                  const SizedBox(height: 24),
 
                                   // INFO GRID (2x2)
                                   Row(
@@ -242,13 +259,13 @@ class _ProfilPageState extends State<ProfilPage> {
                             // MENU LIST
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                                     blurRadius: 20,
-                                    offset: Offset(0, 10),
+                                    offset: const Offset(0, 10),
                                   )
                                 ],
                               ),
@@ -268,7 +285,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => NotifikasiPage()));
                                   }),
                                   menuItem(Icons.security_outlined, "Keamanan Akun", () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => KeamananPage()));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const KeamananPage()));
                                   }),
                                   menuItem(Icons.settings_outlined, "Pengaturan", () {
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => PengaturanPage()));
@@ -303,18 +320,23 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   Widget infoBox(String title, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: Color(0xFFF3F4F6),
+          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
             Text(
               title,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             SizedBox(height: 8),
             Text(
@@ -323,7 +345,7 @@ class _ProfilPageState extends State<ProfilPage> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: Colors.black87,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
           ],
@@ -333,11 +355,12 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   Widget menuItem(IconData icon, String title, VoidCallback onTap, {bool isLogout = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
       leading: Icon(
         icon,
-        color: isLogout ? Colors.red : Colors.grey[700],
+        color: isLogout ? Colors.red : (isDark ? Colors.grey[300] : Colors.grey[700]),
         size: 26,
       ),
       title: Text(
@@ -345,10 +368,10 @@ class _ProfilPageState extends State<ProfilPage> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: isLogout ? Colors.red : Colors.black87,
+          color: isLogout ? Colors.red : (isDark ? Colors.white : Colors.black87),
         ),
       ),
-      trailing: isLogout ? null : Icon(Icons.chevron_right, color: Colors.grey[400], size: 24),
+      trailing: isLogout ? null : Icon(Icons.chevron_right, color: isDark ? Colors.grey[600] : Colors.grey[400], size: 24),
       onTap: onTap,
     );
   }

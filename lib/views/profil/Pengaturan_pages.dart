@@ -30,23 +30,26 @@ class PengaturanPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     )
                   ]
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Mode Tampilan",
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       "Pilih tampilan aplikasi sesuai preferensi Anda.",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 13,
+                      ),
                     ),
                     SizedBox(height: 20),
                     Row(
@@ -86,34 +89,39 @@ class PengaturanPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     )
                   ]
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Ukuran Teks",
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       "Sesuaikan ukuran teks agar lebih nyaman dibaca.",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 13,
+                      ),
                     ),
                     SizedBox(height: 24),
                     Row(
                       children: [
-                        Text("A-", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text("A-", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         Expanded(
                           child: SliderTheme(
                             data: SliderThemeData(
-                              activeTrackColor: Color(0xFF3D5AF1),
-                              inactiveTrackColor: Colors.grey[300],
-                              thumbColor: Color(0xFF3D5AF1),
+                              activeTrackColor: const Color(0xFF3D5AF1),
+                              inactiveTrackColor: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
+                              thumbColor: const Color(0xFF3D5AF1),
                               trackHeight: 4,
                             ),
                             child: Slider(
@@ -122,12 +130,12 @@ class PengaturanPage extends StatelessWidget {
                               max: 1.2,
                               divisions: 2, // 0.8 (Kecil), 1.0 (Sedang), 1.2 (Besar)
                               onChanged: (value) {
-                                settings.setTextScaleFactor(value);
+                                  settings.setTextScaleFactor(value);
                               },
                             ),
                           ),
                         ),
-                        Text("A+", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text("A+", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                     Center(
@@ -150,34 +158,50 @@ class PengaturanPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     )
                   ]
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Bahasa",
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       "Pilih bahasa yang digunakan di aplikasi.",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 13,
+                      ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[800]!
+                              : Colors.grey.shade300,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
-                        title: Text("Bahasa Indonesia", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        subtitle: Text("Default", style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                        trailing: Icon(Icons.chevron_right, color: Colors.grey[500]),
+                        title: const Text("Bahasa Indonesia", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        subtitle: Text(
+                          "Default",
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[600] : Colors.grey[500],
+                        ),
                         onTap: () {
                           // TODO: Implement Language selector
                         },
@@ -194,15 +218,18 @@ class PengaturanPage extends StatelessWidget {
   }
 
   Widget _buildThemeCard(BuildContext context, String title, IconData icon, bool isSelected, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Color(0xFF3D5AF1) : Colors.grey.shade300,
+            color: isSelected
+                ? const Color(0xFF3D5AF1)
+                : (isDark ? Colors.grey[800]! : Colors.grey.shade300),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -212,13 +239,21 @@ class PengaturanPage extends StatelessWidget {
           children: [
             Column(
               children: [
-                Icon(icon, size: 32, color: isSelected ? Color(0xFF3D5AF1) : Colors.grey[700]),
-                SizedBox(height: 12),
+                Icon(
+                  icon,
+                  size: 32,
+                  color: isSelected
+                      ? const Color(0xFF3D5AF1)
+                      : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   title,
                   style: TextStyle(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Color(0xFF3D5AF1) : Colors.grey[800],
+                    color: isSelected
+                        ? const Color(0xFF3D5AF1)
+                        : (isDark ? Colors.grey[300] : Colors.grey[800]),
                   ),
                 ),
               ],
@@ -228,12 +263,12 @@ class PengaturanPage extends StatelessWidget {
                 top: -16,
                 right: 8,
                 child: Container(
-                  padding: EdgeInsets.all(2),
-                  decoration: BoxDecoration(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
                     color: Color(0xFF3D5AF1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check, color: Colors.white, size: 14),
+                  child: const Icon(Icons.check, color: Colors.white, size: 14),
                 ),
               ),
           ],

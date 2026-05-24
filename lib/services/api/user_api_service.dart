@@ -14,7 +14,6 @@ class UserApiService {
       final response = await ApiClient.get(endpoint);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        // Laravel biasanya mengembalikan { "data": { ... } } atau langsung { ... }
         if (decoded is Map<String, dynamic>) {
           if (decoded.containsKey('data') && decoded['data'] is Map) {
             return Map<String, dynamic>.from(decoded['data']);
@@ -41,20 +40,19 @@ class UserApiService {
 
       debugPrint('📤 Update URL: ${request.url}');
       debugPrint('📤 Fields: ${request.fields}');
-      debugPrint('📤 imageFile: $imageFile');
 
-      if (imageFile != null) {
-        debugPrint('📤 File exists: ${imageFile.existsSync()}');
+      if (imageFile != null && imageFile.existsSync()) {
         debugPrint('📤 File path: ${imageFile.path}');
         debugPrint('📤 File size: ${imageFile.lengthSync()} bytes');
-        
-        String ext = imageFile.path.split('.').last.toLowerCase();
-        String mimeSubtype = (ext == 'png') ? 'png' : ((ext == 'jpg' || ext == 'jpeg') ? 'jpeg' : 'jpg');
-        
+
+        // Tentukan content type berdasarkan ekstensi
+        final ext = imageFile.path.split('.').last.toLowerCase();
+        final mimeSubtype = ext == 'png' ? 'png' : 'jpeg';
+
         request.files.add(await http.MultipartFile.fromPath(
           'photo',
           imageFile.path,
-          filename: imageFile.path.split('/').last,
+          filename: 'profile_photo.$mimeSubtype',
           contentType: MediaType('image', mimeSubtype),
         ));
         debugPrint('📤 Files attached: ${request.files.length}');
@@ -62,17 +60,44 @@ class UserApiService {
         debugPrint('📤 No image file provided');
       }
 
-      debugPrint('📤 Request headers: ${request.headers}');
-
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      debugPrint('📤 Update profile response: ${response.statusCode} - ${response.body}');
-      return response.statusCode == 200;
+      debugPrint('📤 Update profile status: ${response.statusCode}');
+      debugPrint('📤 Update profile body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            if (decoded['success'] == false || decoded['status'] == 'error' || decoded.containsKey('errors')) {
+              String errorMsg = decoded['message'] ?? 'Gagal memperbarui profil';
+              if (decoded['errors'] != null) {
+                 errorMsg += ' - ${decoded['errors'].toString()}';
+              }
+              throw Exception(errorMsg);
+            }
+          }
+        } catch (e) {
+           if (e is FormatException) {
+             // Not JSON, assume success if 2xx
+             return true;
+           }
+           rethrow;
+        }
+        return true;
+      } else {
+         String errorMsg = 'Error ${response.statusCode}';
+         try {
+           final decoded = jsonDecode(response.body);
+           if (decoded is Map<String, dynamic> && decoded['message'] != null) {
+              errorMsg = decoded['message'];
+           }
+         } catch (_) {}
+         throw Exception(errorMsg);
+      }
     } catch (e) {
-      debugPrint('Error updating profile: $e');
-      return false;
+      debugPrint('❌ Error updating profile: $e');
+      throw Exception('Gagal menyimpan profil: $e');
     }
   }
-
 }
-

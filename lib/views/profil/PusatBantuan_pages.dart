@@ -182,22 +182,26 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
   @override
   Widget build(BuildContext context) {
     final faqs = _filteredFaqs;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Pusat Bantuan',
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 17,
           ),
@@ -260,12 +264,12 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
             const SizedBox(height: 24),
 
             // ── Footer ─────────────────────────────────────────────────────
-            const Center(
+            Center(
               child: Text(
                 '© 2026 Younifirst Team',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFFAAAAAA),
+                  color: isDark ? Colors.grey[600] : const Color(0xFFAAAAAA),
                 ),
               ),
             ),
@@ -279,23 +283,24 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
   // ── Widgets ──────────────────────────────────────────────────────────────────
 
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: TextField(
         controller: _searchCtrl,
         onChanged: (v) => setState(() => _searchQuery = v),
-        style: const TextStyle(fontSize: 14),
+        style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87),
         decoration: InputDecoration(
           hintText: 'Cari bantuan atau topik...',
-          hintStyle: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFFAAAAAA), size: 20),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[500] : const Color(0xFFAAAAAA), fontSize: 14),
+          prefixIcon: Icon(Icons.search, color: isDark ? Colors.grey[500] : const Color(0xFFAAAAAA), size: 20),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFFAAAAAA), size: 18),
+                  icon: Icon(Icons.close, color: isDark ? Colors.grey[500] : const Color(0xFFAAAAAA), size: 18),
                   onPressed: () {
                     _searchCtrl.clear();
                     setState(() => _searchQuery = '');
@@ -311,6 +316,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
   }
 
   Widget _buildCategoryChips() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -330,12 +336,12 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF3D5AFE) : Colors.white,
+                  color: isSelected ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(50),
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF3D5AFE)
-                        : const Color(0xFFDDDDDD),
+                        : Theme.of(context).dividerColor,
                   ),
                 ),
                 child: Row(
@@ -343,7 +349,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                     Icon(
                       cat.icon,
                       size: 15,
-                      color: isSelected ? Colors.white : const Color(0xFF555555),
+                      color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : const Color(0xFF555555)),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -354,7 +360,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                             ? FontWeight.w600
                             : FontWeight.normal,
                         color:
-                            isSelected ? Colors.white : const Color(0xFF555555),
+                            isSelected ? Colors.white : (isDark ? Colors.grey[300] : const Color(0xFF555555)),
                       ),
                     ),
                   ],
@@ -370,6 +376,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
   Widget _buildFaqCard(_FaqItem faq, int index) {
     final isExpanded = _expandedIndices.contains(index);
     final number = (index + 1).toString().padLeft(2, '0');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () {
@@ -385,11 +392,11 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -408,7 +415,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF0FF),
+                      color: isDark ? const Color(0xFF1E2138) : const Color(0xFFEEF0FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
@@ -426,10 +433,10 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                   Expanded(
                     child: Text(
                       faq.question,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1A1A),
+                        color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                         height: 1.4,
                       ),
                     ),
@@ -454,9 +461,9 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                   padding: const EdgeInsets.only(top: 12, left: 42),
                   child: Text(
                     faq.answer,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF666666),
+                      color: isDark ? Colors.grey[400] : const Color(0xFF666666),
                       height: 1.6,
                     ),
                   ),
@@ -500,10 +507,11 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
   }
 
   Widget _buildContactCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF0FF),
+        color: isDark ? const Color(0xFF1E2138) : const Color(0xFFEEF0FF),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -526,7 +534,7 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                 ),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -535,15 +543,15 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
+                        color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       'Tim kami siap membantu menjawab pertanyaanmu',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF555555),
+                        color: isDark ? Colors.grey[300] : const Color(0xFF555555),
                         height: 1.4,
                       ),
                     ),
@@ -587,17 +595,18 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -610,10 +619,10 @@ class _PusatBantuanPageState extends State<PusatBantuanPage> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
+                  color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                 ),
               ),
             ),

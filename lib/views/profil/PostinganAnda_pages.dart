@@ -49,21 +49,26 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
   @override
   Widget build(BuildContext context) {
     final currentUserId = AuthService.loggedInUserId ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           automaticallyImplyLeading: false,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.chevron_left, size: 32, color: Colors.black87),
+                icon: Icon(
+                  Icons.chevron_left,
+                  size: 32,
+                  color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+                ),
               ),
               if (_isSearchActive)
                 Expanded(
@@ -71,19 +76,19 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                     height: 40,
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TextField(
                       controller: _searchCtrl,
                       autofocus: true,
-                      style: const TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87),
                       decoration: InputDecoration(
                         hintText: "Cari postingan...",
-                        hintStyle: TextStyle(color: Colors.grey.shade500),
-                        prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
+                        hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey.shade500),
+                        prefixIcon: Icon(Icons.search, size: 20, color: isDark ? Colors.grey[500] : Colors.grey),
                         suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
+                          icon: Icon(Icons.clear, size: 18, color: isDark ? Colors.grey[500] : Colors.grey),
                           onPressed: () {
                             setState(() {
                               _searchCtrl.clear();
@@ -104,10 +109,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                   ),
                 )
               else
-                const Text(
+                Text(
                   "Postingan Anda",
                   style: TextStyle(
-                    color: Colors.black87,
+                    color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? Colors.black87,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -119,7 +124,11 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                       _isSearchActive = true;
                     });
                   },
-                  icon: const Icon(Icons.search, size: 26, color: Colors.black87),
+                  icon: Icon(
+                    Icons.search,
+                    size: 26,
+                    color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+                  ),
                 )
               else
                 const SizedBox(width: 48), // Spacer to balance layout
@@ -194,7 +203,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
             children: [
               // Top Category Tabs
               Container(
-                color: Colors.white,
+                color: Theme.of(context).appBarTheme.backgroundColor,
                 child: Column(
                   children: [
                     Row(
@@ -204,7 +213,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                         _buildCategoryTab(2, "Lost and Found", Icons.search_outlined, barangTotal),
                       ],
                     ),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                    Divider(height: 1, thickness: 1, color: Theme.of(context).dividerColor),
                   ],
                 ),
               ),
@@ -250,6 +259,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
   // CATEGORY TABS
   Widget _buildCategoryTab(int index, String title, IconData icon, int count) {
     bool isActive = _activeCategoryIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Expanded(
       child: GestureDetector(
@@ -277,7 +287,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                   Icon(
                     icon,
                     size: 16,
-                    color: isActive ? const Color(0xFF3D5AFE) : Colors.grey.shade600,
+                    color: isActive ? const Color(0xFF3D5AFE) : (isDark ? Colors.grey[400] : Colors.grey.shade600),
                   ),
                   const SizedBox(width: 6),
                   Flexible(
@@ -288,7 +298,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                        color: isActive ? const Color(0xFF3D5AFE) : Colors.grey.shade600,
+                        color: isActive ? const Color(0xFF3D5AFE) : (isDark ? Colors.grey[400] : Colors.grey.shade600),
                       ),
                     ),
                   ),
@@ -315,7 +325,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF3D5AFE) : Colors.white,
+          color: isActive ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: const Color(0xFF3D5AFE),
@@ -355,6 +365,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
 
   // SKELETON PLACEHOLDER LOADING STATE
   Widget _buildSkeletonGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final skeletonColor = isDark ? const Color(0xFF242424) : const Color(0xFFE2E8F0);
+    final skeletonLineColor = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF1F5F9);
+
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -367,7 +381,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
       itemBuilder: (context, index) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
@@ -386,7 +400,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                   height: 110,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: skeletonColor,
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
@@ -396,41 +410,41 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(height: 14, width: 100, color: const Color(0xFFE2E8F0)),
+                    Container(height: 14, width: 100, color: skeletonColor),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Container(height: 10, width: 10, color: const Color(0xFFE2E8F0)),
+                        Container(height: 10, width: 10, color: skeletonColor),
                         const SizedBox(width: 6),
-                        Container(height: 8, width: 60, color: const Color(0xFFE2E8F0)),
+                        Container(height: 8, width: 60, color: skeletonColor),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Container(height: 10, width: 10, color: const Color(0xFFE2E8F0)),
+                        Container(height: 10, width: 10, color: skeletonColor),
                         const SizedBox(width: 6),
-                        Container(height: 8, width: 40, color: const Color(0xFFE2E8F0)),
+                        Container(height: 8, width: 40, color: skeletonColor),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Container(height: 1, width: double.infinity, color: const Color(0xFFF1F5F9)),
+                    Container(height: 1, width: double.infinity, color: skeletonLineColor),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
-                            Container(height: 16, width: 16, color: const Color(0xFFE2E8F0)),
+                            Container(height: 16, width: 16, color: skeletonColor),
                             const SizedBox(width: 4),
-                            Container(height: 10, width: 12, color: const Color(0xFFE2E8F0)),
+                            Container(height: 10, width: 12, color: skeletonColor),
                           ],
                         ),
                         Container(
                           height: 28,
                           width: 50,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE2E8F0),
+                            color: skeletonColor,
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
@@ -451,6 +465,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
     if (events.isEmpty) {
       return _buildEmptyState("Belum ada postingan event.");
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -479,11 +494,11 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -499,7 +514,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                     child: Container(
                       height: 110,
                       width: double.infinity,
-                      color: Colors.grey[200],
+                      color: isDark ? const Color(0xFF242424) : Colors.grey[200],
                       child: isNetworkImage
                           ? Image.network(
                               ev.imageUrl,
@@ -525,10 +540,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                         ev.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -541,7 +556,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                               ev.date,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.black54, fontSize: 10),
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : Colors.black54,
+                                fontSize: 10,
+                              ),
                             ),
                           ),
                         ],
@@ -556,13 +574,16 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                               ev.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.black54, fontSize: 10),
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : Colors.black54,
+                                fontSize: 10,
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Divider(color: Colors.grey.withOpacity(0.15), thickness: 1),
+                      Divider(color: Theme.of(context).dividerColor, thickness: 1),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -578,7 +599,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                                     ev.isLiked ? Icons.favorite : Icons.favorite_border,
                                     key: ValueKey(ev.isLiked),
                                     size: 18,
-                                    color: ev.isLiked ? Colors.redAccent : Colors.black.withOpacity(0.6),
+                                    color: ev.isLiked ? Colors.redAccent : (isDark ? Colors.grey[400] : Colors.black.withOpacity(0.6)),
                                   ),
                                 ),
                               ),
@@ -586,7 +607,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                               Text(
                                 ev.likesCount,
                                 style: TextStyle(
-                                  color: Colors.black.withOpacity(0.7),
+                                  color: isDark ? Colors.grey[300] : Colors.black.withOpacity(0.7),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -626,6 +647,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
 
   // SKELETON PLACEHOLDER LOADING STATE FOR TEAMS
   Widget _buildTeamSkeletonList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final skeletonColor = isDark ? const Color(0xFF242424) : const Color(0xFFE2E8F0);
+    final skeletonLineColor = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF1F5F9);
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       itemCount: 3,
@@ -634,7 +659,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
@@ -643,7 +668,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                 offset: const Offset(0, 4),
               )
             ],
-            border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+            border: Border.all(color: skeletonLineColor, width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -656,7 +681,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: skeletonColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -666,19 +691,19 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(height: 14, width: 120, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(4))),
+                        Container(height: 14, width: 120, decoration: BoxDecoration(color: skeletonColor, borderRadius: BorderRadius.circular(4))),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Container(height: 10, width: 10, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
+                            Container(height: 10, width: 10, decoration: BoxDecoration(color: skeletonColor, borderRadius: BorderRadius.circular(2))),
                             const SizedBox(width: 6),
-                            Container(height: 8, width: 80, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
+                            Container(height: 8, width: 80, decoration: BoxDecoration(color: skeletonColor, borderRadius: BorderRadius.circular(2))),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Container(height: 8, width: double.infinity, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
+                        Container(height: 8, width: double.infinity, decoration: BoxDecoration(color: skeletonColor, borderRadius: BorderRadius.circular(2))),
                         const SizedBox(height: 6),
-                        Container(height: 8, width: 150, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
+                        Container(height: 8, width: 150, decoration: BoxDecoration(color: skeletonColor, borderRadius: BorderRadius.circular(2))),
                       ],
                     ),
                   ),
@@ -691,7 +716,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                         height: 18,
                         width: 40,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
+                          color: skeletonColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -700,7 +725,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                         height: 18,
                         width: 30,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
+                          color: skeletonColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -714,7 +739,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                 height: 40,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: skeletonColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
@@ -749,20 +774,21 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
 
     final isFull = displayStatus.toLowerCase() == 'full';
     final isChatAvailable = t.isOwner || t.isAcceptedMember;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
         ],
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+        border: Border.all(color: isDark ? const Color(0xFF262626) : const Color(0xFFF1F5F9), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -786,7 +812,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEEF2FF),
+                        color: isDark ? const Color(0xFF1E2138) : const Color(0xFFEEF2FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -804,10 +830,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                             t.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
-                              color: Colors.black87,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -838,9 +864,9 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                             t.description,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: Colors.black54,
+                              color: isDark ? Colors.grey[400] : Colors.black54,
                               height: 1.4,
                             ),
                           ),
@@ -903,7 +929,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        backgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).cardColor,
                         elevation: 0,
                       ),
                       child: Row(
@@ -967,11 +993,11 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -987,7 +1013,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                     child: Container(
                       height: 100,
                       width: double.infinity,
-                      color: Colors.grey[200],
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF242424) : Colors.grey[200],
                       child: b.imageUrl != null && b.imageUrl!.isNotEmpty
                           ? Image.network(
                               b.imageUrl!,
@@ -1053,18 +1079,25 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
                               b.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 9, color: Colors.black54),
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.black54,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const Divider(height: 14),
+                      Divider(height: 14, color: Theme.of(context).dividerColor),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.chat_bubble_outline, size: 12, color: Colors.black54),
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 12,
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.black54,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 b.commentsCount.toString(),

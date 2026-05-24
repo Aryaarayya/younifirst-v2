@@ -127,18 +127,25 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Edit Profil',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -154,27 +161,45 @@ class _EditProfilPageState extends State<EditProfilPage> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: Color(0xFF3D5AF1).withValues(alpha: 0.1),
-                      backgroundImage: _imageFile != null 
-                          ? FileImage(_imageFile!) 
-                          : (widget.userData['photo'] != null 
-                              ? NetworkImage('${LostFoundApiService.getFullUrl(widget.userData['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}') 
-                              : null) as ImageProvider?,
-                      child: _imageFile == null && widget.userData['photo'] == null
-                          ? Icon(Icons.person, size: 50, color: Color(0xFF3D5AF1))
-                          : null,
+                      backgroundColor: const Color(0xFF3D5AF1),
+                      backgroundImage: _imageFile != null
+                          ? FileImage(_imageFile!) as ImageProvider
+                          : () {
+                              // Cek photo (storage path), fallback ke photo_url (avatar)
+                              final rawPhoto = widget.userData['photo']?.toString();
+                              final photoUrl = widget.userData['photo_url']?.toString();
+                              if (rawPhoto != null && rawPhoto.isNotEmpty) {
+                                return NetworkImage('${LostFoundApiService.getFullUrl(rawPhoto)}?v=${DateTime.now().millisecondsSinceEpoch}');
+                              } else if (photoUrl != null && photoUrl.isNotEmpty) {
+                                return NetworkImage(photoUrl) as ImageProvider;
+                              }
+                              return null;
+                            }(),
+                      child: () {
+                        if (_imageFile != null) return null;
+                        final rawPhoto = widget.userData['photo']?.toString();
+                        final photoUrl = widget.userData['photo_url']?.toString();
+                        final hasPhoto = (rawPhoto != null && rawPhoto.isNotEmpty) ||
+                            (photoUrl != null && photoUrl.isNotEmpty);
+                        return hasPhoto
+                            ? null
+                            : const Icon(Icons.person, size: 50, color: Colors.white);
+                      }(),
                     ),
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        padding: EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Color(0xFF3D5AF1),
+                          color: const Color(0xFF3D5AF1),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            width: 2,
+                          ),
                         ),
-                        child: Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                       ),
                     )
                   ],
@@ -219,24 +244,37 @@ class _EditProfilPageState extends State<EditProfilPage> {
   }
 
   Widget buildTextField(String label, TextEditingController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         TextField(
           controller: controller,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Color(0xFFF8FAFF),
+            fillColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8FAFF),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: isDark ? const BorderSide(color: Color(0xFF262626), width: 1) : BorderSide.none,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: isDark ? const BorderSide(color: Color(0xFF262626), width: 1) : BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF3D5AF1), width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],

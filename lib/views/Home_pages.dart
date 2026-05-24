@@ -45,7 +45,15 @@ class _HomePageState extends State<HomePage> {
     _fetchData();
   }
 
+  String _cacheBustedUrl(String url) {
+    if (url.contains('?')) {
+      return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+    }
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
   Future<void> _fetchData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final results = await Future.wait([
@@ -54,6 +62,7 @@ class _HomePageState extends State<HomePage> {
         TeamApiService.getTeams(),
       ]);
 
+      if (!mounted) return;
       setState(() {
         _lostFoundItems = results[0] as List<LostFoundModel>;
         _events = results[1] as List<EventModel>;
@@ -62,6 +71,7 @@ class _HomePageState extends State<HomePage> {
       });
     } catch (e) {
       debugPrint("Error fetching home data: $e");
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -84,9 +94,12 @@ class _HomePageState extends State<HomePage> {
       builder: (context, profilViewModel, child) {
         final _userProfileData = profilViewModel.userData;
         final String userName = _userProfileData?['name'] ?? 'User';
-        final String userAvatar = (_userProfileData?['photo'] != null && _userProfileData!['photo'].toString().isNotEmpty)
-            ? '${LostFoundApiService.getFullUrl(_userProfileData['photo'])}?v=${DateTime.now().millisecondsSinceEpoch}'
-            : '';
+        // Gunakan photo jika ada, fallback ke photo_url (generated avatar)
+        final String? rawPhoto = _userProfileData?['photo']?.toString();
+        final String? photoUrlField = _userProfileData?['photo_url']?.toString();
+        final String userAvatar = (rawPhoto != null && rawPhoto.isNotEmpty)
+            ? _cacheBustedUrl('${LostFoundApiService.getFullUrl(rawPhoto)}')
+            : (photoUrlField != null && photoUrlField.isNotEmpty ? _cacheBustedUrl(photoUrlField) : '');
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -806,13 +819,19 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: Row(
                 children: [
-                  Text("Beri Komentar...", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  Text(
+                    "Beri Komentar...",
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
                   const Spacer(),
                   const Icon(CupertinoIcons.chat_bubble, size: 18, color: Colors.grey),
                   if (item.commentsCount > 0) ...[
@@ -880,16 +899,16 @@ class _HomePageState extends State<HomePage> {
           builder: (context, setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
                   Container(
                     width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
+                    decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(4)),
                   ),
                   const SizedBox(height: 16),
                   
@@ -1018,13 +1037,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildEmptyComments() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.chat_bubble_outline, size: 64, color: isDark ? Colors.grey[700] : Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text("Belum ada komentar", style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+          Text(
+            "Belum ada komentar",
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey.shade500,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );
@@ -1055,11 +1081,15 @@ class _HomePageState extends State<HomePage> {
               }),
               child: Row(
                 children: [
-                  Container(width: 40, height: 1, color: Colors.grey.shade300),
+                  Container(width: 40, height: 1, color: Theme.of(context).dividerColor),
                   const SizedBox(width: 12),
                   Text(
                     isExpanded ? "Sembunyikan balasan" : "Lihat balasan (${comment.replies.length})",
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey.shade600,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -1084,6 +1114,7 @@ class _HomePageState extends State<HomePage> {
     Function(CommentModel) onReply,
     Function(CommentModel) onEdit,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
@@ -1110,18 +1141,38 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(comment.userName ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(width: 8),
-                          Text(_formatDate(comment.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                          Text(
+                            _formatDate(comment.createdAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.grey[500] : Colors.grey.shade500,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     _buildCommentMenu(comment, onEdit, onRefresh),
                   ],
                 ),
-                Text(comment.commentTextOnly, style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87)),
+                Text(
+                  comment.commentTextOnly,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () => onReply(comment),
-                  child: Text("Balas", style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    "Balas",
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey.shade600,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1162,11 +1213,13 @@ class _HomePageState extends State<HomePage> {
     VoidCallback onSend,
   ) {
     bool isDirectAction = replyingTo != null || editingComment != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).cardColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: SafeArea(
         child: Column(
@@ -1188,10 +1241,12 @@ class _HomePageState extends State<HomePage> {
                 Expanded(
                   child: TextField(
                     controller: controller,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
                       hintText: "Tambahkan komentar...",
+                      hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey.shade500),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                      fillColor: Colors.grey.shade100,
+                      fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
@@ -1242,13 +1297,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTeamCard(TeamModel team) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Row(
         children: [
@@ -1290,7 +1352,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
-              child: Image.network(event.imageUrl, height: 130, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(height: 130, color: Colors.grey[200])),
+              child: Image.network(
+                event.imageUrl,
+                height: 130,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) => Container(
+                  height: 130,
+                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF242424) : Colors.grey[200],
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(12.0),

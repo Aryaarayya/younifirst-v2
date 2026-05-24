@@ -22,7 +22,6 @@ class _KeamananPageState extends State<KeamananPage> {
   bool _isLoading = false;
 
   static const _blue = Color(0xFF3D5AFE);
-  static const _bgColor = Color(0xFFF0F2F8);
 
   @override
   void dispose() {
@@ -42,8 +41,11 @@ class _KeamananPageState extends State<KeamananPage> {
         'change-password',
         body: jsonEncode({
           'current_password': _currentPassCtrl.text,
+          'old_password': _currentPassCtrl.text,
           'new_password': _newPassCtrl.text,
           'new_password_confirmation': _confirmPassCtrl.text,
+          'password': _newPassCtrl.text,
+          'password_confirmation': _confirmPassCtrl.text,
         }),
       );
 
@@ -54,10 +56,7 @@ class _KeamananPageState extends State<KeamananPage> {
         _newPassCtrl.clear();
         _confirmPassCtrl.clear();
 
-        _showSnackBar(
-          'Kata sandi berhasil diubah.',
-          isError: false,
-        );
+        _showSnackBar('Kata sandi berhasil diubah.', isError: false);
 
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.pop(context);
@@ -106,30 +105,41 @@ class _KeamananPageState extends State<KeamananPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).appBarTheme.iconTheme?.color ?? Colors.black87,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Keamanan Akun',
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 17,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: Theme.of(context).dividerColor,
+            height: 1.0,
           ),
         ),
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -137,26 +147,24 @@ class _KeamananPageState extends State<KeamananPage> {
               children: [
                 // ── Info Card ──────────────────────────────────────
                 _buildInfoCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // ── Kata Sandi Saat Ini ────────────────────────────
                 _buildLabel('Kata Sandi Saat Ini'),
                 const SizedBox(height: 8),
                 _buildPasswordField(
                   controller: _currentPassCtrl,
-                  hint: '',
+                  hint: 'Masukkan kata sandi saat ini',
                   obscure: _obscureCurrent,
-                  onToggle: () =>
-                      setState(() => _obscureCurrent = !_obscureCurrent),
+                  onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return 'Masukkan kata sandi saat ini';
                     }
                     return null;
                   },
-                  prefillDots: true,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // ── Kata Sandi Baru ────────────────────────────────
                 _buildLabel('Kata Sandi Baru'),
@@ -165,8 +173,7 @@ class _KeamananPageState extends State<KeamananPage> {
                   controller: _newPassCtrl,
                   hint: 'Masukkan kata sandi baru Anda',
                   obscure: _obscureNew,
-                  onToggle: () =>
-                      setState(() => _obscureNew = !_obscureNew),
+                  onToggle: () => setState(() => _obscureNew = !_obscureNew),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return 'Masukkan kata sandi baru';
@@ -177,7 +184,7 @@ class _KeamananPageState extends State<KeamananPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // ── Konfirmasi Kata Sandi ──────────────────────────
                 _buildLabel('Konfirmasi Kata Sandi'),
@@ -186,8 +193,7 @@ class _KeamananPageState extends State<KeamananPage> {
                   controller: _confirmPassCtrl,
                   hint: 'Konfirmasi kata sandi Anda',
                   obscure: _obscureConfirm,
-                  onToggle: () =>
-                      setState(() => _obscureConfirm = !_obscureConfirm),
+                  onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return 'Konfirmasi kata sandi Anda';
@@ -198,7 +204,7 @@ class _KeamananPageState extends State<KeamananPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
                 // ── Buttons ────────────────────────────────────────
                 _buildButtons(),
@@ -211,11 +217,12 @@ class _KeamananPageState extends State<KeamananPage> {
   }
 
   Widget _buildInfoCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF0FF),
-        borderRadius: BorderRadius.circular(14),
+        color: isDark ? const Color(0xFF1E2138) : const Color(0xFFEEF0FF),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,27 +233,27 @@ class _KeamananPageState extends State<KeamananPage> {
               color: _blue.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.shield_outlined, color: _blue, size: 22),
+            child: const Icon(Icons.verified_user_outlined, color: _blue, size: 24),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Jaga akun Anda tetap aman',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 15,
                     color: _blue,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   'Gunakan kata sandi yang kuat dan jangan bagikan ke siapapun.',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF555555),
+                    color: isDark ? Colors.grey[400] : const Color(0xFF555555),
                     height: 1.4,
                   ),
                 ),
@@ -261,10 +268,10 @@ class _KeamananPageState extends State<KeamananPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF333333),
+      style: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : const Color(0xFF111111),
       ),
     );
   }
@@ -275,28 +282,32 @@ class _KeamananPageState extends State<KeamananPage> {
     required bool obscure,
     required VoidCallback onToggle,
     required String? Function(String?) validator,
-    bool prefillDots = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       obscureText: obscure,
       obscuringCharacter: '•',
+      enableSuggestions: false,
+      autocorrect: false,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: TextInputAction.next,
+      autofillHints: const [AutofillHints.password],
       validator: validator,
-      style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
+      style: TextStyle(fontSize: 15, color: isDark ? Colors.white : Colors.black87),
       decoration: InputDecoration(
-        hintText: hint.isEmpty ? null : hint,
-        hintStyle: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 14),
+        hintText: hint,
+        hintStyle: TextStyle(color: isDark ? Colors.grey[500] : const Color(0xFF888888), fontSize: 14),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor: Theme.of(context).cardColor,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : const Color(0xFFCCCCCC), width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : const Color(0xFFCCCCCC), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -313,10 +324,11 @@ class _KeamananPageState extends State<KeamananPage> {
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-            color: const Color(0xFFAAAAAA),
-            size: 20,
+            color: isDark ? Colors.grey[500] : const Color(0xFF888888),
+            size: 22,
           ),
           onPressed: onToggle,
+          splashRadius: 24,
         ),
       ),
     );
@@ -327,10 +339,11 @@ class _KeamananPageState extends State<KeamananPage> {
       children: [
         // BATAL
         Expanded(
+          flex: 3,
           child: OutlinedButton(
             onPressed: _isLoading ? null : () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               side: const BorderSide(color: _blue, width: 1.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -341,21 +354,22 @@ class _KeamananPageState extends State<KeamananPage> {
               style: TextStyle(
                 color: _blue,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 15,
                 letterSpacing: 0.5,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         // UBAH KATA SANDI
         Expanded(
-          flex: 2,
+          flex: 5,
           child: ElevatedButton(
             onPressed: _isLoading ? null : _ubahKataSandi,
             style: ElevatedButton.styleFrom(
               backgroundColor: _blue,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -373,9 +387,8 @@ class _KeamananPageState extends State<KeamananPage> {
                 : const Text(
                     'UBAH KATA SANDI',
                     style: TextStyle(
-                      color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 15,
                       letterSpacing: 0.5,
                     ),
                   ),
