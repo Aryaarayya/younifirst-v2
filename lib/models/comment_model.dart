@@ -61,7 +61,7 @@ class CommentModel {
       parentId: parentId,
       userId: json['user_id']?.toString() ?? json['reporter_id']?.toString() ?? '',
       userName: identity,
-      userAvatar: json['user_avatar'] ?? json['reporter_avatar'] ?? json['user']?['profile_picture'] ?? json['user']?['photo'],
+      userAvatar: json['user_avatar'] ?? json['reporter_avatar'] ?? json['user']?['photo'] ?? json['user']?['photo_url'] ?? json['user']?['profile_picture'],
       createdAt: json['created_at'] ?? '',
       comment: commentText,
     );

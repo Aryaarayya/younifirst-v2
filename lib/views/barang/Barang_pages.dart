@@ -292,17 +292,17 @@ class _BarangPageState extends State<BarangPage> {
     return Center(
       child: Column(
         children: [
-          const SizedBox(height: 40),
-          Icon(Icons.search_off, size: 80, color: Colors.white.withValues(alpha: 0.5)),
+          const SizedBox(height: 80),
+          Icon(Icons.search_off, size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
           Text(
             "Hasil tidak ditemukan",
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             "Coba kata kunci lain atau filter berbeda",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
           ),
         ],
       ),
@@ -382,6 +382,63 @@ class _BarangPageState extends State<BarangPage> {
     );
   }
 
+  /// Builds a user avatar widget. If the item belongs to the logged-in user,
+  /// uses the real photo from ProfilViewModel. Otherwise falls back to a
+  /// colorful initial avatar based on the username.
+  Widget _buildUserAvatar({
+    required String? avatarUrl,
+    required String? userId,
+    required String userName,
+    required double radius,
+  }) {
+    final bool isCurrentUser = userId != null && userId == AuthService.loggedInUserId;
+    final List<Color> avatarColors = [
+      const Color(0xFF3D5AFE), const Color(0xFF00BCD4), const Color(0xFF4CAF50),
+      const Color(0xFFFF5722), const Color(0xFF9C27B0), const Color(0xFFFF9800),
+      const Color(0xFFE91E63), const Color(0xFF795548),
+    ];
+    Color bgColor = avatarColors[(userName.isNotEmpty ? userName.codeUnitAt(0) : 0) % avatarColors.length];
+    String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'U';
+
+    if (isCurrentUser) {
+      return Consumer<ProfilViewModel>(
+        builder: (context, profilVM, _) {
+          String? displayPhotoUrl;
+          if (profilVM.userData != null) {
+            final String? rawPhoto = profilVM.userData!['photo']?.toString();
+            final String? photoUrl = profilVM.userData!['photo_url']?.toString();
+            displayPhotoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                ? LostFoundApiService.getFullUrl(rawPhoto)
+                : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
+          }
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: bgColor,
+            backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
+            child: displayPhotoUrl == null
+                ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
+                : null,
+          );
+        },
+      );
+    }
+
+    // For other users: use avatarUrl if available, else show colorful initial
+    String? fullAvatarUrl;
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : LostFoundApiService.getFullUrl(avatarUrl);
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: bgColor,
+      backgroundImage: fullAvatarUrl != null ? NetworkImage(fullAvatarUrl) : null,
+      child: fullAvatarUrl == null
+          ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
+          : null,
+    );
+  }
+
   Widget _buildBarangCard(LostFoundModel item) {
     bool isDitemukan = item.type == 'Ditemukan';
 
@@ -405,10 +462,11 @@ class _BarangPageState extends State<BarangPage> {
           // Header info
           Row(
             children: [
-              CircleAvatar(
+              _buildUserAvatar(
+                avatarUrl: item.userAvatar,
+                userId: item.userId,
+                userName: item.userName,
                 radius: 18,
-                backgroundImage: item.userAvatar != null ? NetworkImage(item.userAvatar!) : null,
-                child: item.userAvatar == null ? const Icon(Icons.person) : null,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -811,6 +869,7 @@ class _BarangPageState extends State<BarangPage> {
                   ),
                 ],
               ),
+            ),
             );
           },
         );
@@ -900,13 +959,11 @@ class _BarangPageState extends State<BarangPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
+          _buildUserAvatar(
+            avatarUrl: comment.userAvatar,
+            userId: comment.userId,
+            userName: comment.userName ?? 'U',
             radius: avatarSize,
-            backgroundColor: const Color(0xFF3D5AFE),
-            backgroundImage: comment.userAvatar != null ? NetworkImage(comment.userAvatar!) : null,
-            child: comment.userAvatar == null 
-              ? Text((comment.userName ?? 'U')[0].toUpperCase(), style: TextStyle(color: Colors.white, fontSize: isReply ? 10 : 12))
-              : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1040,16 +1097,20 @@ class _BarangPageState extends State<BarangPage> {
               children: [
                 Consumer<ProfilViewModel>(
                   builder: (context, profilVM, child) {
-                    String? avatarUrl;
+                    String? displayPhotoUrl;
                     if (profilVM.userData != null) {
-                      avatarUrl = profilVM.userData!['photo'] ?? profilVM.userData!['avatar'] ?? profilVM.userData!['profile_photo'];
+                      final String? rawPhoto = profilVM.userData!['photo']?.toString();
+                      final String? photoUrl = profilVM.userData!['photo_url']?.toString();
+                      displayPhotoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                          ? LostFoundApiService.getFullUrl(rawPhoto)
+                          : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
                     }
                     
                     return CircleAvatar(
                       radius: 18,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: avatarUrl != null ? NetworkImage(LostFoundApiService.getFullUrl(avatarUrl)) : null,
-                      child: avatarUrl == null ? const Icon(Icons.person, color: Colors.grey, size: 20) : null,
+                      backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
+                      child: displayPhotoUrl == null ? const Icon(Icons.person, color: Colors.grey, size: 20) : null,
                     );
                   },
                 ),

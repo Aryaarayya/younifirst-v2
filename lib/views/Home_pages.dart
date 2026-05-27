@@ -646,7 +646,8 @@ class _HomePageState extends State<HomePage> {
     final filteredLostFound = _lostFoundItems.where((item) {
       return item.itemName.toLowerCase().contains(_searchQuery) ||
              item.description.toLowerCase().contains(_searchQuery) ||
-             item.location.toLowerCase().contains(_searchQuery);
+             item.location.toLowerCase().contains(_searchQuery) ||
+             item.userName.toLowerCase().contains(_searchQuery);
     }).toList();
 
     final filteredEvents = _events.where((event) {
@@ -799,7 +800,8 @@ class _HomePageState extends State<HomePage> {
     final filtered = _lostFoundItems.where((item) {
       return item.itemName.toLowerCase().contains(_searchQuery) ||
              item.description.toLowerCase().contains(_searchQuery) ||
-             item.location.toLowerCase().contains(_searchQuery);
+             item.location.toLowerCase().contains(_searchQuery) ||
+             item.userName.toLowerCase().contains(_searchQuery);
     }).toList();
 
     if (filtered.isEmpty) {
@@ -807,6 +809,60 @@ class _HomePageState extends State<HomePage> {
     }
     return Column(
       children: filtered.map<Widget>((item) => _buildFeedCardFromModel(item)).toList() + [const SizedBox(height: 100)],
+    );
+  }
+
+  Widget _buildUserAvatar({
+    required String? avatarUrl,
+    required String? userId,
+    required String userName,
+    required double radius,
+  }) {
+    final bool isCurrentUser = userId != null && userId == AuthService.loggedInUserId;
+    final List<Color> avatarColors = [
+      const Color(0xFF3D5AFE), const Color(0xFF00BCD4), const Color(0xFF4CAF50),
+      const Color(0xFFFF5722), const Color(0xFF9C27B0), const Color(0xFFFF9800),
+      const Color(0xFFE91E63), const Color(0xFF795548),
+    ];
+    Color bgColor = avatarColors[(userName.isNotEmpty ? userName.codeUnitAt(0) : 0) % avatarColors.length];
+    String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'U';
+
+    if (isCurrentUser) {
+      return Consumer<ProfilViewModel>(
+        builder: (context, profilVM, _) {
+          String? displayPhotoUrl;
+          if (profilVM.userData != null) {
+            final String? rawPhoto = profilVM.userData!['photo']?.toString();
+            final String? photoUrl = profilVM.userData!['photo_url']?.toString();
+            displayPhotoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                ? LostFoundApiService.getFullUrl(rawPhoto)
+                : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
+          }
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: bgColor,
+            backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
+            child: displayPhotoUrl == null
+                ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
+                : null,
+          );
+        },
+      );
+    }
+
+    // For other users: use avatarUrl if available, else show colorful initial
+    String? fullAvatarUrl;
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : LostFoundApiService.getFullUrl(avatarUrl);
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: bgColor,
+      backgroundImage: fullAvatarUrl != null ? NetworkImage(fullAvatarUrl) : null,
+      child: fullAvatarUrl == null
+          ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
+          : null,
     );
   }
 
@@ -830,39 +886,34 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header info
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: (item.userAvatar != null && item.userAvatar!.isNotEmpty)
-                  ? Image.network(
-                      item.userAvatar!,
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
-                    )
-                  : const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
+              _buildUserAvatar(
+                avatarUrl: item.userAvatar,
+                userId: item.userId,
+                userName: item.userName,
+                radius: 18,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.userName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
                       _formatDate(item.createdAt),
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
                 ),
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                padding: EdgeInsets.zero,
                 onSelected: (value) async {
                   if (value == 'edit') {
                     final result = await Navigator.push(
@@ -873,7 +924,7 @@ class _HomePageState extends State<HomePage> {
                   } else if (value == 'finish') {
                     _showFinishConfirmation(context, item);
                   } else if (value == 'share') {
-                    final String barangLink = 'https://younifirst.com/barang/${item.lostfoundId}';
+                    final String barangLink = 'https://play.google.com/store/apps/details?id=com.jtinova.slearn_app';
                     Share.share('Lihat postingan barang ${item.type} ini di Younifirst:\n\n${item.itemName}\nLokasi: ${item.location}\n\nSelengkapnya:\n$barangLink');
                   } else if (value == 'report') {
                     _showReportDialog(context, item);
@@ -905,7 +956,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
           
+          // Image / Media
           if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
             Stack(
               children: [
@@ -914,9 +967,10 @@ class _HomePageState extends State<HomePage> {
                   child: Image.network(
                     item.imageUrl!,
                     width: double.infinity,
-                    height: 300,
+                    height: 250,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(height: 300, color: Colors.grey[200]),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Container(height: 250, width: double.infinity, color: Colors.grey.shade200, child: const Icon(Icons.image, color: Colors.grey)),
                   ),
                 ),
                 Positioned(
@@ -925,53 +979,59 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3D5AFE),
+                      color: isDitemukan ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       item.type,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
               ],
             )
           else 
+            // Jika tidak ada gambar, label Hilang/Ditemukan tetap di kanan atas
             Align(
               alignment: Alignment.centerRight,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3D5AFE),
+                  color: isDitemukan ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   item.type,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
             
           const SizedBox(height: 16),
+          
+          // Title / Item Name
           Text(
             item.itemName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
+
+          // Location
           Row(
             children: [
-              const Icon(Icons.location_on, size: 14, color: Color(0xFF3D5AFE)),
+              const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF3D5AFE)),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   item.location,
-                  style: const TextStyle(color: Color(0xFF3D5AFE), fontSize: 11),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF3D5AFE), fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           
+          // Description
           Builder(
             builder: (context) {
               bool isExpanded = _expandedDescriptions.contains(item.lostfoundId);
@@ -991,13 +1051,13 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: RichText(
                   text: TextSpan(
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.4),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.4),
                     children: [
                       TextSpan(text: '$displayDesc '),
                       if (isLong)
                         TextSpan(
                           text: isExpanded ? 'lebih sedikit' : 'selengkapnya...',
-                          style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.bold),
                         ),
                     ],
                   ),
@@ -1007,6 +1067,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           
+          // Komentar Field
           GestureDetector(
             onTap: () {
               _showCommentSheet(context, item.lostfoundId);
@@ -1014,33 +1075,25 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Theme.of(context).dividerColor),
+                border: Border.all(color: Colors.grey.shade300),
               ),
               child: Row(
                 children: [
-                  Text(
-                    "Beri Komentar...",
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
-                  ),
+                  Text("Beri Komentar...", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                   const Spacer(),
-                  const Icon(CupertinoIcons.chat_bubble, size: 18, color: Colors.grey),
+                  Icon(Icons.chat_bubble_outline, size: 18, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
                   if (item.commentsCount > 0) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      "${item.commentsCount}",
-                      style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
+                    const SizedBox(width: 4),
+                    Text(item.commentsCount.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   ]
                 ],
               ),
             ),
           ),
-          
+
+          // Tandai Postingan Selesai (Hanya jika ini adalah postingan user tersebut)
           if (!item.isCompleted && item.userId == AuthService.loggedInUserId) ...[
             const SizedBox(height: 12),
             SizedBox(
@@ -1051,7 +1104,9 @@ class _HomePageState extends State<HomePage> {
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF3D5AFE)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   backgroundColor: const Color(0xFFEEF2FF),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -1315,13 +1370,11 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
+          _buildUserAvatar(
+            avatarUrl: comment.userAvatar,
+            userId: comment.userId,
+            userName: comment.userName ?? 'U',
             radius: isReply ? 12 : 16,
-            backgroundColor: const Color(0xFF3D5AFE),
-            backgroundImage: comment.userAvatar != null ? NetworkImage(comment.userAvatar!) : null,
-            child: comment.userAvatar == null 
-              ? Text((comment.userName ?? 'U')[0].toUpperCase(), style: TextStyle(color: Colors.white, fontSize: isReply ? 10 : 12))
-              : null,
           ),
           const SizedBox(width: 12),
           Expanded(

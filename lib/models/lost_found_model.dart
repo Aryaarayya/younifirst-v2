@@ -103,7 +103,9 @@ class LostFoundModel {
         ?? json['user_name']
         ?? 'Unknown User';
 
-    String? userAvatar = json['user']?['profile_picture']
+    String? userAvatar = json['user']?['photo']
+        ?? json['user']?['photo_url']
+        ?? json['user']?['profile_picture']
         ?? json['reporter_avatar']
         ?? json['user_avatar'];
 
