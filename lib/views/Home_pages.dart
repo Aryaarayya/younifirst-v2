@@ -14,6 +14,7 @@ import 'package:younifirst_app/utils/profanity_filter.dart';
 import 'package:younifirst_app/views/barang/BarangDetail_pages.dart';
 import 'package:younifirst_app/views/barang/EditBarang_pages.dart';
 import 'package:younifirst_app/widgets/notification_bell.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
@@ -122,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeader(userName, userAvatar),
+                        _buildHeader(profilViewModel, userName, userAvatar),
                     const SizedBox(height: 16),
                     _buildSearchBar(),
                     const SizedBox(height: 16),
@@ -153,54 +154,202 @@ class _HomePageState extends State<HomePage> {
 );
 }
 
-  Widget _buildHeader(String name, String avatar) {
+  Widget _buildHeader(ProfilViewModel viewModel, String name, String avatar) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: avatar.isNotEmpty 
-                  ? Image.network(
-                      avatar,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const CircleAvatar(radius: 25, child: Icon(Icons.person)),
-                    )
-                  : const CircleAvatar(radius: 25, child: Icon(Icons.person)),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Selamat datang kembali👋",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
+          GestureDetector(
+            onTap: () {
+              _showProfileBottomSheet(context, viewModel, name, avatar);
+            },
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: avatar.isNotEmpty 
+                    ? Image.network(
+                        avatar,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const CircleAvatar(radius: 25, child: Icon(Icons.person)),
+                      )
+                    : const CircleAvatar(radius: 25, child: Icon(Icons.person)),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Selamat datang kembali👋",
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                    const SizedBox(height: 4),
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
           const NotificationBell(iconColor: Colors.white),
         ],
       ),
+    );
+  }
+
+  void _showProfileBottomSheet(BuildContext context, ProfilViewModel viewModel, String name, String avatar) {
+    final userData = viewModel.userData;
+    final email = userData?['email'] ?? 'Tidak ada email';
+    final nim = userData?['nim'] ?? '-';
+    final prodi = userData?['prodi'] ?? '-';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Profile Picture
+              ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: avatar.isNotEmpty
+                    ? Image.network(
+                        avatar,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
+                      )
+                    : const CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
+              ),
+              const SizedBox(height: 16),
+              // Name
+              Text(
+                name,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Email
+              Text(
+                email,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              // Additional Info
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        "NIM",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        nim,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Theme.of(context).dividerColor,
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        "Program Studi",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        prodi,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D5AFE),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text("Tutup", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      }
     );
   }
 
@@ -505,6 +654,11 @@ class _HomePageState extends State<HomePage> {
              event.location.toLowerCase().contains(_searchQuery);
     }).toList();
 
+    final filteredTeams = _teams.where((team) {
+      return team.name.toLowerCase().contains(_searchQuery) ||
+             team.lombaName.toLowerCase().contains(_searchQuery);
+    }).toList();
+
     return Column(
       children: [
         if (filteredLostFound.isEmpty && _searchQuery.isNotEmpty)
@@ -552,6 +706,41 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           _buildFilteredEventsHorizontalList(filteredEvents),
+          const SizedBox(height: 20),
+        ],
+
+        if (filteredTeams.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _searchQuery.isEmpty ? "Cari Tim Sesuai Untukmu🔥" : "Tim Relevan",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedFilter = "Tim");
+                  },
+                  child: const Text(
+                    "LIHAT SEMUA",
+                    style: TextStyle(
+                      color: Color(0xFF3D5AFE),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...filteredTeams.take(3).map((team) => _buildTeamCard(team)),
           const SizedBox(height: 20),
         ],
 
@@ -683,8 +872,11 @@ class _HomePageState extends State<HomePage> {
                     if (result == true) _fetchData();
                   } else if (value == 'finish') {
                     _showFinishConfirmation(context, item);
+                  } else if (value == 'share') {
+                    final String barangLink = 'https://younifirst.com/barang/${item.lostfoundId}';
+                    Share.share('Lihat postingan barang ${item.type} ini di Younifirst:\n\n${item.itemName}\nLokasi: ${item.location}\n\nSelengkapnya:\n$barangLink');
                   } else if (value == 'report') {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan telah dikirim')));
+                    _showReportDialog(context, item);
                   }
                 },
                 itemBuilder: (context) {
@@ -699,12 +891,15 @@ class _HomePageState extends State<HomePage> {
                         value: 'finish',
                         child: Row(children: [Icon(Icons.check_circle_outline, size: 20), SizedBox(width: 8), Text('Selesaikan')]),
                       ),
-                    ] else ...[
-                      const PopupMenuItem(
-                        value: 'report',
-                        child: Row(children: [Icon(Icons.report_gmailerrorred, size: 20, color: Colors.red), SizedBox(width: 8), Text('Laporkan', style: TextStyle(color: Colors.red))]),
-                      ),
-                    ]
+                    ],
+                    const PopupMenuItem(
+                      value: 'share',
+                      child: Row(children: [Icon(Icons.share_outlined, size: 20, color: Colors.black87), SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Colors.black87))]),
+                    ),
+                    const PopupMenuItem(
+                      value: 'report',
+                      child: Row(children: [Icon(Icons.flag_outlined, size: 20, color: Colors.red), SizedBox(width: 8), Text('Laporkan', style: TextStyle(color: Colors.red))]),
+                    ),
                   ];
                 },
               ),
@@ -1261,6 +1456,36 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showReportDialog(BuildContext context, LostFoundModel item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Laporkan Postingan', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin melaporkan postingan ini karena melanggar panduan komunitas?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Laporan telah dikirim dan akan segera ditinjau oleh admin.'),
+                  backgroundColor: Colors.green,
+                )
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Laporkan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      )
     );
   }
 

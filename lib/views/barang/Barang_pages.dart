@@ -13,6 +13,7 @@ import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
 import 'EditBarang_pages.dart';
+import 'package:share_plus/share_plus.dart';
 
 class BarangPage extends StatefulWidget {
   @override
@@ -437,8 +438,11 @@ class _BarangPageState extends State<BarangPage> {
                     if (result == true) _fetchData();
                   } else if (value == 'finish') {
                     _showFinishConfirmation(context, item);
+                  } else if (value == 'share') {
+                    final String barangLink = 'https://play.google.com/store/apps/details?id=com.jtinova.slearn_app';
+                    Share.share('Lihat postingan barang ${item.type} ini di Younifirst:\n\n${item.itemName}\nLokasi: ${item.location}\n\nSelengkapnya:\n$barangLink');
                   } else if (value == 'report') {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan telah dikirim')));
+                    _showReportDialog(context, item);
                   }
                 },
                 itemBuilder: (context) {
@@ -453,12 +457,15 @@ class _BarangPageState extends State<BarangPage> {
                         value: 'finish',
                         child: Row(children: [Icon(Icons.check_circle_outline, size: 20), SizedBox(width: 8), Text('Selesaikan')]),
                       ),
-                    ] else ...[
-                      const PopupMenuItem(
-                        value: 'report',
-                        child: Row(children: [Icon(Icons.report_gmailerrorred, size: 20, color: Colors.red), SizedBox(width: 8), Text('Laporkan', style: TextStyle(color: Colors.red))]),
-                      ),
-                    ]
+                    ],
+                    const PopupMenuItem(
+                      value: 'share',
+                      child: Row(children: [Icon(Icons.share_outlined, size: 20, color: Colors.black87), SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Colors.black87))]),
+                    ),
+                    const PopupMenuItem(
+                      value: 'report',
+                      child: Row(children: [Icon(Icons.flag_outlined, size: 20, color: Colors.red), SizedBox(width: 8), Text('Laporkan', style: TextStyle(color: Colors.red))]),
+                    ),
                   ];
                 },
               ),
@@ -641,13 +648,15 @@ class _BarangPageState extends State<BarangPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.8,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.8,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Column(
                 children: [
                    // Handle bar
                   const SizedBox(height: 12),
@@ -1107,6 +1116,36 @@ class _BarangPageState extends State<BarangPage> {
       ),
     ) ?? false;
   }
+  void _showReportDialog(BuildContext context, LostFoundModel item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Laporkan Postingan', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin melaporkan postingan ini karena melanggar panduan komunitas?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Laporan telah dikirim dan akan segera ditinjau oleh admin.'),
+                  backgroundColor: Colors.green,
+                )
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Laporkan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      )
+    );
+  }
+
   void _showFinishConfirmation(BuildContext context, LostFoundModel item) {
     showDialog(
       context: context,

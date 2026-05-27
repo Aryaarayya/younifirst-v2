@@ -34,8 +34,7 @@ class UserApiService {
     if (userId == null) return false;
 
     try {
-      var request = ApiClient.multipartRequest('POST', 'users/$userId');
-      request.fields['_method'] = 'PUT';
+      var request = ApiClient.multipartRequest('POST', 'users/profile');
       request.fields.addAll(data);
 
       debugPrint('📤 Update URL: ${request.url}');

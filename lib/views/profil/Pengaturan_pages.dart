@@ -190,9 +190,9 @@ class PengaturanPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
-                        title: const Text("Bahasa Indonesia", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        title: Text(settings.locale == 'en' ? "English" : "Bahasa Indonesia", style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                         subtitle: Text(
-                          "Default",
+                          "Pilihan Saat Ini",
                           style: TextStyle(
                             color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
                             fontSize: 12,
@@ -203,7 +203,7 @@ class PengaturanPage extends StatelessWidget {
                           color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[600] : Colors.grey[500],
                         ),
                         onTap: () {
-                          // TODO: Implement Language selector
+                          _showLanguageBottomSheet(context, settings);
                         },
                       ),
                     ),
@@ -271,6 +271,114 @@ class PengaturanPage extends StatelessWidget {
                   child: const Icon(Icons.check, color: Colors.white, size: 14),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageBottomSheet(BuildContext context, SettingsViewModel settings) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+      ),
+      backgroundColor: Theme.of(context).cardColor,
+      builder: (BuildContext ctx) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                "Pilih Bahasa",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildLanguageOption(
+                context: ctx,
+                title: "Bahasa Indonesia",
+                value: "id",
+                currentLocale: settings.locale,
+                onTap: () {
+                  settings.setLocale('id');
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildLanguageOption(
+                context: ctx,
+                title: "English",
+                value: "en",
+                currentLocale: settings.locale,
+                onTap: () {
+                  settings.setLocale('en');
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String title,
+    required String value,
+    required String currentLocale,
+    required VoidCallback onTap,
+  }) {
+    bool isSelected = currentLocale == value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? const Color(0xFF3D5AF1).withOpacity(0.1) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+                ? const Color(0xFF3D5AF1) 
+                : (isDark ? Colors.grey[800]! : Colors.grey.shade300),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected 
+                    ? const Color(0xFF3D5AF1) 
+                    : (isDark ? Colors.grey[300] : Colors.grey[800]),
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: Color(0xFF3D5AF1), size: 20),
           ],
         ),
       ),

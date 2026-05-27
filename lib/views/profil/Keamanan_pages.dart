@@ -41,11 +41,8 @@ class _KeamananPageState extends State<KeamananPage> {
         'change-password',
         body: jsonEncode({
           'current_password': _currentPassCtrl.text,
-          'old_password': _currentPassCtrl.text,
           'new_password': _newPassCtrl.text,
           'new_password_confirmation': _confirmPassCtrl.text,
-          'password': _newPassCtrl.text,
-          'password_confirmation': _confirmPassCtrl.text,
         }),
       );
 
@@ -68,6 +65,12 @@ class _KeamananPageState extends State<KeamananPage> {
             message = data['message'];
           } else if (data['error'] != null) {
             message = data['error'];
+          }
+          if (data['errors'] != null) {
+             final errors = data['errors'] as Map<String, dynamic>;
+             if (errors.isNotEmpty) {
+               message = errors.values.first[0].toString(); // Ambil error validasi pertama
+             }
           }
         } catch (_) {}
         _showSnackBar(message, isError: true);
