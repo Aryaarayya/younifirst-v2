@@ -236,7 +236,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -249,11 +249,11 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
       elevation: 0.5,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+        icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
@@ -277,10 +277,10 @@ class _TeamChatPageState extends State<TeamChatPage> {
               children: [
                 Text(
                   widget.teamName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const Text(
@@ -294,7 +294,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert, color: Colors.black87),
+          icon: Icon(Icons.more_vert, color: Theme.of(context).textTheme.bodyLarge?.color),
           onPressed: () {},
         )
       ],
@@ -473,7 +473,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isMe ? const Color(0xFF3D5AFE) : Colors.white,
+                    color: isMe ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
@@ -506,7 +506,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
                         Text(
                           msg.message,
                           style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black87,
+                            color: isMe ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
                             fontSize: 14,
                             height: 1.4,
                           ),
@@ -571,8 +571,8 @@ class _TeamChatPageState extends State<TeamChatPage> {
   Widget _buildInputBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
       ),
       child: Row(
         children: [
@@ -580,7 +580,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F3F9),
+                color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(

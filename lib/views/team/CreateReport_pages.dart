@@ -148,13 +148,13 @@ class _CreateReportPageState extends State<CreateReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
           onPressed: () {
             if (_currentStep == 2) {
               setState(() {
@@ -165,10 +165,10 @@ class _CreateReportPageState extends State<CreateReportPage> {
             }
           },
         ),
-        title: const Text(
+        title: Text(
           'Buat Laporan Juara',
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -222,7 +222,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: _currentStep >= 2 ? const Color(0xFF3D5AFE) : Colors.white,
+                          color: _currentStep >= 2 ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
                           border: Border.all(
                             color: _currentStep >= 2 ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE),
                             width: 1.5,

@@ -146,16 +146,16 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Buat Tim", style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600)),
+        title: Text("Buat Tim", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 16, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
 
@@ -263,7 +263,7 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -290,7 +290,7 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -45,8 +45,10 @@ class _TeamsPageState extends State<TeamsPage> {
                 // Blue Background Top
                 Container(
                   height: 250,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3D5AFE),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF121212)
+                        : const Color(0xFF3D5AFE),
                   ),
                 ),
                 SafeArea(
@@ -219,7 +221,9 @@ class _TeamsPageState extends State<TeamsPage> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FF),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF3D5AFE).withOpacity(0.2)
+                    : const Color(0xFFEEF2FF),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: const Color(0xFF3D5AFE), size: 22),

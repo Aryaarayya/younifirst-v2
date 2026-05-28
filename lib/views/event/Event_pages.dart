@@ -189,8 +189,10 @@ class _EventPageState extends State<EventPage> {
                 // Blue Background Top
                 Container(
                   height: 250,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3D5AFE),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF121212)
+                        : const Color(0xFF3D5AFE),
                   ),
                 ),
                 SafeArea(
@@ -480,7 +482,7 @@ class _EventPageState extends State<EventPage> {
                         child: Text(
                           time.isNotEmpty ? "$date  •  $time" : date,
                           style: TextStyle(
-                              color: Colors.black.withOpacity(0.6), fontSize: 12),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
@@ -496,7 +498,7 @@ class _EventPageState extends State<EventPage> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              color: Colors.black.withOpacity(0.6), fontSize: 12),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
@@ -518,7 +520,7 @@ class _EventPageState extends State<EventPage> {
                                 isLiked ? Icons.favorite : Icons.favorite_border,
                                 key: ValueKey(isLiked),
                                 size: 22,
-                                color: isLiked ? Colors.redAccent : Colors.black.withOpacity(0.7),
+                                color: isLiked ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.7)),
                               ),
                             ),
                           ),
@@ -526,7 +528,7 @@ class _EventPageState extends State<EventPage> {
                           Text(
                             likes,
                             style: TextStyle(
-                                color: Colors.black.withOpacity(0.8),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.8),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16),
                           ),
@@ -816,8 +818,8 @@ class _EventPageState extends State<EventPage> {
                                 time.isNotEmpty ? "$date" : date,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    color: Colors.black54, fontSize: 10),
+                                style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54, fontSize: 10),
                               ),
                       ),
                     ],
@@ -838,8 +840,8 @@ class _EventPageState extends State<EventPage> {
                                 location,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    color: Colors.black54, fontSize: 10),
+                                style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54, fontSize: 10),
                               ),
                       ),
                     ],
@@ -861,7 +863,7 @@ class _EventPageState extends State<EventPage> {
                                 isLiked ? Icons.favorite : Icons.favorite_border,
                                 key: ValueKey(isLiked),
                                 size: 18,
-                                color: isLiked ? Colors.redAccent : Colors.black.withOpacity(0.6),
+                                color: isLiked ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.6)),
                               ),
                             ),
                           ),
@@ -871,7 +873,7 @@ class _EventPageState extends State<EventPage> {
                               : Text(
                                   likes,
                                   style: TextStyle(
-                                      color: Colors.black.withOpacity(0.7),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withOpacity(0.7),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12),
                                 ),

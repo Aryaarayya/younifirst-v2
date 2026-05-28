@@ -30,9 +30,8 @@ class _BottomNavbarState extends State<BottomNavbar> {
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
 
         onTap: (index) {
           setState(() {

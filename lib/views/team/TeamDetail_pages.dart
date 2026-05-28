@@ -82,17 +82,17 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     
     if (isMemberOrPending && !isOwner) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+            icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
+          title: Text(
             'Detail Tim',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           centerTitle: true,
         ),
@@ -192,7 +192,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Column(
@@ -360,7 +360,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: Colors.grey.shade200),
                                 ),
@@ -466,7 +466,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 30), // match mockup safe area
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),

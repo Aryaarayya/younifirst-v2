@@ -145,16 +145,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (eventData == null) {
       return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(backgroundColor: Colors.white, elevation: 0),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0),
         body: const Center(child: Text("Data event tidak ditemukan.")),
       );
     }
@@ -180,7 +180,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (eventData!['category_id']?.toString() == "5") category = "Konser";
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -273,8 +273,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       height: 40,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
                       ),
                     ),
@@ -285,7 +285,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +310,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       Expanded(
                         child: Text(
                           title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, height: 1.3),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, height: 1.3, color: Theme.of(context).textTheme.bodyLarge?.color),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -368,7 +368,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                 children: [
                                   Text(
                                     _formatDate(eventData!['start_date']),
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -400,7 +400,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                 children: [
                                   Text(
                                     _formatDate(eventData!['end_date']),
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -429,7 +429,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           Expanded(
                             child: Text(
                               location,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
                             ),
                           ),
                         ],
@@ -447,7 +447,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   Text.rich(
                     TextSpan(
                       text: description.length > 200 ? description.substring(0, 200) + "... " : description,
-                      style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 14, height: 1.5),
                       children: [
                         if (description.length > 200)
                           const TextSpan(
@@ -478,7 +478,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                             children: [
                               Text(
                                 eventData!['creator_name'] ?? "rona_naa",
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -576,7 +576,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           // Related Events List View
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               height: 450, // Match list height from Event_pages
               padding: const EdgeInsets.only(bottom: 30),
               child: relatedEvents.isEmpty
@@ -640,7 +640,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         width: 280,
         margin: const EdgeInsets.only(right: 16, bottom: 10, top: 5, left: 5),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -676,7 +676,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
                   ),
                   const SizedBox(height: 10),
                   Row(
