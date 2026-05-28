@@ -40,10 +40,13 @@ class AnnouncementViewModel extends ChangeNotifier {
             userNama: 'Sistem',
           )).toList();
 
-      // Ambil push notifikasi lokal yang tersimpan
+      // Ambil push notifikasi lokal yang tersimpan (dari FCM)
       final localPushNotifs = await NotificationService.getLocalPushNotifications();
 
-      _announcements = [...data, ...pendingNotifs, ...localPushNotifs];
+      // Ambil notifikasi in-app (komentar, balasan, dll.)
+      final inAppNotifs = await NotificationService.getLocalInAppNotifications();
+
+      _announcements = [...data, ...pendingNotifs, ...localPushNotifs, ...inAppNotifs];
 
       // Urutkan berdasarkan tanggal terbaru
       _announcements.sort((a, b) {
@@ -55,6 +58,9 @@ class AnnouncementViewModel extends ChangeNotifier {
           return 0;
         }
       });
+
+      // Reset unread badge untuk in-app notifikasi
+      await NotificationService.markInAppNotifsAsRead();
     } catch (e) {
       _error = e.toString();
     } finally {

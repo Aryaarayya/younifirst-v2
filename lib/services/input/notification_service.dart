@@ -238,15 +238,17 @@ class NotificationService {
   }
 
   // ─── Unread count ─────────────────────────────────────────────────────────
-  // Menghitung pengumuman baru sejak terakhir user membuka halaman Announcement
+  // Menghitung pengumuman baru dan notifikasi in-app yang belum dibaca
   static Future<int> getUnreadCount() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      // Announcement unread
       final lastSeenCount = prefs.getInt('last_seen_announcement_count') ?? 0;
       final announcements = await AnnouncementApiService.getAnnouncements();
-      final currentCount = announcements.length;
-      final unread = currentCount - lastSeenCount;
-      return unread > 0 ? unread : 0;
+      final announcementUnread = (announcements.length - lastSeenCount).clamp(0, 999);
+      // In-app (comment/reply) unread
+      final inAppUnread = prefs.getInt('local_inapp_unread') ?? 0;
+      return announcementUnread + inAppUnread;
     } catch (e) {
       return 0;
     }
@@ -264,9 +266,34 @@ class NotificationService {
     }
   }
 
+  static const String _inAppNotifsKey = 'local_inapp_notifs';
+
   static Future<void> addNotification(String title, String body,
       {String? type, String? targetId}) async {
-    // Tidak diperlukan — FCM yang mengelola
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final listStr = prefs.getStringList(_inAppNotifsKey) ?? [];
+
+      final notifMap = {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'title': title,
+        'content': body,
+        'category': type ?? 'comment',
+        'target_id': targetId ?? '',
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      listStr.insert(0, jsonEncode(notifMap));
+      // Batasi maksimal 100 notifikasi in-app
+      if (listStr.length > 100) listStr.removeLast();
+      await prefs.setStringList(_inAppNotifsKey, listStr);
+
+      // Increment unread badge counter
+      final unread = (prefs.getInt('local_inapp_unread') ?? 0) + 1;
+      await prefs.setInt('local_inapp_unread', unread);
+    } catch (e) {
+      debugPrint('❌ Gagal menyimpan notif in-app: \$e');
+    }
   }
 
   // ─── Simpan & Ambil Notifikasi Lokal (dari FCM) ───────────────────────────
@@ -316,6 +343,39 @@ class NotificationService {
     } catch (e) {
       debugPrint('❌ Gagal mengambil notif lokal: $e');
       return [];
+    }
+  }
+
+  // ─── In-App Notifications (comment, reply, dll.) ───────────────────────────
+  static Future<List<AnnouncementModel>> getLocalInAppNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final listStr = prefs.getStringList(_inAppNotifsKey) ?? [];
+
+      return listStr.map((e) {
+        final map = jsonDecode(e);
+        return AnnouncementModel(
+          id: map['id']?.toString() ?? '',
+          title: map['title'] ?? 'Notifikasi',
+          content: map['content'] ?? '',
+          category: map['category'] ?? 'comment',
+          createdAt: map['created_at'] ?? DateTime.now().toIso8601String(),
+          updatedAt: map['created_at'] ?? DateTime.now().toIso8601String(),
+          userNama: null,
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('❌ Gagal mengambil notif in-app: $e');
+      return [];
+    }
+  }
+
+  static Future<void> markInAppNotifsAsRead() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('local_inapp_unread', 0);
+    } catch (e) {
+      debugPrint('Gagal reset unread in-app: $e');
     }
   }
 }

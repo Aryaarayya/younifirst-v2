@@ -19,10 +19,10 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   @override
   void initState() {
     super.initState();
-    // Panggil fetch data jika diperlukan (atau biarkan constructor ViewModel yang jalan)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnnouncementViewModel>().loadAnnouncements();
       NotificationService.markAnnouncementsAsRead();
+      NotificationService.markInAppNotifsAsRead();
     });
   }
 
@@ -330,6 +330,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       case 'pengajuan_tim': return Colors.teal;
       case 'barang': return Colors.purple;
       case 'pengajuan_event': return Colors.blue;
+      case 'comment': return const Color(0xFF3D5AFE);
+      case 'reply': return const Color(0xFF00BCD4);
       default: return const Color(0xFF3D5AFE);
     }
   }
@@ -341,6 +343,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       case 'pengajuan_tim': return Icons.group_add;
       case 'barang': return Icons.inventory_2_outlined;
       case 'pengajuan_event': return Icons.hourglass_top;
+      case 'comment': return Icons.chat_bubble_outline;
+      case 'reply': return Icons.reply_rounded;
       default: return Icons.campaign;
     }
   }
@@ -352,6 +356,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       case 'pengajuan_tim': return 'Pengajuan Tim Dikirim';
       case 'barang': return 'Pengumuman Barang';
       case 'pengajuan_event': return 'Menunggu Persetujuan';
+      case 'comment': return 'Komentar Baru 💬';
+      case 'reply': return 'Balasan Komentar 💬';
       default: return 'Pengumuman Umum';
     }
   }

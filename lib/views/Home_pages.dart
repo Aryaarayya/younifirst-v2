@@ -18,6 +18,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
+import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
+import 'package:younifirst_app/views/event/EventDetail_pages.dart';
+import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -26,8 +29,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<LostFoundModel> _lostFoundItems = [];
-  List<EventModel> _events = [];
   List<TeamModel> _teams = [];
+  
+  List<EventModel> get _events => context.read<EventViewModel>().events;
+  
   bool _isLoading = true;
   String _selectedFilter = "Untuk Anda";
   String _searchQuery = "";
@@ -57,17 +62,19 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
+      if (mounted) {
+        await context.read<EventViewModel>().fetchEvents();
+      }
+      
       final results = await Future.wait([
         LostFoundApiService.getLostAndFound(),
-        EventApiService.getEvents(),
         TeamApiService.getTeams(),
       ]);
 
       if (!mounted) return;
       setState(() {
         _lostFoundItems = results[0] as List<LostFoundModel>;
-        _events = results[1] as List<EventModel>;
-        _teams = results[2] as List<TeamModel>;
+        _teams = results[1] as List<TeamModel>;
         _isLoading = false;
       });
     } catch (e) {
@@ -91,8 +98,8 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Consumer<ProfilViewModel>(
-      builder: (context, profilViewModel, child) {
+    return Consumer2<ProfilViewModel, EventViewModel>(
+      builder: (context, profilViewModel, eventViewModel, child) {
         final _userProfileData = profilViewModel.userData;
         final String userName = _userProfileData?['name'] ?? 'User';
         // Gunakan photo jika ada, fallback ke photo_url (generated avatar)
@@ -653,7 +660,12 @@ class _HomePageState extends State<HomePage> {
     final filteredEvents = _events.where((event) {
       return event.title.toLowerCase().contains(_searchQuery) ||
              event.location.toLowerCase().contains(_searchQuery);
-    }).toList();
+    }).toList()
+      ..sort((a, b) {
+        final likesA = int.tryParse(a.likesCount) ?? 0;
+        final likesB = int.tryParse(b.likesCount) ?? 0;
+        return likesB.compareTo(likesA);
+      });
 
     final filteredTeams = _teams.where((team) {
       return team.name.toLowerCase().contains(_searchQuery) ||
@@ -753,9 +765,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildPopularEventsVerticalList(List<EventModel> filtered) {
+    // Show top 3 events by likes
+    final topEvents = filtered.take(3).toList();
+    return Column(
+      children: topEvents.map((event) => _buildBigEventCard(event)).toList(),
+    );
+  }
+
   Widget _buildFilteredEventsHorizontalList(List<EventModel> filtered) {
     return SizedBox(
-      height: 270,
+      height: 290,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -869,9 +889,21 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFeedCardFromModel(LostFoundModel item) {
     bool isDitemukan = item.type == 'Ditemukan' || item.type == 'Diklaim';
 
-    return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-      padding: const EdgeInsets.all(16),
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BarangDetailPage(lostFoundId: item.lostfoundId),
+          ),
+        );
+        if (result == true) {
+          _fetchData();
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -1116,6 +1148,7 @@ class _HomePageState extends State<HomePage> {
           ]
         ],
       ),
+    ),
     );
   }
 
@@ -1576,9 +1609,18 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildTeamCard(TeamModel team) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-      padding: const EdgeInsets.all(16),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TeamDetailPage(teamId: team.id),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -1611,12 +1653,192 @@ class _HomePageState extends State<HomePage> {
           const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
         ],
       ),
+    ),
+    );
+  }
+
+  Widget _buildBigEventCard(EventModel event) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final int likes = int.tryParse(event.likesCount) ?? 0;
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventDetailPage(eventId: event.id),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.07),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Hero image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  Image.network(
+                    event.imageUrl,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) => Container(
+                      height: 200,
+                      color: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFE8EAFF),
+                      child: Center(
+                        child: Icon(Icons.event, size: 60, color: const Color(0xFF3D5AFE).withValues(alpha: 0.4)),
+                      ),
+                    ),
+                  ),
+                  // Like badge top right
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite, size: 14, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          Text(
+                            likes.toString(),
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      height: 1.3,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3D5AFE).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.calendar_today, size: 14, color: Color(0xFF3D5AFE)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '${event.date}${event.time.isNotEmpty ? ' • ${event.time}' : ''}',
+                          style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3D5AFE).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF3D5AFE)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          event.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EventDetailPage(eventId: event.id),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3D5AFE),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Lihat Detail', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                          SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildMiniEventCard(EventModel event) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventDetailPage(eventId: event.id),
+          ),
+        );
+      },
       child: Container(
         width: 240,
         margin: const EdgeInsets.only(right: 16, bottom: 8),
@@ -1655,7 +1877,16 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(children: [const Icon(CupertinoIcons.heart_fill, size: 16, color: Colors.redAccent), const SizedBox(width: 4), Text(event.likesCount, style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold))]),
+                      Row(children: [
+                        GestureDetector(
+                          onTap: () {
+                            context.read<EventViewModel>().toggleLike(event.id);
+                          },
+                          child: Icon(event.isLiked ? CupertinoIcons.heart_fill : CupertinoIcons.heart, size: 16, color: event.isLiked ? Colors.redAccent : Colors.grey),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(event.likesCount, style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold))
+                      ]),
                       Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: const Color(0xFF3D5AFE), borderRadius: BorderRadius.circular(12)), child: const Row(children: [Text("Mulai", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)), SizedBox(width: 4), Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 12)])),
                     ],
                   ),
