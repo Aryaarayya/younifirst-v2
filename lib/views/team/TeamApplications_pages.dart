@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
+import 'package:younifirst_app/views/team/DetailLamaran_pages.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
 import 'dart:convert';
@@ -318,30 +319,21 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
                 flex: 2,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    if (cvUrl.isNotEmpty) {
-                      final uri = Uri.parse(cvUrl);
-                      try {
-                        bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        if (!launched) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Tidak dapat membuka CV')),
-                          );
-                        }
-                      } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Tidak dapat membuka CV')),
-                        );
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('CV tidak tersedia')),
-                      );
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailLamaranPage(
+                          app: app,
+                          teamId: widget.teamId,
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      _load();
                     }
                   },
                   icon: const Icon(Icons.assignment_outlined, size: 16),
-                  label: const Text('Lihat Detail CV',
+                  label: const Text('Lihat Detail Lamaran',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF3D5AFE),

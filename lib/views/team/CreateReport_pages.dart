@@ -112,9 +112,9 @@ class _CreateReportPageState extends State<CreateReportPage> {
 
     try {
       final payload = {
-        'tingkat_lomba': _tingkatLomba,
-        'tingkat_juara': _tingkatJuara,
-        'deskripsi': _deskripsiController.text,
+        'competition_level': _tingkatLomba.toLowerCase(),
+        'achievement_rank': _tingkatJuara,
+        'description': _deskripsiController.text,
       };
       
       bool success = await TeamApiService.submitReport(

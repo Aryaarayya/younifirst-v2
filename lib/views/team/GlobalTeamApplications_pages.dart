@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
+import 'package:younifirst_app/views/team/DetailLamaran_pages.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
@@ -9,7 +10,8 @@ import 'dart:convert';
 import 'dart:io';
 
 class GlobalTeamApplicationsPage extends StatefulWidget {
-  const GlobalTeamApplicationsPage({Key? key}) : super(key: key);
+  final String? initialTeamId;
+  const GlobalTeamApplicationsPage({Key? key, this.initialTeamId}) : super(key: key);
 
   @override
   State<GlobalTeamApplicationsPage> createState() => _GlobalTeamApplicationsPageState();
@@ -78,6 +80,10 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         } catch (e) {
           grouped[t.id] = [];
         }
+      }
+
+      if (widget.initialTeamId != null) {
+        _expandedTeamIds.add(widget.initialTeamId!);
       }
 
       if (mounted) {
@@ -458,32 +464,23 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
             Expanded(
               flex: 2,
               child: _actionButton(
-                label: 'Lihat Detail CV',
+                label: 'Lihat Detail Lamaran',
                 icon: Icons.assignment_outlined,
                 color: const Color(0xFF3D5AFE),
                 isFilled: true,
                 showArrow: true,
                 onTap: () async {
-                  if (cvUrl.isNotEmpty) {
-                    final uri = Uri.parse(cvUrl);
-                    try {
-                      bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      if (!launched) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Tidak dapat membuka CV')),
-                        );
-                      }
-                    } catch (e) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Tidak dapat membuka CV')),
-                      );
-                    }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('CV tidak tersedia')),
-                    );
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailLamaranPage(
+                        app: app,
+                        teamId: teamId,
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    _loadData();
                   }
                 },
               ),

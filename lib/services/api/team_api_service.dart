@@ -243,14 +243,14 @@ class TeamApiService {
 
       if (buktiMenangPath != null && buktiMenangPath.isNotEmpty) {
         request.files.add(await http.MultipartFile.fromPath(
-          'bukti_menang', 
+          'photo_certificate', 
           buktiMenangPath,
         ));
       }
 
       if (dokumentasiPath != null && dokumentasiPath.isNotEmpty) {
         request.files.add(await http.MultipartFile.fromPath(
-          'dokumentasi_kegiatan', 
+          'photo_activity', 
           dokumentasiPath,
         ));
       }

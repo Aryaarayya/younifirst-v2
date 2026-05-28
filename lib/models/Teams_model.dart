@@ -1,5 +1,21 @@
 import 'package:younifirst_app/services/input/auth_service.dart';
 
+class TeamMember {
+  final String userId;
+  final String name;
+  final String role;
+  final String status;
+  final String timeAgo;
+
+  TeamMember({
+    required this.userId,
+    required this.name,
+    required this.role,
+    required this.status,
+    this.timeAgo = '',
+  });
+}
+
 class TeamModel {
   final String id;
   final String name;
@@ -14,6 +30,7 @@ class TeamModel {
   final bool isAcceptedMember;
   final bool isLiked;
   final List<String> memberNames;
+  final List<TeamMember> members;
 
   TeamModel({
     required this.id,
@@ -29,6 +46,7 @@ class TeamModel {
     this.isAcceptedMember = false,
     this.isLiked = false,
     this.memberNames = const [],
+    this.members = const [],
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json, {String? currentUserId}) {
@@ -36,6 +54,7 @@ class TeamModel {
     final createdBy = json['created_by']?.toString() ?? json['leader_id']?.toString() ?? '';
     final members = json['members'];
     List<String> names = [];
+    List<TeamMember> parsedMembers = [];
     final cleanUid = currentUserId?.trim();
     final numericUid = cleanUid?.replaceAll(RegExp(r'[^0-9]'), '');
     
@@ -68,6 +87,49 @@ class TeamModel {
           .where((n) => n.isNotEmpty)
           .toList();
       
+      for (var m in memberList) {
+        if (m is Map) {
+          final mUserId = m['user_id']?.toString()?.trim() ?? 
+                          m['user']?['id']?.toString()?.trim() ?? 
+                          m['id']?.toString()?.trim() ?? '';
+          final mName = (m['name'] ?? m['user_name'] ?? m['user']?['name'] ?? '').toString();
+          final mRole = (m['proposed_role'] ?? m['role'] ?? m['peran'] ?? m['member_role'] ?? m['position'] ?? 'Member').toString();
+          final mStatus = (m['member_status'] ?? m['status'] ?? m['membership_status'] ?? 'active').toString().toLowerCase();
+          
+          String timeAgo = '';
+          final createdAt = m['created_at']?.toString() ?? '';
+          if (createdAt.isNotEmpty) {
+            try {
+              final dt = DateTime.parse(createdAt).toLocal();
+              final diff = DateTime.now().difference(dt);
+              if (diff.inMinutes < 60) {
+                timeAgo = '${diff.inMinutes} mnt lalu';
+              } else if (diff.inHours < 24) {
+                timeAgo = '${diff.inHours} jam lalu';
+              } else {
+                timeAgo = '${diff.inDays} hari lalu';
+              }
+            } catch (_) {}
+          }
+          if (mName.isNotEmpty) {
+            parsedMembers.add(TeamMember(
+              userId: mUserId,
+              name: mName,
+              role: mRole,
+              status: mStatus,
+              timeAgo: timeAgo,
+            ));
+          }
+        } else {
+          parsedMembers.add(TeamMember(
+            userId: '',
+            name: m.toString(),
+            role: 'Member',
+            status: 'active',
+          ));
+        }
+      }
+
       if (cleanUid != null) {
         for (var m in memberList) {
           bool match = false;
@@ -118,7 +180,7 @@ class TeamModel {
       isAcceptedMember: isOwner || isAcceptedRaw || isAcceptedByList,
       isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
       memberNames: names,
+      members: parsedMembers,
     );
   }
 }
-

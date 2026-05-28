@@ -85,226 +85,144 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
     
     final isPending = displayStatus.toLowerCase() == 'pending';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: () {
+        if (t.isOwner) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TeamDetailPage(teamId: t.id),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Halaman detail tim saya hanya dapat diakses oleh pembuat tim atau leader.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.groups_outlined,
+                          color: Color(0xFF3D5AFE), size: 20),
                     ),
-                    child: const Icon(Icons.groups_outlined,
-                        color: Color(0xFF3D5AFE), size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    t.name,
+                    const SizedBox(width: 12),
+                    Text(
+                      t.name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ],
+                ),
+                _statusChip(displayStatus),
+              ],
+            ),
+            const SizedBox(height: 12),
+  
+            // Lomba
+            Row(
+              children: [
+                const Icon(Icons.arrow_forward, size: 18, color: Color(0xFF3D5AFE)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    t.lombaName,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18),
+                        color: Color(0xFF3D5AFE),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15),
                   ),
-                ],
-              ),
-              _statusChip(displayStatus),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Lomba
-          Row(
-            children: [
-              const Icon(Icons.arrow_forward, size: 18, color: Color(0xFF3D5AFE)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  t.lombaName,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+  
+            // Desc
+            Text(
+              t.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Divider(color: Colors.grey.shade200, height: 1),
+            const SizedBox(height: 12),
+  
+            // Stats (Avatars + Count)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: List.generate(
+                    t.joinedMembers.clamp(0, 4),
+                    (i) => Align(
+                      widthFactor: 0.7,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: Colors.grey[300],
+                          child: t.memberNames.length > i
+                              ? Text(
+                                  t.memberNames[i][0].toUpperCase(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black54),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Text(
+                  '${t.joinedMembers}/${maxMm} Anggota',
                   style: const TextStyle(
                       color: Color(0xFF3D5AFE),
                       fontWeight: FontWeight.w600,
-                      fontSize: 15),
+                      fontSize: 13),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Desc
-          Text(
-            t.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: Colors.black87),
-          ),
-          const SizedBox(height: 12),
-          Divider(color: Colors.grey.shade200, height: 1),
-          const SizedBox(height: 12),
-
-          // Stats (Avatars + Count)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: List.generate(
-                  t.joinedMembers.clamp(0, 4),
-                  (i) => Align(
-                    widthFactor: 0.7,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.grey[300],
-                        child: t.memberNames.length > i
-                            ? Text(
-                                t.memberNames[i][0].toUpperCase(),
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black54),
-                              )
-                            : null,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Text(
-                '${t.joinedMembers}/${maxMm} Anggota',
-                style: const TextStyle(
-                    color: Color(0xFF3D5AFE),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Action buttons
-          if (!isPending)
-            if (t.isOwner)
-              if (displayStatus.toLowerCase() == 'full')
-                Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFF3D5AFE)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Buka Chat Tim',
-                              style: TextStyle(
-                                color: Color(0xFF3D5AFE),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CreateReportPage(team: t),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3D5AFE),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Buat Laporan Juara',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.emoji_events_outlined, color: Colors.white, size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const GlobalTeamApplicationsPage(),
-                              ),
-                            ),
-                            icon: const Icon(Icons.description_outlined,
-                                size: 16, color: Color(0xFF3D5AFE)),
-                            label: const Text(
-                              'Lihat Lamaran Masuk',
-                              style: TextStyle(
-                                  color: Color(0xFF3D5AFE),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF3D5AFE)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton(
+              ],
+            ),
+            const SizedBox(height: 16),
+  
+            // Action buttons
+            if (!isPending)
+              if (t.isOwner)
+                if (displayStatus.toLowerCase() == 'full')
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -312,167 +230,268 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             side: const BorderSide(color: Color(0xFF3D5AFE)),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
-                                'Chat Tim',
+                                'Buka Chat Tim',
+                                style: TextStyle(
+                                  color: Color(0xFF3D5AFE),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CreateReportPage(team: t),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3D5AFE),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Buat Laporan Juara',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.emoji_events_outlined, color: Colors.white, size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const GlobalTeamApplicationsPage(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.description_outlined,
+                                  size: 16, color: Color(0xFF3D5AFE)),
+                              label: const Text(
+                                'Lihat Lamaran Masuk',
                                 style: TextStyle(
                                     color: Color(0xFF3D5AFE),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600),
                               ),
-                              const SizedBox(width: 6),
-                              const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF3D5AFE)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CreateReportPage(team: t),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3D5AFE),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Buat Laporan Juara',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF3D5AFE)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.emoji_events_outlined, color: Colors.white, size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-            else if (t.isAcceptedMember)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: Color(0xFF3D5AFE)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Buka Chat Tim',
-                        style: TextStyle(
-                          color: Color(0xFF3D5AFE),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
-                          Positioned(
-                            right: -4,
-                            top: -4,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
                               ),
-                              child: const Text(
-                                '2',
-                                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF3D5AFE)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'Chat Tim',
+                                  style: TextStyle(
+                                      color: Color(0xFF3D5AFE),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF3D5AFE)),
+                              ],
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CreateReportPage(team: t),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3D5AFE),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Buat Laporan Juara',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.emoji_events_outlined, color: Colors.white, size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+              else if (t.isAcceptedMember)
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TeamChatPage(teamId: t.id, teamName: t.name),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: Color(0xFF3D5AFE)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Buka Chat Tim',
+                          style: TextStyle(
+                            color: Color(0xFF3D5AFE),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(Icons.chat_bubble_rounded, color: Color(0xFF3D5AFE), size: 20),
+                            Positioned(
+                              right: -4,
+                              top: -4,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Text(
+                                  '2',
+                                  style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.hourglass_bottom,
+                          color: Colors.blue.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Menunggu Persetujuan Tim',
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600),
+                      ),
                     ],
                   ),
-                ),
-              )
+                )
             else
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.orange.shade200),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.hourglass_bottom,
-                        color: Colors.blue.shade700, size: 18),
+                    Icon(Icons.hourglass_top,
+                        color: Colors.orange.shade700, size: 16),
                     const SizedBox(width: 8),
                     const Text(
-                      'Menunggu Persetujuan Tim',
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w600),
+                      'Menunggu persetujuan admin...',
+                      style: TextStyle(fontSize: 12, color: Colors.black87),
                     ),
                   ],
                 ),
-              )
-          else
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.orange.shade200),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.hourglass_top,
-                      color: Colors.orange.shade700, size: 16),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Menunggu persetujuan admin...',
-                    style: TextStyle(fontSize: 12, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
