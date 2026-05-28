@@ -83,8 +83,6 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
     try {
       await ChatService.sendMessage(widget.teamId, text);
-      // Tidak perlu manual update `_messages` atau panggil `_scrollToBottom()`.
-      // StreamBuilder akan otomatis merender UI dan `onData` akan scroll ke bawah.
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,10 +96,147 @@ class _TeamChatPageState extends State<TeamChatPage> {
     }
   }
 
+  void _showChatOptions(ChatMessageModel msg) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit, color: Color(0xFF3D5AFE)),
+                title: const Text('Edit Pesan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditDialog(msg);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Hapus Pesan', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmDialog(msg);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(ChatMessageModel msg) {
+    final editController = TextEditingController(text: msg.message);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Edit Pesan',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          content: TextField(
+            controller: editController,
+            maxLines: null,
+            decoration: InputDecoration(
+              hintText: 'Edit pesan...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3D5AFE),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                final newText = editController.text.trim();
+                if (newText.isEmpty) return;
+                Navigator.pop(context);
+                try {
+                  await ChatService.editMessage(widget.teamId, msg.id, newText);
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal mengedit pesan: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Simpan', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmDialog(ChatMessageModel msg) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Hapus Pesan',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          content: const Text('Apakah Anda yakin ingin menghapus pesan ini?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(context);
+                try {
+                  await ChatService.deleteMessage(widget.teamId, msg.id);
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menghapus pesan: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2FF),
+      backgroundColor: const Color(0xFFF5F6FF),
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -114,33 +249,77 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF3D5AFE),
-      foregroundColor: Colors.white,
-      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0.5,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: Row(
         children: [
-          Text(
-            widget.teamName,
-            style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: const Color(0xFFE8EAFF),
+            child: Text(
+              widget.teamName.isNotEmpty ? widget.teamName[0].toUpperCase() : 'T',
+              style: const TextStyle(
+                color: Color(0xFF3D5AFE),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          const Text(
-            'Grup Diskusi Tim',
-            style: TextStyle(fontSize: 11, color: Colors.white70),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.teamName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Text(
+                  '4 aktif',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert),
+          icon: const Icon(Icons.more_vert, color: Colors.black87),
           onPressed: () {},
         )
       ],
+    );
+  }
+
+  Widget _buildSystemWelcomeMessage() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8EFFF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFD0E0FF)),
+      ),
+      child: const Text(
+        'Selamat datang di grup tim! 👋 Silakan mulai berdiskusi dan berkolaborasi dengan anggota tim lainnya. Mohon untuk selalu menjaga sopan santun dan menggunakan bahasa yang baik selama berkomunikasi.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Color(0xFF3D5AFE),
+          fontSize: 12,
+          height: 1.5,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 
@@ -202,46 +381,56 @@ class _TeamChatPageState extends State<TeamChatPage> {
         }
 
         if (_messages.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8EAFF),
-                    shape: BoxShape.circle,
+          return Column(
+            children: [
+              _buildSystemWelcomeMessage(),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE8EAFF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.chat_bubble_outline,
+                            size: 40, color: Color(0xFF3D5AFE)),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Belum ada pesan',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black54),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Mulai diskusi dengan anggota tim!',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.chat_bubble_outline,
-                      size: 40, color: Color(0xFF3D5AFE)),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Belum ada pesan',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black54),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Mulai diskusi dengan anggota tim!',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
         }
 
         return ListView.builder(
           controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-          itemCount: _messages.length,
+          itemCount: _messages.length + 1,
           itemBuilder: (ctx, i) {
-            final msg = _messages[i];
+            if (i == 0) {
+              return _buildSystemWelcomeMessage();
+            }
+            final msg = _messages[i - 1];
             final isMe = msg.senderId == AuthService.loggedInUserId;
             final showName = !isMe &&
-                (i == 0 || _messages[i - 1].senderId != msg.senderId);
+                (i - 1 == 0 || _messages[i - 2].senderId != msg.senderId);
             return _buildBubble(msg, isMe, showName);
           },
         );
@@ -251,7 +440,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   Widget _buildBubble(ChatMessageModel msg, bool isMe, bool showName) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment:
             isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -271,31 +460,20 @@ class _TeamChatPageState extends State<TeamChatPage> {
                     fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
           ],
           Flexible(
-            child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                if (showName)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 3, left: 4),
-                    child: Text(
-                      msg.senderName,
-                      style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF3D5AFE)),
-                    ),
-                  ),
-                Container(
+            child: GestureDetector(
+              onLongPress: isMe ? () => _showChatOptions(msg) : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.72,
+                ),
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isMe
-                        ? const Color(0xFF3D5AFE)
-                        : Colors.white,
+                    color: isMe ? const Color(0xFF3D5AFE) : Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
@@ -304,42 +482,87 @@ class _TeamChatPageState extends State<TeamChatPage> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
+                        color: Colors.black.withOpacity(0.04),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: isMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        msg.message,
-                        style: TextStyle(
-                          color: isMe ? Colors.white : Colors.black87,
-                          fontSize: 14,
-                          height: 1.4,
+                  child: IntrinsicWidth(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (!isMe) ...[
+                          Text(
+                            msg.senderName,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3D5AFE),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                        ],
+                        Text(
+                          msg.message,
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        msg.timeLabel,
-                        style: TextStyle(
-                          color: isMe
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : Colors.grey,
-                          fontSize: 10,
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (msg.isEdited) ...[
+                                Text(
+                                  '(edited) ',
+                                  style: TextStyle(
+                                    color: isMe
+                                        ? Colors.white.withOpacity(0.6)
+                                        : Colors.grey.shade500,
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ],
+                              Text(
+                                msg.timeLabel,
+                                style: TextStyle(
+                                  color: isMe
+                                      ? Colors.white.withOpacity(0.7)
+                                      : Colors.grey.shade500,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-          if (isMe) const SizedBox(width: 4),
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.grey.shade300,
+              child: Text(
+                msg.senderName.isNotEmpty
+                    ? msg.senderName[0].toUpperCase()
+                    : '?',
+                style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -347,46 +570,56 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   Widget _buildInputBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
-          ),
-        ],
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
+              height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color: const Color(0xFFF1F3F9),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: TextField(
-                controller: _msgController,
-                maxLines: null,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  hintText: 'Tulis pesan...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  border: InputBorder.none,
-                ),
-                onSubmitted: (_) => _sendMessage(),
+              child: Row(
+                children: [
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.grey),
+                    onPressed: () {},
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _msgController,
+                      textCapitalization: TextCapitalization.sentences,
+                      style: const TextStyle(fontSize: 14),
+                      decoration: const InputDecoration(
+                        hintText: 'Ketik Pesan...',
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.attach_file, color: Colors.grey),
+                    onPressed: () {},
+                  ),
+                  const SizedBox(width: 4),
+                ],
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: _isSending ? null : _sendMessage,
             child: Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: _isSending
                     ? Colors.grey.shade400

@@ -65,4 +65,28 @@ class ChatService {
       throw Exception('Gagal mengirim pesan: $e');
     }
   }
+
+  // ─── UPDATE/EDIT message ─────────────────────────────────────────────────────
+  static Future<void> editMessage(String teamId, String messageId, String newText) async {
+    try {
+      final ref = _db.ref('chat_rooms/$teamId/messages/$messageId');
+      await ref.update({
+        'message': newText,
+        'text': newText,
+        'is_edited': true,
+      });
+    } catch (e) {
+      throw Exception('Gagal mengedit pesan: $e');
+    }
+  }
+
+  // ─── DELETE message ──────────────────────────────────────────────────────────
+  static Future<void> deleteMessage(String teamId, String messageId) async {
+    try {
+      final ref = _db.ref('chat_rooms/$teamId/messages/$messageId');
+      await ref.remove();
+    } catch (e) {
+      throw Exception('Gagal menghapus pesan: $e');
+    }
+  }
 }

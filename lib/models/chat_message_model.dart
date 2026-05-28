@@ -5,6 +5,7 @@ class ChatMessageModel {
   final String senderName;
   final String message;
   final String createdAt;
+  final bool isEdited;
 
   ChatMessageModel({
     required this.id,
@@ -13,6 +14,7 @@ class ChatMessageModel {
     required this.senderName,
     required this.message,
     required this.createdAt,
+    this.isEdited = false,
   });
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class ChatMessageModel {
           'Anggota',
       message: json['message']?.toString() ?? json['content']?.toString() ?? '',
       createdAt: createdAtStr,
+      isEdited: json['is_edited'] == true || json['is_edited'] == 1,
     );
   }
 
