@@ -122,8 +122,10 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Container(
                     height: 320,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF3D5AFE),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF121212)
+                          : const Color(0xFF3D5AFE),
                     ),
                   ),
                   SafeArea(
@@ -1139,7 +1141,9 @@ class _HomePageState extends State<HomePage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  backgroundColor: const Color(0xFFEEF2FF),
+                  backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                      ? const Color(0xFF3D5AFE).withValues(alpha: 0.2)
+                      : const Color(0xFFEEF2FF),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: const Text('Tandai Postingan Selesai', style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold)),

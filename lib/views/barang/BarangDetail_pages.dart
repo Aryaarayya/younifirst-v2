@@ -29,7 +29,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: FutureBuilder<LostFoundModel>(
         future: _itemFuture,
         builder: (context, snapshot) {
@@ -112,8 +112,8 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                 child: Transform.translate(
                   offset: const Offset(0, -30),
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(32),
                         topRight: Radius.circular(32),
@@ -229,7 +229,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
           ],

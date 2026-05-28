@@ -237,17 +237,17 @@ class _EditBarangPageState extends State<EditBarangPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Edit Postingan",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
       ),
@@ -278,7 +278,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       width: double.infinity,
                       height: 180,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
                       ),
@@ -376,7 +376,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D5AFE) : Colors.grey.shade100,
+          color: isSelected ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(25),
         ),
         child: Text(
@@ -399,7 +399,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
         hintText: hint,
         contentPadding: const EdgeInsets.all(16),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: Theme.of(context).cardColor,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5AFE))),
