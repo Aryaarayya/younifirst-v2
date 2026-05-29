@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
@@ -229,30 +230,58 @@ class TeamApiService {
     }
   }
 
-  // ─── POST submit laporan juara ────────────────────────────────────────────
+  // ─── POST submit laporan juara (multi-file) ──────────────────────────────
   static Future<bool> submitReport(
     String teamId,
     Map<String, String> data,
-    String? buktiMenangPath,
-    String? dokumentasiPath,
+    List<PlatformFile> buktiMenangFiles,
+    List<PlatformFile> dokumentasiFiles,
   ) async {
     try {
       final request = ApiClient.multipartRequest('POST', '$endpoint/$teamId/report');
-      
+
       request.fields.addAll(data);
 
-      if (buktiMenangPath != null && buktiMenangPath.isNotEmpty) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'photo_certificate', 
-          buktiMenangPath,
-        ));
+      // Kirim semua file Bukti Menang — field: photo_certificate[]
+      for (final f in buktiMenangFiles) {
+        if (f.path != null && f.path!.isNotEmpty) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'photo_certificate[]',
+            f.path!,
+            filename: f.name,
+          ));
+        } else if (f.bytes != null) {
+          final ext = f.name.split('.').last.toLowerCase();
+          final mime = ext == 'pdf' ? 'application/pdf' : 'image/$ext';
+          final parts = mime.split('/');
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo_certificate[]',
+            f.bytes!,
+            filename: f.name,
+            contentType: MediaType(parts[0], parts[1]),
+          ));
+        }
       }
 
-      if (dokumentasiPath != null && dokumentasiPath.isNotEmpty) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'photo_activity', 
-          dokumentasiPath,
-        ));
+      // Kirim semua file Dokumentasi — field: photo_activity[]
+      for (final f in dokumentasiFiles) {
+        if (f.path != null && f.path!.isNotEmpty) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'photo_activity[]',
+            f.path!,
+            filename: f.name,
+          ));
+        } else if (f.bytes != null) {
+          final ext = f.name.split('.').last.toLowerCase();
+          final mime = ext == 'pdf' ? 'application/pdf' : 'image/$ext';
+          final parts = mime.split('/');
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo_activity[]',
+            f.bytes!,
+            filename: f.name,
+            contentType: MediaType(parts[0], parts[1]),
+          ));
+        }
       }
 
       final streamedResponse = await request.send();
