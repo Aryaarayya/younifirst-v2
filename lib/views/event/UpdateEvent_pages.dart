@@ -18,8 +18,9 @@ class UpdateEventPage extends StatefulWidget {
 class _UpdateEventPageState extends State<UpdateEventPage> {
   String _selectedCategory = '';
   final List<String> _categories = [
-    'Kompetisi', 'Seminar', 'Pameran',
-    'Turnamen', 'Konser'
+    'Seminar', 'Workshop', 'Kompetisi',
+    'Festival', 'Olahraga', 'Seni & Budaya',
+    'Akademik', 'Sosial'
   ];
 
   final TextEditingController _titleController = TextEditingController();
@@ -39,11 +40,14 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
   String? _existingImageUrl;
 
   final Map<String, String> categoryMapping = {
-    'Kompetisi': '1',
-    'Seminar': '2',
-    'Pameran': '3',
-    'Turnamen': '4',
-    'Konser': '5',
+    'Seminar': '1',
+    'Workshop': '2',
+    'Kompetisi': '3',
+    'Festival': '4',
+    'Olahraga': '5',
+    'Seni & Budaya': '6',
+    'Akademik': '7',
+    'Sosial': '8',
   };
 
   @override

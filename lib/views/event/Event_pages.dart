@@ -59,20 +59,29 @@ class _EventPageState extends State<EventPage> {
                       _buildModalChip("Semua", Icons.check_circle, tempSelected == "Semua", () {
                         setModalState(() => tempSelected = "Semua");
                       }),
+                      _buildModalChip("Akademik", Icons.school_outlined, tempSelected == "Akademik", () {
+                        setModalState(() => tempSelected = "Akademik");
+                      }),
+                      _buildModalChip("Festival", Icons.celebration_outlined, tempSelected == "Festival", () {
+                        setModalState(() => tempSelected = "Festival");
+                      }),
                       _buildModalChip("Kompetisi", Icons.emoji_events_outlined, tempSelected == "Kompetisi", () {
                         setModalState(() => tempSelected = "Kompetisi");
+                      }),
+                      _buildModalChip("Olahraga", Icons.sports_soccer_outlined, tempSelected == "Olahraga", () {
+                        setModalState(() => tempSelected = "Olahraga");
                       }),
                       _buildModalChip("Seminar", Icons.mic_external_on_outlined, tempSelected == "Seminar", () {
                         setModalState(() => tempSelected = "Seminar");
                       }),
-                      _buildModalChip("Pameran", Icons.palette_outlined, tempSelected == "Pameran", () {
-                        setModalState(() => tempSelected = "Pameran");
+                      _buildModalChip("Seni & Budaya", Icons.palette_outlined, tempSelected == "Seni & Budaya", () {
+                        setModalState(() => tempSelected = "Seni & Budaya");
                       }),
-                      _buildModalChip("Turnamen", Icons.sports_esports_outlined, tempSelected == "Turnamen", () {
-                        setModalState(() => tempSelected = "Turnamen");
+                      _buildModalChip("Sosial", Icons.people_outline, tempSelected == "Sosial", () {
+                        setModalState(() => tempSelected = "Sosial");
                       }),
-                      _buildModalChip("Konser", Icons.music_note_outlined, tempSelected == "Konser", () {
-                        setModalState(() => tempSelected = "Konser");
+                      _buildModalChip("Workshop", Icons.handyman_outlined, tempSelected == "Workshop", () {
+                        setModalState(() => tempSelected = "Workshop");
                       }),
                     ],
                   ),
@@ -608,11 +617,14 @@ class _EventPageState extends State<EventPage> {
       child: Row(
         children: [
           _buildChip("Semua", Icons.check_circle, viewModel.selectedCategory == "Semua", viewModel),
+          _buildChip("Akademik", Icons.school_outlined, viewModel.selectedCategory == "Akademik", viewModel),
+          _buildChip("Festival", Icons.celebration_outlined, viewModel.selectedCategory == "Festival", viewModel),
           _buildChip("Kompetisi", Icons.emoji_events_outlined, viewModel.selectedCategory == "Kompetisi", viewModel),
+          _buildChip("Olahraga", Icons.sports_soccer_outlined, viewModel.selectedCategory == "Olahraga", viewModel),
           _buildChip("Seminar", Icons.mic_external_on_outlined, viewModel.selectedCategory == "Seminar", viewModel),
-          _buildChip("Pameran", Icons.palette_outlined, viewModel.selectedCategory == "Pameran", viewModel),
-          _buildChip("Turnamen", Icons.sports_esports_outlined, viewModel.selectedCategory == "Turnamen", viewModel),
-          _buildChip("Konser", Icons.music_note_outlined, viewModel.selectedCategory == "Konser", viewModel),
+          _buildChip("Seni & Budaya", Icons.palette_outlined, viewModel.selectedCategory == "Seni & Budaya", viewModel),
+          _buildChip("Sosial", Icons.people_outline, viewModel.selectedCategory == "Sosial", viewModel),
+          _buildChip("Workshop", Icons.handyman_outlined, viewModel.selectedCategory == "Workshop", viewModel),
         ],
       ),
     );

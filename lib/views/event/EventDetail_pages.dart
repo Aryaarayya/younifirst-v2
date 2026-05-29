@@ -195,11 +195,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
     
     // Parse category name (jika ada, sesuaikan kalau dari backend beda)
     String category = "Event";
-    if (eventData!['category_id']?.toString() == "1") category = "Kompetisi";
-    if (eventData!['category_id']?.toString() == "2") category = "Seminar";
-    if (eventData!['category_id']?.toString() == "3") category = "Pameran";
-    if (eventData!['category_id']?.toString() == "4") category = "Turnamen";
-    if (eventData!['category_id']?.toString() == "5") category = "Konser";
+    if (eventData!['category_id']?.toString() == "1") category = "Seminar";
+    if (eventData!['category_id']?.toString() == "2") category = "Workshop";
+    if (eventData!['category_id']?.toString() == "3") category = "Kompetisi";
+    if (eventData!['category_id']?.toString() == "4") category = "Festival";
+    if (eventData!['category_id']?.toString() == "5") category = "Olahraga";
+    if (eventData!['category_id']?.toString() == "6") category = "Seni & Budaya";
+    if (eventData!['category_id']?.toString() == "7") category = "Akademik";
+    if (eventData!['category_id']?.toString() == "8") category = "Sosial";
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
