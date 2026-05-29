@@ -182,6 +182,33 @@ class LostFoundApiService {
     }
   }
 
+  static Future<bool> markAsCompleted(String lostFoundId) async {
+    try {
+      // Trying the most common Laravel convention for this
+      final response = await ApiClient.post('$endpoint/$lostFoundId/complete');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      } else {
+        // Fallback: Use PUT to update the status to claimed/completed
+        var request = ApiClient.multipartRequest('POST', '$endpoint/$lostFoundId');
+        request.fields['_method'] = 'PUT';
+        request.fields['status'] = 'claimed';
+        request.fields['is_completed'] = '1';
+        
+        final streamedResponse = await request.send();
+        final putResponse = await http.Response.fromStream(streamedResponse);
+        if (putResponse.statusCode >= 200 && putResponse.statusCode < 300) {
+            return true;
+        } else {
+            throw Exception('Status ${putResponse.statusCode}: ${putResponse.body}');
+        }
+      }
+    } catch (e) {
+      throw Exception('Gagal menyelesaikan postingan: $e');
+    }
+  }
+
   static Future<bool> updateLostFound({
     required String lostFoundId,
     required String type,

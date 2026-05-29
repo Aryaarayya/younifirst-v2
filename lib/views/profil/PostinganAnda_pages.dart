@@ -160,18 +160,26 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
 
           // 3. LOST & FOUND DATA
           // Dibuat = barang yang diupload oleh user login
-          final barangDibuat = barangVM.allData.where((lf) {
+          final userBarang = barangVM.allData.where((lf) {
             final lfUserId = (lf.userId ?? '').trim().toLowerCase();
             final curId = currentUserId.trim().toLowerCase();
             return lfUserId.isNotEmpty && curId.isNotEmpty && lfUserId == curId;
           }).toList();
-          // Disukai = barang yang pernah di-like oleh user login
-          final barangDisukai = barangVM.allData.where((b) => b.isLiked).toList();
+
+          final barangHilang = userBarang.where((b) => b.type.toLowerCase() == 'hilang' && !b.isCompleted).toList();
+          final barangDitemukan = userBarang.where((b) => b.type.toLowerCase() == 'ditemukan' && !b.isCompleted).toList();
+          final barangSelesai = userBarang.where((b) => b.isCompleted || b.type.toLowerCase() == 'diklaim').toList();
 
           // APPLY SEARCH FILTER IF SEARCH IS ACTIVE
           List<EventModel> filteredEvents = _activeSubTabIndex == 0 ? eventDibuat : eventDisukai;
           List<TeamModel> filteredTeams = _activeSubTabIndex == 0 ? teamDibuat : teamDiikuti;
-          List<LostFoundModel> filteredBarang = _activeSubTabIndex == 0 ? barangDibuat : barangDisukai;
+          List<LostFoundModel> filteredBarang = [];
+          if (_activeCategoryIndex == 2) {
+            if (_activeSubTabIndex == 0) filteredBarang = barangHilang;
+            else if (_activeSubTabIndex == 1) filteredBarang = barangDitemukan;
+            else if (_activeSubTabIndex == 2) filteredBarang = barangSelesai;
+            else filteredBarang = barangHilang;
+          }
 
           if (_searchQuery.isNotEmpty) {
             final q = _searchQuery.toLowerCase();
@@ -183,7 +191,7 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           // Dynamic Counts for top tabs
           int eventTotal = eventDibuat.length + eventDisukai.length;
           int teamTotal = teamDibuat.length + teamDiikuti.length;
-          int barangTotal = barangDibuat.length + barangDisukai.length;
+          int barangTotal = userBarang.length;
 
           // Dynamic Counts for sub-tabs (based on currently active top tab)
           int subTabDibuatCount = 0;
@@ -194,9 +202,6 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           } else if (_activeCategoryIndex == 1) {
             subTabDibuatCount = teamDibuat.length;
             subTabDisukaiCount = teamDiikuti.length;
-          } else {
-            subTabDibuatCount = barangDibuat.length;
-            subTabDisukaiCount = barangDisukai.length;
           }
 
           return Column(
@@ -220,21 +225,34 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
 
               const SizedBox(height: 16),
 
-              // Sub-tabs (Dibuat & Disukai / Diikuti)
+              // Sub-tabs
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    _buildSubTab(0, "Dibuat", Icons.copy_all_outlined, subTabDibuatCount),
-                    const SizedBox(width: 12),
-                    _buildSubTab(
-                      1,
-                      _activeCategoryIndex == 1 ? "Diikuti" : "Disukai",
-                      _activeCategoryIndex == 1 ? Icons.people_outline : Icons.favorite_border,
-                      subTabDisukaiCount,
-                    ),
-                  ],
-                ),
+                child: _activeCategoryIndex == 2
+                    ? SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildSubTab(0, "Hilang", Icons.inbox_outlined, barangHilang.length),
+                            const SizedBox(width: 12),
+                            _buildSubTab(1, "Ditemukan", Icons.inbox_outlined, barangDitemukan.length),
+                            const SizedBox(width: 12),
+                            _buildSubTab(2, "Selesai", Icons.check_circle_outline, barangSelesai.length),
+                          ],
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          _buildSubTab(0, "Dibuat", Icons.copy_all_outlined, subTabDibuatCount),
+                          const SizedBox(width: 12),
+                          _buildSubTab(
+                            1,
+                            _activeCategoryIndex == 1 ? "Diikuti" : "Disukai",
+                            _activeCategoryIndex == 1 ? Icons.people_outline : Icons.favorite_border,
+                            subTabDisukaiCount,
+                          ),
+                        ],
+                      ),
               ),
 
               const SizedBox(height: 20),
@@ -265,6 +283,9 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
       child: GestureDetector(
         onTap: () {
           setState(() {
+            if (_activeCategoryIndex != index) {
+              _activeSubTabIndex = 0; // Reset sub-tab
+            }
             _activeCategoryIndex = index;
           });
         },
@@ -965,7 +986,10 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
   // LOST & FOUND GRID
   Widget _buildBarangGrid(List<LostFoundModel> barangList, BarangViewModel viewModel) {
     if (barangList.isEmpty) {
-      return _buildEmptyState("Belum ada postingan Lost & Found.");
+      return _buildEmptyState(
+        "Belum ada postingan",
+        "Kamu belum membuat postingan\napapun mengenai ini.",
+      );
     }
 
     return GridView.builder(
@@ -1127,18 +1151,49 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
   }
 
   // EMPTY STATE HELPER
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String title, [String? subtitle]) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    bool hasSubtitle = subtitle != null;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.feed_outlined, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              hasSubtitle ? Icons.manage_search_rounded : Icons.feed_outlined, 
+              size: hasSubtitle ? 100 : 64, 
+              color: hasSubtitle ? const Color(0xFF3D5AFE) : Colors.grey.shade300
+            ),
+            SizedBox(height: hasSubtitle ? 24 : 16),
+            Text(
+              title,
+              style: hasSubtitle 
+                ? TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  )
+                : TextStyle(
+                    color: Colors.grey.shade500, 
+                    fontSize: 15, 
+                    fontWeight: FontWeight.w500
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            if (hasSubtitle) ...[
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ]
+          ],
+        ),
       ),
     );
   }

@@ -1243,7 +1243,7 @@ class _BarangPageState extends State<BarangPage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(context); // Close dialog
-                      _deleteItem(item.lostfoundId);
+                      _completeItem(item.lostfoundId);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3D5AFE),
@@ -1274,13 +1274,33 @@ class _BarangPageState extends State<BarangPage> {
     );
   }
 
+  void _completeItem(String lostFoundId) async {
+    try {
+      final success = await LostFoundApiService.markAsCompleted(lostFoundId);
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Postingan berhasil ditandai sebagai selesai')),
+          );
+          _fetchData(); // Refresh the list
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyelesaikan postingan: $e')),
+        );
+      }
+    }
+  }
+
   void _deleteItem(String lostFoundId) async {
     try {
       final success = await LostFoundApiService.deleteLostFound(lostFoundId);
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Postingan berhasil diselesaikan dan dihapus')),
+            const SnackBar(content: Text('Postingan berhasil dihapus')),
           );
           _fetchData(); // Refresh the list
         }

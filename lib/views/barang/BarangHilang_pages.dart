@@ -115,6 +115,11 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
       return;
     }
 
+    if (_selectedKategori == 'Ditemukan' && _imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap tambahkan gambar barang temuan')));
+      return;
+    }
+
     // ── PROFANITY FILTER CHECK ──
     List<String> badWordsInName = ProfanityFilter.check(_namaBarangController.text);
     List<String> badWordsInDesc = ProfanityFilter.check(_deskripsiController.text);
@@ -270,7 +275,8 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
                 children: [
                   const Text("Gambar barang", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(width: 4),
-                  Text("(opsional)", style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                  if (_selectedKategori == 'Hilang')
+                    Text("(opsional)", style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
                 ],
               ),
               const SizedBox(height: 8),

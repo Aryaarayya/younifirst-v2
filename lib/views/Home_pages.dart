@@ -891,21 +891,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFeedCardFromModel(LostFoundModel item) {
     bool isDitemukan = item.type == 'Ditemukan' || item.type == 'Diklaim';
 
-    return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BarangDetailPage(lostFoundId: item.lostfoundId),
-          ),
-        );
-        if (result == true) {
-          _fetchData();
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-        padding: const EdgeInsets.all(16),
+    return Container(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -1152,7 +1140,6 @@ class _HomePageState extends State<HomePage> {
           ]
         ],
       ),
-    ),
     );
   }
 
@@ -1184,13 +1171,15 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.8,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.8,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Column(
                 children: [
                   const SizedBox(height: 12),
                   Container(
@@ -1316,6 +1305,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
+            ),
             );
           },
         );
@@ -1584,13 +1574,13 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Tandai Selesai?"),
-        content: const Text("Postingan ini akan dihapus dari dashboard."),
+        content: const Text("Postingan ini akan ditandai selesai dan dihapus dari dashboard utama."),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await LostFoundApiService.deleteLostFound(item.lostfoundId);
+              await LostFoundApiService.markAsCompleted(item.lostfoundId);
               _fetchData();
             }, 
             child: const Text("Ya, Selesai", style: TextStyle(color: Color(0xFF3D5AFE)))
