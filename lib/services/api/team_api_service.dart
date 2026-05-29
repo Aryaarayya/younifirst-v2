@@ -34,7 +34,7 @@ class TeamApiService {
     }
   }
 
-  // ─── GET tim milik user (filter client-side) ─────────────────────────────
+  // ─── GET tim milik user (hanya tim yang dibuat sendiri) ──────────────────
   static Future<List<TeamModel>> getMyTeams() async {
     try {
       final response = await ApiClient.get(endpoint);
@@ -42,7 +42,7 @@ class TeamApiService {
         final dynamic decoded = jsonDecode(response.body);
         List<dynamic> jsonList = [];
         if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-          jsonList = decoded['data'];
+          jsonList = decoded['data'] is List ? decoded['data'] : [];
         } else if (decoded is List) {
           jsonList = decoded;
         }
@@ -51,9 +51,9 @@ class TeamApiService {
         final allTeams = jsonList
             .map((d) => TeamModel.fromJson(d, currentUserId: uid))
             .toList();
-        
-        final myTeams = allTeams.where((t) => t.isOwner || t.isMember).toList();
-        return myTeams;
+
+        // Hanya tampilkan tim yang dibuat oleh user yang sedang login (owner/leader)
+        return allTeams.where((t) => t.isOwner).toList();
       } else {
         throw Exception('Status ${response.statusCode}: ${response.body}');
       }
