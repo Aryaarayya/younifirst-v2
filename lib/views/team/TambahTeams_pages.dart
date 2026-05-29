@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
-import 'package:younifirst_app/services/input/auth_service.dart';
-import 'package:younifirst_app/views/announcement/Announcement_pages.dart';
-import 'package:younifirst_app/services/api/announcement_api_service.dart';
 
 class TambahTeamsPage extends StatefulWidget {
   @override
@@ -44,16 +41,6 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
 
     try {
       await TeamApiService.createTeam(data);
-
-      // Buat announcement otomatis seperti halaman event
-      try {
-        await AnnouncementApiService.createAnnouncement(
-          title: 'Pengajuan Tim: ${_namaTimController.text}',
-          content: 'Tim Anda sedang ditinjau oleh admin.',
-          category: 'team',
-          createdBy: AuthService.loggedInUserId ?? '',
-        );
-      } catch (_) {}
 
       if (!mounted) return;
 
@@ -112,10 +99,7 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
                       ),
                       onPressed: () {
                         Navigator.pop(dialogContext); // Tutup dialog
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AnnouncementPage()),
-                        );
+                        Navigator.pop(context); // Kembali ke halaman sebelumnya
                       },
                       child: const Text(
                         'Mengerti',

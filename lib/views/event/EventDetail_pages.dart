@@ -142,6 +142,28 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
+  String _formatTimeAgo(dynamic rawDate) {
+    if (rawDate == null) return "Baru saja";
+    try {
+      final DateTime created = DateTime.parse(rawDate.toString());
+      final Duration diff = DateTime.now().difference(created);
+
+      if (diff.inMinutes < 1) {
+        return 'Baru saja';
+      } else if (diff.inMinutes < 60) {
+        return '${diff.inMinutes} menit lalu';
+      } else if (diff.inHours < 24) {
+        return '${diff.inHours} jam lalu';
+      } else if (diff.inDays == 1) {
+        return 'Kemarin';
+      } else {
+        return '${diff.inDays} hari lalu';
+      }
+    } catch (_) {
+      return "Baru saja";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -482,7 +504,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "1 jam lalu",
+                                _formatTimeAgo(eventData!['created_at'] ?? eventData!['createdAt']),
                                 style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 14),
                               ),
                             ],

@@ -4,8 +4,6 @@ import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:younifirst_app/views/announcement/Announcement_pages.dart';
-import 'package:younifirst_app/services/api/announcement_api_service.dart';
 
 class TambahEventPage extends StatefulWidget {
   @override
@@ -202,18 +200,6 @@ class _TambahEventPageState extends State<TambahEventPage> {
       final success = await EventApiService.createEvent(data, _selectedImageBytes);
       
       if (success) {
-        // Buat notifikasi/pengumuman sementara di backend (karena backend belum punya tabel notif khusus)
-        try {
-          await AnnouncementApiService.createAnnouncement(
-            title: 'Pengajuan Event: ${_titleController.text}',
-            content: 'Event Anda sedang ditinjau oleh admin.',
-            category: 'event',
-            createdBy: _userId ?? '',
-          );
-        } catch (e) {
-          print('Gagal membuat notifikasi otomatis: $e');
-        }
-
         if (mounted) {
           // Tampilkan custom pop-up dialog sesuai desain (Gambar 1)
           showDialog(
@@ -269,12 +255,9 @@ class _TambahEventPageState extends State<TambahEventPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () {
+                           onPressed: () {
                             Navigator.pop(dialogContext); // Tutup dialog
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AnnouncementPage()),
-                            );
+                            Navigator.pop(context); // Kembali ke halaman sebelumnya
                           },
                           child: const Text(
                             'Mengerti',
