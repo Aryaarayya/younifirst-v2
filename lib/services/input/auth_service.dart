@@ -78,6 +78,9 @@ class AuthService {
         }
 
         final prefs = await SharedPreferences.getInstance();
+        if (authToken != null) {
+          await prefs.setString('auth_token', authToken!);
+        }
         dynamic idToSave;
 
         if (data['data'] != null && data['data']['user'] != null && data['data']['user']['user_id'] != null) {

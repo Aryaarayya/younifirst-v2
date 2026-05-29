@@ -1,4 +1,5 @@
 import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
 
 class EventModel {
   final String id;
@@ -77,7 +78,13 @@ class EventModel {
       time: formattedTime,
       location: json['location'] ?? 'Lokasi tidak diketahui',
       imageUrl: _getFullImageUrl(json['poster_url'] ?? json['poster']),
-      likesCount: json['likes_count']?.toString() ?? '0',
+      likesCount: () {
+        final rawLikes = json['likes'];
+        if (rawLikes is List) {
+          return rawLikes.length.toString();
+        }
+        return (json['likes_count'] ?? json['likesCount'] ?? '0').toString();
+      }(),
       categoryId: json['category_id']?.toString() ?? '',
       createdBy: () {
         final rawCreatedBy = json['created_by'];
@@ -97,7 +104,23 @@ class EventModel {
         }
         return (json['userId'] ?? json['user_id'] ?? '').toString();
       }(),
-      isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
+      isLiked: () {
+        final rawIsLiked = json['is_liked'] ?? json['liked_by_user'] ?? json['isLiked'];
+        if (rawIsLiked == true || rawIsLiked == 1 || rawIsLiked == '1') return true;
+        
+        final rawLikes = json['likes'];
+        if (rawLikes is List && AuthService.userId != null) {
+          final myId = AuthService.userId.toString();
+          return rawLikes.any((like) {
+            if (like is Map) {
+              final uid = (like['user_id'] ?? like['id'] ?? like['uid'] ?? '').toString();
+              return uid == myId;
+            }
+            return like.toString() == myId;
+          });
+        }
+        return false;
+      }(),
     );
   }
 

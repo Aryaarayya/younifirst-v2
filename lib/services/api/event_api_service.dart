@@ -24,6 +24,10 @@ class EventApiService {
           jsonList = decodedData;
         }
 
+        if (jsonList.isNotEmpty) {
+          debugPrint('🚨 EVENT API JSON FIRST ITEM: ${jsonList.first}');
+        }
+
         // Filter out pending events by checking multiple possible status keys
         var filteredList = jsonList.where((data) {
           if (data['deleted_at'] != null) return false;

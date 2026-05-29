@@ -10,6 +10,7 @@ import 'package:younifirst_app/views/profil/PusatBantuan_pages.dart';
 import 'package:younifirst_app/views/profil/PostinganAnda_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
+import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
 
 String _cacheBustedUrl(String url) {
   if (url.contains('?')) {
@@ -33,6 +34,9 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   void _handleLogout() async {
+    try {
+      context.read<EventViewModel>().clear();
+    } catch (_) {}
     await context.read<ProfilViewModel>().logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(

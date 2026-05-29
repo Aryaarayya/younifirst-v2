@@ -108,6 +108,15 @@ class EventViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clear() {
+    _events = [];
+    _likedEventIds = {};
+    _isLoading = true;
+    _errorMessage = "";
+    _selectedCategory = "Semua";
+    notifyListeners();
+  }
+
   /// Popular events: diurutkan berdasarkan likes terbanyak
   List<EventModel> get popularEvents {
     final sorted = List<EventModel>.from(_events);
