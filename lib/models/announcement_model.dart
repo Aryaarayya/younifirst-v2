@@ -6,6 +6,8 @@ class AnnouncementModel {
   final String? status;      // 'pending', 'confirmed'
   final String? userNama;
   final String? userAvatar;
+  final String? postImage;
+  final String? targetId;
   final String createdAt;
   final String updatedAt;
 
@@ -17,6 +19,8 @@ class AnnouncementModel {
     this.status,
     this.userNama,
     this.userAvatar,
+    this.postImage,
+    this.targetId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -52,6 +56,12 @@ class AnnouncementModel {
   }
 
   factory AnnouncementModel.fromJson(Map<String, dynamic> json) {
+    final titleLower = (json['title']?.toString() ?? '').toLowerCase();
+    final contentLower = (json['content']?.toString() ?? '').toLowerCase();
+    if (titleLower.contains('event') || contentLower.contains('event')) {
+      // ignore: avoid_print
+      print('🚨 EVENT NOTIFICATION JSON: $json');
+    }
     return AnnouncementModel(
       id: json['id']?.toString() ??
           json['announcement_id']?.toString() ?? '',
@@ -63,6 +73,13 @@ class AnnouncementModel {
           json['user_name'] ??
           json['created_by'],
       userAvatar: json['user']?['avatar'] ?? json['user_avatar'],
+      postImage: json['post_image'] ?? json['image'] ?? json['photo'] ?? json['postImage'] ?? json['file_url'] ?? json['file'],
+      targetId: json['target_id']?.toString() ??
+          json['event_id']?.toString() ??
+          json['team_id']?.toString() ??
+          json['lost_found_id']?.toString() ??
+          json['lostfound_id']?.toString() ??
+          json['target']?.toString(),
       createdAt: json['created_at']?.toString() ?? DateTime.now().toIso8601String(),
       updatedAt: json['updated_at']?.toString() ?? DateTime.now().toIso8601String(),
     );
@@ -73,6 +90,8 @@ class AnnouncementModel {
       'title': title,
       'content': content,
       if (category != null) 'category': category,
+      if (postImage != null) 'post_image': postImage,
+      if (targetId != null) 'target_id': targetId,
     };
   }
 }

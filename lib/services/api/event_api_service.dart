@@ -133,6 +133,32 @@ class EventApiService {
         }
         throw Exception('Format data tidak sesuai');
       } else {
+        // Fallback: Coba cari di pending events list jika API detail gagal (misal karena event belum di-approve/pending)
+        try {
+          final pendingResponse = await ApiClient.get('$endpoint?status=pending');
+          if (pendingResponse.statusCode >= 200 && pendingResponse.statusCode < 300) {
+            final dynamic decoded = jsonDecode(pendingResponse.body);
+            List<dynamic> list = [];
+            if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+              list = decoded['data'] is List ? decoded['data'] : [];
+            } else if (decoded is List) {
+              list = decoded;
+            }
+            
+            final match = list.firstWhere(
+              (item) => item['id']?.toString() == id || item['event_id']?.toString() == id,
+              orElse: () => null,
+            );
+            
+            if (match != null) {
+              final Map<String, dynamic> map = Map<String, dynamic>.from(match);
+              map['status'] = 'pending';
+              return map;
+            }
+          }
+        } catch (err) {
+          print("Gagal mengambil detail dari pending fallback: $err");
+        }
         throw Exception('Status ${response.statusCode}: ${response.body}');
       }
     } catch (e) {

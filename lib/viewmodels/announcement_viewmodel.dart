@@ -35,6 +35,8 @@ class AnnouncementViewModel extends ChangeNotifier {
             title: e.title,
             content: 'Event Anda sedang ditinjau oleh admin. Silakan tunggu konfirmasi.',
             category: 'pengajuan_event',
+            targetId: e.id,
+            postImage: e.imageUrl,
             createdAt: DateTime.now().toIso8601String(),
             updatedAt: DateTime.now().toIso8601String(),
             userNama: 'Sistem',

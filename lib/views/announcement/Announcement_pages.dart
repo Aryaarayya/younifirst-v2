@@ -5,6 +5,9 @@ import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:younifirst_app/services/input/notification_service.dart';
 import 'package:younifirst_app/views/announcement/AnnouncementDetail_pages.dart';
 import 'package:younifirst_app/views/event/EventDetail_pages.dart';
+import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
+import 'package:younifirst_app/views/barang/BarangDetail_pages.dart';
+import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/announcement_viewmodel.dart';
 
@@ -97,17 +100,258 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   }
 
   // ─── Notification Card ────────────────────────────────────────────────────
+  bool isEventNotification(AnnouncementModel item) {
+    final cat = item.category?.toLowerCase() ?? 'umum';
+    if (cat == 'event' || cat == 'pengajuan_event') return true;
+    final title = item.title.toLowerCase();
+    final content = item.content.toLowerCase();
+    if (title.contains('event') || content.contains('event')) return true;
+    return false;
+  }
+
+  bool isTeamNotification(AnnouncementModel item) {
+    final cat = item.category?.toLowerCase() ?? 'umum';
+    if (cat == 'team' || cat == 'pengajuan_tim') return true;
+    final title = item.title.toLowerCase();
+    final content = item.content.toLowerCase();
+    if (title.contains('tim') || title.contains('team') || content.contains('tim') || content.contains('team')) return true;
+    return false;
+  }
+
+  bool isBarangNotification(AnnouncementModel item) {
+    final cat = item.category?.toLowerCase() ?? 'umum';
+    if (cat == 'barang') return true;
+    final title = item.title.toLowerCase();
+    final content = item.content.toLowerCase();
+    if (title.contains('barang') || content.contains('barang') || title.contains('lost') || content.contains('lost')) return true;
+    return false;
+  }
+
+  String getEffectiveCategory(AnnouncementModel item) {
+    if (isEventNotification(item)) return 'event';
+    if (isTeamNotification(item)) return 'team';
+    if (isBarangNotification(item)) return 'barang';
+    return item.category?.toLowerCase() ?? 'umum';
+  }
+
+  bool isApprovedOrSuccess(AnnouncementModel item) {
+    if (item.status?.toLowerCase() == 'confirmed' || item.status?.toLowerCase() == 'approved') return true;
+    final content = item.content.toLowerCase();
+    final title = item.title.toLowerCase();
+    return content.contains('setuju') || content.contains('terima') || content.contains('berhasil') ||
+           content.contains('approved') || content.contains('success') ||
+           title.contains('setuju') || title.contains('terima') || title.contains('berhasil') ||
+           title.contains('approved') || title.contains('success');
+  }
+
+  bool isRejectedOrFail(AnnouncementModel item) {
+    if (item.status?.toLowerCase() == 'rejected' || item.status?.toLowerCase() == 'failed') return true;
+    final content = item.content.toLowerCase();
+    final title = item.title.toLowerCase();
+    return content.contains('tolak') || content.contains('gagal') ||
+           content.contains('rejected') || content.contains('failed') ||
+           title.contains('tolak') || title.contains('gagal') ||
+           title.contains('rejected') || title.contains('failed');
+  }
+
+  Widget _buildAvatar(AnnouncementModel item) {
+    final cat = getEffectiveCategory(item);
+    
+    if (isApprovedOrSuccess(item)) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: const Color(0xFFE8EAFF),
+        child: const Text('🎉', style: TextStyle(fontSize: 22)),
+      );
+    }
+    
+    if (isRejectedOrFail(item)) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: const Color(0xFFE8EAFF),
+        child: const Text('😔', style: TextStyle(fontSize: 22)),
+      );
+    }
+
+    if (cat == 'comment' || cat == 'reply') {
+      if (item.userAvatar != null && item.userAvatar!.isNotEmpty) {
+        String avatarUrl = item.userAvatar!;
+        if (!avatarUrl.startsWith('http')) {
+          avatarUrl = LostFoundApiService.getFullUrl(avatarUrl);
+        }
+        return CircleAvatar(
+          radius: 24,
+          backgroundImage: NetworkImage(avatarUrl),
+          backgroundColor: Colors.grey.shade200,
+        );
+      } else {
+        return CircleAvatar(
+          radius: 24,
+          backgroundColor: const Color(0xFF3D5AFE),
+          child: const Icon(Icons.person, color: Colors.white, size: 24),
+        );
+      }
+    }
+
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: const Color(0xFFE8EAFF),
+      child: const Icon(Icons.campaign, color: Color(0xFF3D5AFE), size: 24),
+    );
+  }
+
+  Widget _buildRightThumbnail(AnnouncementModel item) {
+    final cat = getEffectiveCategory(item);
+    
+    if (cat == 'barang' && item.postImage != null && item.postImage!.isNotEmpty) {
+      String imageUrl = item.postImage!;
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = LostFoundApiService.getFullUrl(imageUrl);
+      }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.network(
+          imageUrl,
+          width: 52,
+          height: 52,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallbackRightIcon(cat),
+        ),
+      );
+    }
+    
+    return _buildFallbackRightIcon(cat);
+  }
+
+  Widget _buildFallbackRightIcon(String cat) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: _categoryColor(cat).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Icon(
+          _categoryIcon(cat),
+          color: _categoryColor(cat),
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRichContent(AnnouncementModel item) {
+    final text = item.content.isNotEmpty ? item.content : item.title;
+    final List<String> boldKeywords = [];
+    
+    if (item.userNama != null && item.userNama!.isNotEmpty && item.userNama != 'Sistem' && item.userNama != 'Sistem Notifikasi') {
+      boldKeywords.add(item.userNama!);
+    }
+
+    final quoteRegex = RegExp(r'["\u201c\u201d]([^"\u201c\u201d]+)["\u201c\u201d]');
+    final matches = quoteRegex.allMatches(text);
+    for (final match in matches) {
+      if (match.group(1) != null) {
+        boldKeywords.add(match.group(1)!);
+      }
+    }
+
+    final teamMatch = RegExp(r'[Pp]engajuan tim ([A-Za-z0-9_ ]+) Anda');
+    final tMatch = teamMatch.firstMatch(text);
+    if (tMatch != null && tMatch.group(1) != null) {
+      boldKeywords.add(tMatch.group(1)!);
+    }
+    
+    final eventMatch = RegExp(r'[Pp]engajuan event ([A-Za-z0-9_ ]+) Anda');
+    final eMatch = eventMatch.firstMatch(text);
+    if (eMatch != null && eMatch.group(1) != null) {
+      boldKeywords.add(eMatch.group(1)!);
+    }
+
+    if (boldKeywords.isEmpty) {
+      return Text(
+        text,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 13, color: Colors.black87),
+      );
+    }
+
+    boldKeywords.sort((a, b) => b.length.compareTo(a.length));
+    
+    List<TextSpan> spans = [];
+    String currentText = text;
+    bool foundKeyword = true;
+    
+    while (foundKeyword) {
+      foundKeyword = false;
+      int earliestIndex = -1;
+      String matchedKeyword = "";
+      
+      for (final kw in boldKeywords) {
+        final idx = currentText.indexOf(kw);
+        if (idx != -1) {
+          if (earliestIndex == -1 || idx < earliestIndex) {
+            earliestIndex = idx;
+            matchedKeyword = kw;
+            foundKeyword = true;
+          }
+        }
+      }
+      
+      if (foundKeyword) {
+        if (earliestIndex > 0) {
+          spans.add(TextSpan(text: currentText.substring(0, earliestIndex)));
+        }
+        spans.add(TextSpan(
+          text: matchedKeyword,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        ));
+        currentText = currentText.substring(earliestIndex + matchedKeyword.length);
+      }
+    }
+    
+    if (currentText.isNotEmpty) {
+      spans.add(TextSpan(text: currentText));
+    }
+
+    return RichText(
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+        children: spans,
+      ),
+    );
+  }
+
   Widget _buildNotifCard(AnnouncementModel item, AnnouncementViewModel viewModel) {
-    final category = item.category ?? 'umum';
+    final category = getEffectiveCategory(item);
     final isNew = item.isNew;
 
     return InkWell(
       onTap: () async {
-        if (item.category == 'pengajuan_event') {
+        final targetId = item.targetId;
+        if (isEventNotification(item) && targetId != null && targetId.isNotEmpty) {
           final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
-                builder: (_) => EventDetailPage(eventId: item.id)),
+                builder: (_) => EventDetailPage(eventId: targetId)),
+          );
+          if (result == true) viewModel.loadAnnouncements();
+        } else if (isTeamNotification(item) && targetId != null && targetId.isNotEmpty) {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+                builder: (_) => TeamDetailPage(teamId: targetId)),
+          );
+          if (result == true) viewModel.loadAnnouncements();
+        } else if (isBarangNotification(item) && targetId != null && targetId.isNotEmpty) {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+                builder: (_) => BarangDetailPage(lostFoundId: targetId)),
           );
           if (result == true) viewModel.loadAnnouncements();
         } else {
@@ -120,11 +364,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         decoration: BoxDecoration(
-          color: isNew
-              ? const Color(0xFFF0F3FF)
-              : Colors.white,
+          color: isNew ? const Color(0xFFF0F3FF) : Colors.white,
           border: const Border(
             bottom: BorderSide(color: Colors.black12, width: 0.5),
           ),
@@ -133,66 +374,43 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar lingkaran dengan initial
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: _categoryColor(category).withValues(alpha: 0.15),
-                  child: Icon(
-                    _categoryIcon(category),
-                    color: _categoryColor(category),
-                    size: 22,
+            // Unread Indicator (Blue Dot) on the far left
+            if (isNew)
+              Padding(
+                padding: const EdgeInsets.only(top: 18, right: 8),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF3D5AFE),
+                    shape: BoxShape.circle,
                   ),
                 ),
-                if (isNew)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF3D5AFE),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              )
+            else
+              const SizedBox(width: 16),
+
+            // Avatar
+            _buildAvatar(item),
+            
             const SizedBox(width: 14),
 
-            // Konten teks
+            // Content Column
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                          fontSize: 14, color: Colors.black87, height: 1.4),
-                      children: [
-                        TextSpan(
-                          text: _categoryLabel(category),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                  Text(
+                    _categoryLabel(category),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 3),
-                  // Deskripsi
-                  Text(
-                    '${item.userNama != null ? "${item.userNama}: " : ""}"${item.title}"',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.black87,
-                    ),
-                  ),
+                  _buildRichContent(item),
                   const SizedBox(height: 5),
-                  // Waktu
                   Text(
                     item.timeAgo,
                     style: const TextStyle(fontSize: 11, color: Colors.grey),
@@ -200,24 +418,11 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 ],
               ),
             ),
+            
             const SizedBox(width: 12),
 
-            // Thumbnail / ikon kategori besar
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: _categoryColor(category).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Icon(
-                  _categoryIcon(category),
-                  color: _categoryColor(category),
-                  size: 26,
-                ),
-              ),
-            ),
+            // Right Thumbnail/Icon
+            _buildRightThumbnail(item),
           ],
         ),
       ),
