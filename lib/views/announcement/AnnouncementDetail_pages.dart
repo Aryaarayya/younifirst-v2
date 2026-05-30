@@ -8,6 +8,7 @@ import 'package:younifirst_app/views/event/EventDetail_pages.dart';
 import 'package:younifirst_app/views/barang/BarangDetail_pages.dart';
 import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AnnouncementDetailPage extends StatefulWidget {
   final AnnouncementModel announcement;
@@ -213,22 +214,79 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                               ),
                               const SizedBox(height: 16),
 
-                              // Gambar (Jika Ada)
+                              // Gambar atau Dokumen (Jika Ada)
                               if (_item.postImage != null && _item.postImage!.isNotEmpty) ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    _item.postImage!.startsWith('http')
+                                Builder(
+                                  builder: (context) {
+                                    final fileUrl = _item.postImage!.startsWith('http')
                                         ? _item.postImage!
-                                        : _getFullImageUrl(_item.postImage),
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
+                                        : _getFullImageUrl(_item.postImage);
+                                    
+                                    if (fileUrl.toLowerCase().endsWith('.pdf')) {
+                                      return Container(
+                                        width: double.infinity,
+                                        margin: const EdgeInsets.only(bottom: 16),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF3F4F6),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.grey.shade300),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Dokumen Lampiran (PDF)',
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  InkWell(
+                                                    onTap: () async {
+                                                      final Uri url = Uri.parse(fileUrl);
+                                                      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(content: Text('Gagal membuka file PDF')),
+                                                          );
+                                                        }
+                                                      }
+                                                    },
+                                                    child: const Text(
+                                                      'Ketuk untuk membuka dokumen',
+                                                      style: TextStyle(color: Color(0xFF3D5AFE), fontSize: 12, decoration: TextDecoration.underline),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    return Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: Image.network(
+                                            fileUrl,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    );
+                                  }
                                 ),
-                                const SizedBox(height: 16),
                               ],
 
                               // Isi konten
