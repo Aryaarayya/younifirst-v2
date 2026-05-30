@@ -244,6 +244,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (eventData!['category_id']?.toString() == "7") category = "Akademik";
     if (eventData!['category_id']?.toString() == "8") category = "Sosial";
 
+    final String eventStatus = eventData!['status']?.toString().toLowerCase() ?? 'open';
+    final String? eventRejectionReason = eventData!['rejection_reason']?.toString() ?? eventData!['reason']?.toString() ?? eventData!['alasan']?.toString() ?? eventData!['admin_note']?.toString();
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
@@ -395,6 +398,41 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       ),
                     ],
                   ),
+
+                  // Status rejected info
+                  if (eventStatus == 'rejected' && eventRejectionReason != null && eventRejectionReason.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.shade200, width: 1),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.red.shade700),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Alasan Penolakan',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  eventRejectionReason,
+                                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   
                   const SizedBox(height: 24),
                   const Divider(color: Colors.black12, height: 1),
@@ -598,35 +636,38 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   // Author profile — data dari creator event (user yang membuat postingan)
                   _buildCreatorSection(),
                   
-                  const SizedBox(height: 32),
-                  const Divider(color: Colors.black12, height: 1),
-                  const SizedBox(height: 24),
+                  if (eventStatus != 'rejected') ...[
+                    const SizedBox(height: 32),
+                    const Divider(color: Colors.black12, height: 1),
+                    const SizedBox(height: 24),
 
-                  // Related Events Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Event Lainnya",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          "LIHAT SEMUA",
-                          style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold, fontSize: 13),
+                    // Related Events Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Event Lainnya",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "LIHAT SEMUA",
+                            style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ],
               ),
             ),
           ),
 
           // Related Events List View
-          SliverToBoxAdapter(
+          if (eventStatus != 'rejected')
+            SliverToBoxAdapter(
             child: Container(
               color: Theme.of(context).scaffoldBackgroundColor,
               height: 450, // Match list height from Event_pages

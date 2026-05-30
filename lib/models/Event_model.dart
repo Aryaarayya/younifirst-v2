@@ -11,6 +11,8 @@ class EventModel {
   final String likesCount;
   final String categoryId;
   final String createdBy;
+  final String status;
+  final String? rejectionReason;
   final bool? _isLiked;
   bool get isLiked => _isLiked ?? false;
 
@@ -24,6 +26,8 @@ class EventModel {
     required this.likesCount,
     this.categoryId = '',
     this.createdBy = '',
+    this.status = 'Open',
+    this.rejectionReason,
     bool isLiked = false,
   }) : _isLiked = isLiked;
 
@@ -86,6 +90,8 @@ class EventModel {
         return (json['likes_count'] ?? json['likesCount'] ?? '0').toString();
       }(),
       categoryId: json['category_id']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'Open',
+      rejectionReason: json['rejection_reason']?.toString() ?? json['reason']?.toString() ?? json['alasan']?.toString() ?? json['admin_note']?.toString() ?? json['catatan_admin']?.toString() ?? json['alasan_penolakan']?.toString(),
       createdBy: () {
         final rawCreatedBy = json['created_by'];
         if (rawCreatedBy != null) {
@@ -138,6 +144,8 @@ class EventModel {
       likesCount: likesCount ?? this.likesCount,
       categoryId: categoryId,
       createdBy: createdBy,
+      status: status,
+      rejectionReason: rejectionReason,
       isLiked: isLiked ?? this.isLiked,
     );
   }
@@ -153,6 +161,8 @@ class EventModel {
       'likes_count': likesCount,
       'category_id': categoryId,
       'created_by': createdBy,
+      'status': status,
+      if (rejectionReason != null) 'rejection_reason': rejectionReason,
     };
   }
 }
