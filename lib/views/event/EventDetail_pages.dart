@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/views/event/UpdateEvent_pages.dart';
 import 'package:younifirst_app/services/api/event_api_service.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
@@ -18,9 +19,9 @@ class EventDetailPage extends StatefulWidget {
 class _EventDetailPageState extends State<EventDetailPage> {
   bool _isLoading = true;
   Map<String, dynamic>? eventData;
+  Map<String, dynamic>? _creatorData;
   List<Map<String, dynamic>> relatedEvents = [];
-  bool _isLiked = false;
-  int _likesCount = 0;
+  bool _isDescExpanded = false; // state expand deskripsi
 
   @override
   void initState() {
@@ -46,11 +47,18 @@ class _EventDetailPageState extends State<EventDetailPage> {
         print("Gagal mengambil related events: $e");
       }
 
+      // Fetch profil creator berdasarkan creator_id (field dari backend)
+      Map<String, dynamic>? creatorProfile;
+      final creatorId = data['creator_id']?.toString();
+      if (creatorId != null && creatorId.isNotEmpty) {
+        creatorProfile = await UserApiService.getUserById(creatorId);
+        debugPrint('📋 Creator profile (id=$creatorId): $creatorProfile');
+      }
+
       setState(() {
         eventData = data;
+        _creatorData = creatorProfile;
         relatedEvents = related;
-        _likesCount = int.tryParse(data['likes_count']?.toString() ?? '0') ?? 0;
-        _isLiked = data['is_liked'] == true || data['is_liked'] == 1;
         _isLoading = false;
       });
     } catch (e) {
@@ -162,6 +170,38 @@ class _EventDetailPageState extends State<EventDetailPage> {
     } catch (_) {
       return "Baru saja";
     }
+  }
+
+  void _showFullScreenImage(BuildContext context, bool isNetworkImage, String imageUrl) {
+    showDialog(
+      context: context,
+      useSafeArea: false,
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: const IconThemeData(color: Colors.white),
+          elevation: 0,
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            panEnabled: true,
+            minScale: 0.5,
+            maxScale: 4,
+            child: isNetworkImage
+                ? Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (c, e, s) => const Icon(Icons.broken_image, color: Colors.grey, size: 100),
+                  )
+                : Image.asset(
+                    'assets/images/Younifirst.png', // Fallback
+                    fit: BoxFit.contain,
+                  ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -283,13 +323,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   Positioned(
                     bottom: 50,
                     right: 20,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                    child: GestureDetector(
+                      onTap: () => _showFullScreenImage(context, isNetworkImage, imageUrl),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.unfold_more, color: Colors.white, size: 24),
                       ),
-                      child: const Icon(Icons.unfold_more, color: Colors.white, size: 20),
                     ),
                   ),
 
@@ -354,7 +397,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
                   
                   const SizedBox(height: 24),
-                  Divider(color: Theme.of(context).dividerColor, height: 1),
+                  const Divider(color: Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
                   // Date and Location Section
@@ -398,7 +441,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
+                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -430,7 +473,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
+                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -463,125 +506,109 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
 
                   const SizedBox(height: 24),
-                  Divider(color: Theme.of(context).dividerColor, height: 1),
+                  const Divider(color: Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
                   // Description
                   const Text("Tentang Event", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 12),
-                  Text.rich(
-                    TextSpan(
-                      text: description.length > 200 ? description.substring(0, 200) + "... " : description,
-                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 14, height: 1.5),
+                  AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    crossFadeState: _isDescExpanded
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    firstChild: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          description.length > 200
+                              ? '${description.substring(0, 200)}...'
+                              : description,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
+                        ),
                         if (description.length > 200)
-                          const TextSpan(
-                            text: "Lebih banyak...",
-                            style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold),
+                          GestureDetector(
+                            onTap: () => setState(() => _isDescExpanded = true),
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    "Lihat lebih banyak",
+                                    style: TextStyle(
+                                      color: Color(0xFF3D5AFE),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.keyboard_arrow_down_rounded,
+                                      color: Color(0xFF3D5AFE), size: 18),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    secondChild: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          description,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
+                        ),
+                        if (description.length > 200)
+                          GestureDetector(
+                            onTap: () => setState(() => _isDescExpanded = false),
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    "Lebih sedikit",
+                                    style: TextStyle(
+                                      color: Color(0xFF3D5AFE),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.keyboard_arrow_up_rounded,
+                                      color: Color(0xFF3D5AFE), size: 18),
+                                ],
+                              ),
+                            ),
                           ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 24),
-                  Divider(color: Theme.of(context).dividerColor, height: 1),
+                  const Divider(color: Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
-                  // Author profile
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const CircleAvatar(
-                            radius: 28,
-                            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150'),
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                eventData!['creator_name'] ?? "rona_naa",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _formatTimeAgo(eventData!['created_at'] ?? eventData!['createdAt']),
-                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          // Toggle like
-                          final wasLiked = _isLiked;
-                          setState(() {
-                            _isLiked = !wasLiked;
-                            _likesCount = wasLiked 
-                                ? (_likesCount - 1).clamp(0, 999999) 
-                                : _likesCount + 1;
-                          });
-                          try {
-                            final result = await EventApiService.toggleLike(widget.eventId);
-                            if (mounted && result['success'] == true) {
-                              setState(() {
-                                _isLiked = result['is_liked'] ?? _isLiked;
-                                _likesCount = int.tryParse(result['likes_count']?.toString() ?? '') ?? _likesCount;
-                              });
-                            }
-                            // Juga update di viewModel agar sinkron
-                            if (mounted) {
-                              context.read<EventViewModel>().toggleLike(widget.eventId);
-                            }
-                          } catch (e) {
-                            // Revert
-                            if (mounted) {
-                              setState(() {
-                                _isLiked = wasLiked;
-                                _likesCount = wasLiked ? _likesCount + 1 : (_likesCount - 1).clamp(0, 999999);
-                              });
-                            }
-                          }
-                        },
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).cardColor,
-                            border: Border.all(color: Theme.of(context).dividerColor, width: 1),
-                          ),
-                          child: Center(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                              child: Icon(
-                                _isLiked ? Icons.favorite : Icons.favorite_border,
-                                key: ValueKey(_isLiked),
-                                color: _isLiked ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Author profile — data dari creator event (user yang membuat postingan)
+                  _buildCreatorSection(),
                   
                   const SizedBox(height: 32),
-                  Divider(color: Theme.of(context).dividerColor, height: 1),
+                  const Divider(color: Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
                   // Related Events Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         "Event Lainnya",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
                       ),
                       TextButton(
                         onPressed: () {},
@@ -635,6 +662,117 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Container(
       color: Colors.grey.shade300,
       child: Image.asset('assets/images/Younifirst.png', fit: BoxFit.cover),
+    );
+  }
+
+  /// Ambil URL foto creator — dari _creatorData (hasil fetch API) atau field di eventData
+  String? _getCreatorPhotoUrl() {
+    // Prioritas 1: dari data profil creator yang sudah di-fetch
+    if (_creatorData != null) {
+      final candidates = [
+        _creatorData!['photo'],
+        _creatorData!['photo_url'],
+        _creatorData!['avatar'],
+        _creatorData!['profile_photo'],
+      ];
+      for (final raw in candidates) {
+        final url = raw?.toString();
+        if (url != null && url.isNotEmpty) {
+          if (url.startsWith('http')) return url;
+          String cleanPath = url.startsWith('/') ? url.substring(1) : url;
+          if (!cleanPath.startsWith('storage/')) cleanPath = 'storage/$cleanPath';
+          return '${ApiClient.baseUrl.replaceAll('/api', '')}/$cleanPath';
+        }
+      }
+    }
+
+    // Prioritas 2: dari field langsung di eventData
+    if (eventData != null) {
+      final candidates = [
+        eventData!['creator_photo'],
+        eventData!['creator_avatar'],
+        eventData!['user']?['photo'],
+        eventData!['user']?['photo_url'],
+        eventData!['creator']?['photo'],
+      ];
+      for (final raw in candidates) {
+        final url = raw?.toString();
+        if (url != null && url.isNotEmpty) {
+          if (url.startsWith('http')) return url;
+          String cleanPath = url.startsWith('/') ? url.substring(1) : url;
+          if (!cleanPath.startsWith('storage/')) cleanPath = 'storage/$cleanPath';
+          return '${ApiClient.baseUrl.replaceAll('/api', '')}/$cleanPath';
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Section profil creator event
+  Widget _buildCreatorSection() {
+    // Nama dari _creatorData (hasil fetch) atau fallback ke creator_name di eventData
+    final String creatorName = _creatorData?['name']?.toString()
+        ?? eventData?['creator_name']?.toString()
+        ?? 'Penyelenggara';
+    final String initials = creatorName.isNotEmpty ? creatorName.substring(0, 1).toUpperCase() : 'P';
+    final String? photoUrl = _getCreatorPhotoUrl();
+
+    return Row(
+      children: [
+        // Avatar creator
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: photoUrl == null
+                ? LinearGradient(
+                    colors: [const Color(0xFF3D5AFE), Colors.purple.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            image: photoUrl != null
+                ? DecorationImage(
+                    image: NetworkImage(photoUrl),
+                    fit: BoxFit.cover,
+                    onError: (_, __) {},
+                  )
+                : null,
+          ),
+          child: photoUrl == null
+              ? Center(
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : null,
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              creatorName,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _formatTimeAgo(eventData?['created_at'] ?? eventData?['createdAt']),
+              style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 14),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -711,7 +849,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       Expanded(
                         child: Text(
                           dateText,
-                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 12),
+                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
@@ -726,24 +864,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           locationText,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 12),
+                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Divider(color: Theme.of(context).dividerColor, thickness: 1),
+                  Divider(color: Colors.grey.withOpacity(0.2), thickness: 1),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.favorite_border, size: 22, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+                          Icon(Icons.favorite_border, size: 22, color: Colors.black.withOpacity(0.7)),
                           const SizedBox(width: 8),
                           Text(
                             likes,
-                            style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(color: Colors.black.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),

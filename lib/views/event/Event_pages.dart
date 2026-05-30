@@ -16,6 +16,8 @@ class EventPage extends StatefulWidget {
 }
 
 class _EventPageState extends State<EventPage> {
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -192,38 +194,47 @@ class _EventPageState extends State<EventPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<EventViewModel>(
         builder: (context, viewModel, child) {
-          return SingleChildScrollView(
-            child: Stack(
-              children: [
-                // Blue Background Top
-                Container(
-                  height: 250,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF121212)
-                        : const Color(0xFF3D5AFE),
+          return RefreshIndicator(
+            onRefresh: () => viewModel.fetchEvents(),
+            color: const Color(0xFF3D5AFE),
+            backgroundColor: Colors.white,
+            displacement: 80,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Stack(
+                children: [
+                  // Blue Background Top
+                  Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF121212)
+                          : const Color(0xFF3D5AFE),
+                    ),
                   ),
-                ),
-                SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(viewModel),
-                      const SizedBox(height: 20),
-                      _buildPopularEventsHeader(),
-                      const SizedBox(height: 16),
-                      _buildPopularEventsList(viewModel),
-                      const SizedBox(height: 24),
-                      _buildCategoryHeader(),
-                      const SizedBox(height: 12),
-                      _buildCategoryChips(viewModel),
-                      const SizedBox(height: 16),
-                      _buildEventGrid(viewModel),
-                      const SizedBox(height: 80), // Padding for FAB
-                    ],
+                  SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(viewModel),
+                        const SizedBox(height: 20),
+                        if (_searchQuery.isEmpty) ...[
+                          _buildPopularEventsHeader(),
+                          const SizedBox(height: 16),
+                          _buildPopularEventsList(viewModel),
+                          const SizedBox(height: 24),
+                        ],
+                        _buildCategoryHeader(),
+                        const SizedBox(height: 12),
+                        _buildCategoryChips(viewModel),
+                        const SizedBox(height: 16),
+                        _buildEventGrid(viewModel),
+                        const SizedBox(height: 80), // Padding for FAB
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -286,9 +297,14 @@ class _EventPageState extends State<EventPage> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const TextField(
-                    style: TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
                       hintText: "Temukan events...",
                       hintStyle: TextStyle(color: Colors.white70),
                       prefixIcon: Icon(Icons.search, color: Colors.white70),
@@ -373,27 +389,24 @@ class _EventPageState extends State<EventPage> {
 
     return SizedBox(
       height: 450,
-      child: RefreshIndicator(
-        onRefresh: viewModel.fetchEvents,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: popularEvents.length,
-          itemBuilder: (context, index) {
-            final ev = popularEvents[index];
-              return _buildEventCard(
-                id: ev.id,
-                imageUrl: ev.imageUrl,
-                title: ev.title,
-                date: ev.date,
-                time: ev.time,
-                location: ev.location,
-                likes: ev.likesCount,
-                isLiked: ev.isLiked,
-                viewModel: viewModel,
-              );
-          },
-        ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: popularEvents.length,
+        itemBuilder: (context, index) {
+          final ev = popularEvents[index];
+          return _buildEventCard(
+            id: ev.id,
+            imageUrl: ev.imageUrl,
+            title: ev.title,
+            date: ev.date,
+            time: ev.time,
+            location: ev.location,
+            likes: ev.likesCount,
+            isLiked: ev.isLiked,
+            viewModel: viewModel,
+          );
+        },
       ),
     );
   }
@@ -688,8 +701,27 @@ class _EventPageState extends State<EventPage> {
 
     List<EventModel> filteredEvents = viewModel.filteredEvents;
 
+    if (_searchQuery.isNotEmpty) {
+      filteredEvents = filteredEvents.where((ev) {
+        final title = ev.title.toLowerCase();
+        final location = ev.location.toLowerCase();
+        return title.contains(_searchQuery) || location.contains(_searchQuery);
+      }).toList();
+    }
+
     if (filteredEvents.isEmpty) {
-      return const Center(child: Text("Tidak ada data untuk kategori ini."));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40.0),
+          child: Text(
+            _searchQuery.isNotEmpty 
+                ? "Tidak ada event yang sesuai pencarian '$_searchQuery'."
+                : "Tidak ada data untuk kategori ini.",
+            style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
     return Padding(

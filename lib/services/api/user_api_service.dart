@@ -29,6 +29,38 @@ class UserApiService {
     }
   }
 
+  /// Ambil data profil user berdasarkan ID
+  static Future<Map<String, dynamic>?> getUserById(String userId) async {
+    // Coba berbagai endpoint yang mungkin ada di backend
+    final endpoints = [
+      'users/$userId',
+      'user/$userId',
+      'users/profile/$userId',
+      'profile/$userId',
+    ];
+
+    for (final ep in endpoints) {
+      try {
+        final response = await ApiClient.get(ep);
+        debugPrint('🔍 GET /$ep → ${response.statusCode}');
+        if (response.statusCode == 200) {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            final result = decoded.containsKey('data') && decoded['data'] is Map
+                ? Map<String, dynamic>.from(decoded['data'])
+                : decoded;
+            debugPrint('✅ Creator data dari /$ep: $result');
+            return result;
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ /$ep gagal: $e');
+      }
+    }
+    debugPrint('⚠️ Semua endpoint user gagal untuk ID=$userId');
+    return null;
+  }
+
   static Future<bool> updateUser(Map<String, String> data, {File? imageFile}) async {
     final userId = AuthService.loggedInUserId;
     if (userId == null) return false;
