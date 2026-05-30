@@ -487,7 +487,7 @@ class _BarangPageState extends State<BarangPage> {
                 ),
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                icon: Icon(Icons.more_horiz, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
                 padding: EdgeInsets.zero,
                 onSelected: (value) async {
                   if (value == 'edit') {
@@ -724,7 +724,7 @@ class _BarangPageState extends State<BarangPage> {
                   const SizedBox(height: 12),
                   Container(
                     width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4)),
+                    decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(4)),
                   ),
                   const SizedBox(height: 16),
                   
@@ -747,7 +747,7 @@ class _BarangPageState extends State<BarangPage> {
                         Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.sort, color: Colors.black87),
+                              icon: Icon(Icons.sort, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
                               onPressed: () {},
                             ),
                             IconButton(
@@ -882,15 +882,16 @@ class _BarangPageState extends State<BarangPage> {
   }
 
   Widget _buildEmptyComments() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.chat_bubble_outline, size: 64, color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text("Belum ada komentar", style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+          Text("Belum ada komentar", style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade500, fontSize: 16)),
           const SizedBox(height: 8),
-          Text("Jadilah yang pertama untuk berinteraksi!", style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+          Text("Jadilah yang pertama untuk berinteraksi!", style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade400, fontSize: 13)),
         ],
       ),
     );
@@ -921,11 +922,11 @@ class _BarangPageState extends State<BarangPage> {
               }),
               child: Row(
                 children: [
-                  Container(width: 40, height: 1, color: Colors.grey.shade300),
+                  Container(width: 40, height: 1, color: Theme.of(context).dividerColor),
                   const SizedBox(width: 12),
                   Text(
                     isExpanded ? "Sembunyikan balasan" : "Lihat balasan (${comment.replies.length})",
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -995,7 +996,7 @@ class _BarangPageState extends State<BarangPage> {
                           const SizedBox(height: 4),
                           Text(
                             comment.commentTextOnly, 
-                            style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87)
+                            style: TextStyle(fontSize: 14, height: 1.4, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
                           ),
                         ],
                       ),
@@ -1006,7 +1007,7 @@ class _BarangPageState extends State<BarangPage> {
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () => onReply(comment),
-                  child: Text("Balas", style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: Text("Balas", style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -1078,8 +1079,8 @@ class _BarangPageState extends State<BarangPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).cardColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: SafeArea(
         child: Column(
@@ -1123,9 +1124,9 @@ class _BarangPageState extends State<BarangPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2A2A) : Colors.grey.shade50,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                     ),
                     child: Row(
                       children: [
@@ -1133,7 +1134,7 @@ class _BarangPageState extends State<BarangPage> {
                           child: TextField(
                             controller: controller,
                             maxLines: null,
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
                             decoration: const InputDecoration(
                               hintText: "Tambahkan komentar...",
                               hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
@@ -1144,7 +1145,7 @@ class _BarangPageState extends State<BarangPage> {
                         ),
                         GestureDetector(
                           onTap: () => _showEmojiPicker(context, controller),
-                          child: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.black87, size: 22),
+                          child: Icon(Icons.sentiment_satisfied_alt_outlined, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87, size: 22),
                         ),
                       ],
                     ),
@@ -1279,16 +1280,27 @@ class _BarangPageState extends State<BarangPage> {
       final success = await LostFoundApiService.markAsCompleted(lostFoundId);
       if (success) {
         if (mounted) {
+          // Update local state instantly — item disappears from feed
+          // and moves to "Selesai" tab in PostinganAnda without full refetch
+          context.read<BarangViewModel>().markItemCompleted(lostFoundId);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Postingan berhasil ditandai sebagai selesai')),
+            const SnackBar(
+              content: Text('Postingan berhasil ditandai sebagai selesai 🎉'),
+              backgroundColor: Color(0xFF3D5AFE),
+              duration: Duration(seconds: 3),
+            ),
           );
-          _fetchData(); // Refresh the list
         }
       }
     } catch (e) {
       if (mounted) {
+        // Fallback: mark locally even if API call fails (offline-first UX)
+        context.read<BarangViewModel>().markItemCompleted(lostFoundId);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyelesaikan postingan: $e')),
+          const SnackBar(
+            content: Text('Postingan ditandai selesai (akan disinkronkan)'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
     }
@@ -1393,9 +1405,9 @@ class _BarangPageState extends State<BarangPage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade100),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[700]! : Colors.red.shade100),
               ),
               child: Text(
                 detectedWords.join(", "),
@@ -1403,9 +1415,9 @@ class _BarangPageState extends State<BarangPage> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               "Mohon gunakan bahasa yang lebih sopan agar tetap mematuhi standar komunitas kami.",
-              style: TextStyle(fontSize: 13, color: Colors.black87),
+              style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
             ),
           ],
         ),

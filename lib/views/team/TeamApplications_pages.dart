@@ -91,7 +91,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
           preferredSize: const Size.fromHeight(60),
           child: Column(
             children: [
-              Divider(height: 1, color: Colors.grey.shade200),
+              Divider(height: 1, color: Theme.of(context).dividerColor),
               Container(
                 height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +112,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
                   },
                 ),
               ),
-              Divider(height: 1, color: Colors.grey.shade200),
+              Divider(height: 1, color: Theme.of(context).dividerColor),
             ],
           ),
         ),
@@ -221,7 +221,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +272,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
             bio,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey.shade600),
           ),
 
           const SizedBox(height: 14),
@@ -381,16 +381,16 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
     Color fg;
     String label;
     if (['accepted', 'approved', 'active', 'diterima', 'setuju'].contains(status)) {
-      bg = Colors.green.shade100;
-      fg = Colors.green.shade700;
+      bg = Theme.of(context).brightness == Brightness.dark ? Colors.green.shade900 : Colors.green.shade100;
+      fg = Theme.of(context).brightness == Brightness.dark ? Colors.green.shade300 : Colors.green.shade700;
       label = 'Diterima';
     } else if (status == 'rejected') {
-      bg = Colors.red.shade100;
-      fg = Colors.red.shade700;
+      bg = Theme.of(context).brightness == Brightness.dark ? Colors.red.shade900 : Colors.red.shade100;
+      fg = Theme.of(context).brightness == Brightness.dark ? Colors.red.shade300 : Colors.red.shade700;
       label = 'Ditolak';
     } else {
-      bg = Colors.orange.shade100;
-      fg = Colors.orange.shade800;
+      bg = Theme.of(context).brightness == Brightness.dark ? Colors.orange.shade900 : Colors.orange.shade100;
+      fg = Theme.of(context).brightness == Brightness.dark ? Colors.orange.shade300 : Colors.orange.shade800;
       label = 'Menunggu';
     }
     return Container(
@@ -411,19 +411,19 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.person_search_outlined, size: 100, color: const Color(0xFF3D5AFE).withOpacity(0.8)),
-            const SizedBox(height: 24),
-            const Text(
+            const SizedBox(height: 12),
+            Text(
               'Belum ada lamaran',
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Colors.black87),
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Saat ini belum ada lamaran masuk untuk kategori ini. Silakan cek kembali nanti!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 14, height: 1.5),
+              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14, height: 1.5),
             ),
           ],
         ),

@@ -653,6 +653,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildDefaultFeed() {
     final filteredLostFound = _lostFoundItems.where((item) {
+      if (item.isCompleted) return false;
       return item.itemName.toLowerCase().contains(_searchQuery) ||
              item.description.toLowerCase().contains(_searchQuery) ||
              item.location.toLowerCase().contains(_searchQuery) ||
@@ -820,6 +821,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildLostFoundListOnly() {
     final filtered = _lostFoundItems.where((item) {
+      if (item.isCompleted) return false;
       return item.itemName.toLowerCase().contains(_searchQuery) ||
              item.description.toLowerCase().contains(_searchQuery) ||
              item.location.toLowerCase().contains(_searchQuery) ||
@@ -1572,21 +1574,92 @@ class _HomePageState extends State<HomePage> {
   void _showFinishConfirmation(BuildContext context, LostFoundModel item) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Tandai Selesai?"),
-        content: const Text("Postingan ini akan ditandai selesai dan dihapus dari dashboard utama."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await LostFoundApiService.markAsCompleted(item.lostfoundId);
-              _fetchData();
-            }, 
-            child: const Text("Ya, Selesai", style: TextStyle(color: Color(0xFF3D5AFE)))
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle_outline, size: 100, color: Color(0xFF3D5AFE)),
+                const SizedBox(height: 16),
+                const Text(
+                  "Tandai Postingan ini Selesai?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Ini tidak dapat dibatalkan dan postingan yang ditandai selesai tidak akan ditampilkan lagi di halaman utama karena kasusnya dianggap sudah selesai atau barang telah ditemukan.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.5),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(dialogContext); // Close dialog
+                      try {
+                        final success = await LostFoundApiService.markAsCompleted(item.lostfoundId);
+                        if (success && mounted) {
+                          // Update global state so it syncs with other pages instantly
+                          context.read<BarangViewModel>().markItemCompleted(item.lostfoundId);
+                          // Update local state so it vanishes from Home instantly without fetching
+                          setState(() {
+                            _lostFoundItems.removeWhere((x) => x.lostfoundId == item.lostfoundId);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Postingan berhasil ditandai sebagai selesai 🎉'),
+                              backgroundColor: Color(0xFF3D5AFE),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          // Offline fallback update
+                          context.read<BarangViewModel>().markItemCompleted(item.lostfoundId);
+                          setState(() {
+                            _lostFoundItems.removeWhere((x) => x.lostfoundId == item.lostfoundId);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Postingan ditandai selesai (akan disinkronkan)'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3D5AFE),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text("Tandai Selesai", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text("Batalkan", style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

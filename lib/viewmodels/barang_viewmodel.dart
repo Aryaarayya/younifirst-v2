@@ -61,6 +61,9 @@ class BarangViewModel extends ChangeNotifier {
     String query = _searchQuery.toLowerCase();
 
     return _allData.where((item) {
+      // Hide completed items from the main feed
+      if (item.isCompleted) return false;
+
       // Apply Filter Category
       bool matchesFilter = true;
       if (_selectedFilterIndex != 0) {
@@ -75,6 +78,34 @@ class BarangViewModel extends ChangeNotifier {
 
       return matchesFilter && matchesSearch && !item.isExpired;
     }).toList();
+  }
+
+  /// Marks an item as completed in local state (instant UI update).
+  void markItemCompleted(String lostFoundId) {
+    final idx = _allData.indexWhere((e) => e.lostfoundId == lostFoundId);
+    if (idx == -1) return;
+    final old = _allData[idx];
+    _allData[idx] = LostFoundModel(
+      lostfoundId: old.lostfoundId,
+      userId: old.userId,
+      userName: old.userName,
+      userEmail: old.userEmail,
+      userNim: old.userNim,
+      userProdi: old.userProdi,
+      userAvatar: old.userAvatar,
+      type: old.type,
+      statusId: old.statusId,
+      itemName: old.itemName,
+      location: old.location,
+      description: old.description,
+      imageUrl: old.imageUrl,
+      createdAt: old.createdAt,
+      likesCount: old.likesCount,
+      commentsCount: old.commentsCount,
+      isCompleted: true, // Mark as completed
+      isLiked: old.isLiked,
+    );
+    notifyListeners();
   }
 
   /// Automatically deletes expired posts belonging to the logged-in user from the server.

@@ -136,7 +136,7 @@ class LostFoundModel {
       createdAt: json['created_at'],
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['total_comments'] ?? json['comments_count'] ?? 0,
-      isCompleted: json['is_completed'] == 1 || json['is_completed'] == true,
+      isCompleted: json['is_completed'] == 1 || json['is_completed'] == true || statusId == 3 || type == 'Diklaim',
       isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
     );
   }

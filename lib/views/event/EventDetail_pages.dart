@@ -351,7 +351,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
                   
                   const SizedBox(height: 24),
-                  const Divider(color: Colors.black12, height: 1),
+                  Divider(color: Theme.of(context).dividerColor, height: 1),
                   const SizedBox(height: 24),
 
                   // Date and Location Section
@@ -395,7 +395,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -427,7 +427,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -460,7 +460,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
 
                   const SizedBox(height: 24),
-                  const Divider(color: Colors.black12, height: 1),
+                  Divider(color: Theme.of(context).dividerColor, height: 1),
                   const SizedBox(height: 24),
 
                   // Description
@@ -481,7 +481,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
 
                   const SizedBox(height: 24),
-                  const Divider(color: Colors.black12, height: 1),
+                  Divider(color: Theme.of(context).dividerColor, height: 1),
                   const SizedBox(height: 24),
 
                   // Author profile
@@ -505,7 +505,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                               const SizedBox(height: 4),
                               Text(
                                 _formatTimeAgo(eventData!['created_at'] ?? eventData!['createdAt']),
-                                style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 14),
+                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 14),
                               ),
                             ],
                           ),
@@ -548,8 +548,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           height: 50,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300, width: 1),
+                            color: Theme.of(context).cardColor,
+                            border: Border.all(color: Theme.of(context).dividerColor, width: 1),
                           ),
                           child: Center(
                             child: AnimatedSwitcher(
@@ -558,7 +558,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                               child: Icon(
                                 _isLiked ? Icons.favorite : Icons.favorite_border,
                                 key: ValueKey(_isLiked),
-                                color: _isLiked ? Colors.redAccent : Colors.black87,
+                                color: _isLiked ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
                                 size: 24,
                               ),
                             ),
@@ -569,16 +569,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
                   
                   const SizedBox(height: 32),
-                  const Divider(color: Colors.black12, height: 1),
+                  Divider(color: Theme.of(context).dividerColor, height: 1),
                   const SizedBox(height: 24),
 
                   // Related Events Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Event Lainnya",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       TextButton(
                         onPressed: () {},
@@ -708,7 +708,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       Expanded(
                         child: Text(
                           dateText,
-                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 12),
                         ),
                       ),
                     ],
@@ -723,24 +723,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           locationText,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54, fontSize: 12),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Divider(color: Colors.grey.withOpacity(0.2), thickness: 1),
+                  Divider(color: Theme.of(context).dividerColor, thickness: 1),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.favorite_border, size: 22, color: Colors.black.withOpacity(0.7)),
+                          Icon(Icons.favorite_border, size: 22, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
                           const SizedBox(width: 8),
                           Text(
                             likes,
-                            style: TextStyle(color: Colors.black.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),

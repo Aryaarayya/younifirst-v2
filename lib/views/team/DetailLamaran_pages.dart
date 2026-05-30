@@ -145,18 +145,18 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                             children: [
                               Text(
                                 name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: Colors.black87,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 timeAgo,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey,
                                 ),
                               ),
                             ],
@@ -169,16 +169,16 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const Divider(height: 1, color: Color(0xFFF1F1F1)),
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
                     const SizedBox(height: 20),
 
                     // CV Section
-                    const Text(
+                    Text(
                       'CV Pelamar',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -187,7 +187,7 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         children: [
@@ -217,18 +217,18 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                                   cvFileName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
-                                    color: Colors.black87,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '${fileExt.toUpperCase()} • Dokumen',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey,
                                   ),
                                 ),
                               ],
@@ -276,46 +276,46 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Divider(height: 1, color: Color(0xFFF1F1F1)),
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
                     const SizedBox(height: 20),
 
                     // Proposed Role
-                    const Text(
+                    Text(
                       'Peran yang Diajukan',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       role,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Divider(height: 1, color: Color(0xFFF1F1F1)),
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
                     const SizedBox(height: 20),
 
                     // Keterangan / Cover Letter
-                    const Text(
+                    Text(
                       'Keterangan',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       bio,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                         height: 1.6,
                       ),
                     ),

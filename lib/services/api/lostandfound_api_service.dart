@@ -191,9 +191,16 @@ class LostFoundApiService {
         return true;
       } else {
         // Fallback: Use PUT to update the status to claimed/completed
+        // Fetch current item to satisfy validation requirements
+        final currentItem = await getLostFoundById(lostFoundId);
+        
         var request = ApiClient.multipartRequest('POST', '$endpoint/$lostFoundId');
         request.fields['_method'] = 'PUT';
+        request.fields['item_name'] = currentItem.itemName;
+        request.fields['description'] = currentItem.description;
+        request.fields['location'] = currentItem.location;
         request.fields['status'] = 'claimed';
+        request.fields['status_id'] = '3';
         request.fields['is_completed'] = '1';
         
         final streamedResponse = await request.send();

@@ -84,18 +84,18 @@ class _PopularEventPageState extends State<PopularEventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).iconTheme.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Popular Events 🔥",
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -103,7 +103,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
+            icon: Icon(Icons.search, color: Theme.of(context).iconTheme.color),
             onPressed: () {},
           ),
         ],
@@ -235,9 +235,10 @@ class _PopularEventPageState extends State<PopularEventPage> {
   }
 
   Widget _buildSkeletonCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))
@@ -249,7 +250,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
           Container(
             height: 100,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
             ),
           ),
@@ -258,21 +259,21 @@ class _PopularEventPageState extends State<PopularEventPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(height: 12, width: 80, color: Colors.grey[300]),
+                Container(height: 12, width: 80, color: isDark ? Colors.grey[700] : Colors.grey[300]),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 10, color: Colors.grey[400]),
+                    Icon(Icons.calendar_today, size: 10, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                     const SizedBox(width: 4),
-                    Expanded(child: Container(height: 10, color: Colors.grey[300])),
+                    Expanded(child: Container(height: 10, color: isDark ? Colors.grey[700] : Colors.grey[300])),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 10, color: Colors.grey[400]),
+                    Icon(Icons.location_on_outlined, size: 10, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                     const SizedBox(width: 4),
-                    Expanded(child: Container(height: 10, color: Colors.grey[300])),
+                    Expanded(child: Container(height: 10, color: isDark ? Colors.grey[700] : Colors.grey[300])),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -281,9 +282,9 @@ class _PopularEventPageState extends State<PopularEventPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.favorite, size: 14, color: Colors.grey[400]),
+                        Icon(Icons.favorite, size: 14, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                         const SizedBox(width: 4),
-                        Container(height: 10, width: 15, color: Colors.grey[300]),
+                        Container(height: 10, width: 15, color: isDark ? Colors.grey[700] : Colors.grey[300]),
                       ],
                     ),
                     Container(
@@ -321,6 +322,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
     required int eventIndex,
   }) {
     bool isNetworkImage = imageUrl.toLowerCase().startsWith('http');
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () async {
@@ -338,7 +340,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
@@ -361,7 +363,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
                   child: Container(
                     height: 100,
                     width: double.infinity,
-                    color: Colors.grey[300],
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[300],
                     child: isNetworkImage
                         ? Image.network(
                             imageUrl,
@@ -388,7 +390,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black),
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -401,7 +403,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
                           time.isNotEmpty ? "$date • $time" : date,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.black54, fontSize: 9),
+                          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 9),
                         ),
                       ),
                     ],
@@ -459,7 +461,7 @@ class _PopularEventPageState extends State<PopularEventPage> {
                           const SizedBox(width: 4),
                           Text(
                             likes,
-                            style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 10),
+                            style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold, fontSize: 10),
                           ),
                         ],
                       ),
