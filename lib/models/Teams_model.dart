@@ -33,6 +33,7 @@ class TeamModel {
   final bool isLiked;
   final List<String> memberNames;
   final List<TeamMember> members;
+  final String? rejectionReason;
 
   TeamModel({
     required this.id,
@@ -49,6 +50,7 @@ class TeamModel {
     this.isLiked = false,
     this.memberNames = const [],
     this.members = const [],
+    this.rejectionReason,
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json, {String? currentUserId}) {
@@ -193,6 +195,7 @@ class TeamModel {
       isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
       memberNames: names,
       members: parsedMembers,
+      rejectionReason: json['rejection_reason']?.toString() ?? json['reason']?.toString() ?? json['alasan']?.toString() ?? json['admin_note']?.toString() ?? json['catatan_admin']?.toString() ?? json['alasan_penolakan']?.toString(),
     );
   }
 }

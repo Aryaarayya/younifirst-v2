@@ -378,7 +378,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                     color: Colors.grey, fontSize: 13),
                               ),
 
-                            if (isOwner) ...[
+                            if (isOwner && t.status.toLowerCase() != 'rejected') ...[
                               const SizedBox(height: 16),
                               const Divider(color: Color(0xFFE5E7EB)),
                               const SizedBox(height: 16),
@@ -476,6 +476,41 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                             ],
                           ),
                         ),
+
+                      // Status rejected info
+                      if (t.status.toLowerCase() == 'rejected' && t.rejectionReason != null && t.rejectionReason!.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.red.shade200, width: 1),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.red.shade700),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Alasan Penolakan',
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      t.rejectionReason!,
+                                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -485,7 +520,8 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
         ),
 
         // Bottom action buttons
-        Positioned(
+        if (t.status.toLowerCase() != 'rejected')
+          Positioned(
           bottom: 0,
           left: 0,
           right: 0,
