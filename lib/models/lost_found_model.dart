@@ -98,16 +98,26 @@ class LostFoundModel {
     }
 
     // Get user name from various possible response structures
-    String userName = json['reporter_name']
-        ?? json['user']?['name']
-        ?? json['user_name']
+    String userName = json['reporter_name']?.toString()
+        ?? json['user']?['name']?.toString()
+        ?? json['user']?['nama']?.toString()
+        ?? json['user']?['username']?.toString()
+        ?? json['user']?['full_name']?.toString()
+        ?? json['user_name']?.toString()
+        ?? json['creator_name']?.toString()
         ?? 'Unknown User';
 
-    String? userAvatar = json['user']?['photo']
-        ?? json['user']?['photo_url']
-        ?? json['user']?['profile_picture']
-        ?? json['reporter_avatar']
-        ?? json['user_avatar'];
+    String? userAvatar = json['reporter_photo']?.toString()
+        ?? json['reporter_avatar']?.toString()
+        ?? json['user_avatar']?.toString()
+        ?? json['creator_photo']?.toString()
+        ?? json['creator_avatar']?.toString()
+        ?? json['user']?['photo']?.toString()
+        ?? json['user']?['photo_url']?.toString()
+        ?? json['user']?['avatar']?.toString()
+        ?? json['user']?['profile_picture']?.toString()
+        ?? json['created_by_user']?['photo']?.toString()
+        ?? json['created_by_user']?['photo_url']?.toString();
 
     // Handle photo: could be relative path, full URL, or null
     String? imageUrl;

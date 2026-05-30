@@ -71,13 +71,12 @@ class CommentModel {
     if (name == null || name.isEmpty) name = json['user']?['nama']?.toString().trim();
     if (name == null || name.isEmpty) name = json['user']?['full_name']?.toString().trim();
 
-    // --- Determine display identity ---
-    // Priority: NIM (student) > Name > Role from user_id prefix
+    // Priority: Name > NIM (student) > Role from user_id prefix
     String identity;
-    if (nim != null && nim.isNotEmpty) {
-      identity = nim;
-    } else if (name != null && name.isNotEmpty) {
+    if (name != null && name.isNotEmpty) {
       identity = name;
+    } else if (nim != null && nim.isNotEmpty) {
+      identity = nim;
     } else {
       // Fallback: derive role from user_id pattern (e.g., ADM0000001 → Admin)
       final rawUserId = json['user_id']?.toString()
@@ -92,11 +91,15 @@ class CommentModel {
     if (avatar == null || avatar.isEmpty) avatar = json['photo_url']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['user_avatar']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['reporter_avatar']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['creator_photo']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['creator_avatar']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['avatar']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['user']?['photo']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['user']?['photo_url']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['user']?['avatar']?.toString();
     if (avatar == null || avatar.isEmpty) avatar = json['user']?['profile_picture']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['created_by_user']?['photo']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['created_by_user']?['photo_url']?.toString();
     if (avatar != null && avatar.isEmpty) avatar = null;
 
     // --- Identify comment ID ---

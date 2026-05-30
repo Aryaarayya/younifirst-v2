@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/lost_found_model.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:intl/intl.dart';
 
 class BarangDetailPage extends StatefulWidget {
@@ -173,10 +174,90 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                         // Poster Info
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: const Color(0xFF3D5AFE).withValues(alpha: 0.1),
-                              child: const Icon(Icons.person, color: Color(0xFF3D5AFE)),
+                            Builder(
+                              builder: (context) {
+                                String userName = item.userName ?? 'Mahasiswa';
+                                String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'M';
+                                String? fullAvatarUrl;
+                                if (item.userAvatar != null && item.userAvatar!.isNotEmpty && item.userAvatar != 'null') {
+                                  fullAvatarUrl = item.userAvatar!.startsWith('http') ? item.userAvatar : LostFoundApiService.getFullUrl(item.userAvatar);
+                                }
+                                
+                                String cacheBustedUrl(String url) {
+                                  if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+                                  return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+                                }
+
+                                if (fullAvatarUrl != null) {
+                                  return CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Colors.transparent,
+                                    backgroundImage: NetworkImage(cacheBustedUrl(fullAvatarUrl)),
+                                  );
+                                }
+
+                                Widget gradientFallback() {
+                                  return CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Colors.transparent,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [Colors.cyan.shade300, Colors.purple.shade400],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        initial,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                if (item.userId != null && item.userId!.isNotEmpty) {
+                                  return FutureBuilder<Map<String, dynamic>?>(
+                                    future: UserApiService.getUserByIdCached(item.userId!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.transparent,
+                                          child: SizedBox(
+                                            width: 24, height: 24,
+                                            child: CircularProgressIndicator(strokeWidth: 2)
+                                          ),
+                                        );
+                                      }
+                                      String? fetchedPhoto;
+                                      if (snapshot.hasData && snapshot.data != null) {
+                                        final data = snapshot.data!;
+                                        fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+                                        if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+                                          fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : LostFoundApiService.getFullUrl(fetchedPhoto);
+                                        }
+                                      }
+                                      if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+                                        return CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.transparent,
+                                          backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto)),
+                                        );
+                                      }
+                                      return gradientFallback();
+                                    },
+                                  );
+                                }
+
+                                return gradientFallback();
+                              }
                             ),
                             const SizedBox(width: 16),
                             Column(
@@ -184,11 +265,12 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                               children: [
                                 Text(
                                   item.userName ?? 'Mahasiswa',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                 ),
+                                const SizedBox(height: 2),
                                 const Text(
                                   "Pelapor Barang",
-                                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                                  style: TextStyle(color: Colors.grey, fontSize: 14),
                                 ),
                               ],
                             ),

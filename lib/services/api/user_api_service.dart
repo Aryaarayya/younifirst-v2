@@ -29,6 +29,18 @@ class UserApiService {
     }
   }
 
+  static final Map<String, Map<String, dynamic>?> _userCache = {};
+
+  /// Ambil data profil user berdasarkan ID dengan Cache untuk UI Lists
+  static Future<Map<String, dynamic>?> getUserByIdCached(String userId) async {
+    if (_userCache.containsKey(userId)) {
+      return _userCache[userId];
+    }
+    final data = await getUserById(userId);
+    _userCache[userId] = data;
+    return data;
+  }
+
   /// Ambil data profil user berdasarkan ID
   static Future<Map<String, dynamic>?> getUserById(String userId) async {
     // Coba berbagai endpoint yang mungkin ada di backend

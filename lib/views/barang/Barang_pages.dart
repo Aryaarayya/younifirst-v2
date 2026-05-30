@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/barang_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/services/api/lostandfound_api_service.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'EditBarang_pages.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -394,13 +395,34 @@ class _BarangPageState extends State<BarangPage> {
     required double radius,
   }) {
     final bool isCurrentUser = userId != null && userId == AuthService.loggedInUserId;
-    final List<Color> avatarColors = [
-      const Color(0xFF3D5AFE), const Color(0xFF00BCD4), const Color(0xFF4CAF50),
-      const Color(0xFFFF5722), const Color(0xFF9C27B0), const Color(0xFFFF9800),
-      const Color(0xFFE91E63), const Color(0xFF795548),
-    ];
-    Color bgColor = avatarColors[(userName.isNotEmpty ? userName.codeUnitAt(0) : 0) % avatarColors.length];
     String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'U';
+
+    String cacheBustedUrl(String url) {
+      if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+      return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+    }
+
+    Widget buildGradientFallback() {
+      return Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: radius * 0.75,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
 
     if (isCurrentUser) {
       return Consumer<ProfilViewModel>(
@@ -415,11 +437,9 @@ class _BarangPageState extends State<BarangPage> {
           }
           return CircleAvatar(
             radius: radius,
-            backgroundColor: bgColor,
-            backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
-            child: displayPhotoUrl == null
-                ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
-                : null,
+            backgroundColor: Colors.transparent,
+            backgroundImage: displayPhotoUrl != null ? NetworkImage(cacheBustedUrl(displayPhotoUrl)) : null,
+            child: displayPhotoUrl == null ? buildGradientFallback() : null,
           );
         },
       );
@@ -427,17 +447,57 @@ class _BarangPageState extends State<BarangPage> {
 
     // For other users: use avatarUrl if available, else show colorful initial
     String? fullAvatarUrl;
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl != 'null') {
       fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : LostFoundApiService.getFullUrl(avatarUrl);
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.transparent,
+        backgroundImage: NetworkImage(cacheBustedUrl(fullAvatarUrl)),
+      );
+    }
+
+    if (userId != null && userId.isNotEmpty) {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: UserApiService.getUserByIdCached(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              child: SizedBox(
+                width: radius, height: radius,
+                child: const CircularProgressIndicator(strokeWidth: 2)
+              ),
+            );
+          }
+          String? fetchedPhoto;
+          if (snapshot.hasData && snapshot.data != null) {
+            final data = snapshot.data!;
+            fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : LostFoundApiService.getFullUrl(fetchedPhoto);
+            }
+          }
+          if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto)),
+            );
+          }
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: Colors.transparent,
+            child: buildGradientFallback(),
+          );
+        },
+      );
     }
 
     return CircleAvatar(
       radius: radius,
-      backgroundColor: bgColor,
-      backgroundImage: fullAvatarUrl != null ? NetworkImage(fullAvatarUrl) : null,
-      child: fullAvatarUrl == null
-          ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
-          : null,
+      backgroundColor: Colors.transparent,
+      child: buildGradientFallback(),
     );
   }
 
@@ -468,20 +528,21 @@ class _BarangPageState extends State<BarangPage> {
                 avatarUrl: item.userAvatar,
                 userId: item.userId,
                 userName: item.userName,
-                radius: 18,
+                radius: 24,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.userName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       _formatTimestamp(item.createdAt),
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
@@ -1111,11 +1172,40 @@ class _BarangPageState extends State<BarangPage> {
                           : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
                     }
                     
+                    final String initial = profilVM.userData?['name']?.toString().isNotEmpty == true 
+                        ? profilVM.userData!['name'].toString().substring(0, 1).toUpperCase() 
+                        : 'U';
+
+                    String cacheBustedUrl(String url) {
+                      if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+                      return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+                    }
+
                     return CircleAvatar(
                       radius: 18,
-                      backgroundColor: Colors.grey.shade200,
-                      backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
-                      child: displayPhotoUrl == null ? const Icon(Icons.person, color: Colors.grey, size: 20) : null,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: displayPhotoUrl != null ? NetworkImage(cacheBustedUrl(displayPhotoUrl)) : null,
+                      child: displayPhotoUrl == null 
+                          ? Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Colors.cyan.shade300, Colors.purple.shade400],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                initial,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            )
+                          : null,
                     );
                   },
                 ),
