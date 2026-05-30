@@ -19,18 +19,26 @@ class CommentModel {
   });
 
   String get commentTextOnly {
-    // Aggressively strip any [re:...] tag from the start of the comment
     if (comment.startsWith('[re:')) {
       return comment.replaceFirst(RegExp(r'\[re:[^\]]*\]'), '').trim();
     }
     return comment;
   }
 
+  /// Returns a friendly label for web users based on their user_id prefix.
+  static String _roleFromUserId(String userId) {
+    final id = userId.toUpperCase();
+    if (id.startsWith('ADM')) return 'Admin';
+    if (id.startsWith('STP')) return 'Staff';
+    if (id.startsWith('OPR')) return 'Operator';
+    return 'Pengguna';
+  }
+
   factory CommentModel.fromJson(Map<String, dynamic> json) {
     String? parentId = json['parent_id']?.toString();
     String commentText = json['comment'] ?? '';
 
-    // If parentId is missing but present in the comment tag [re:ID] or [re: ID]
+    // If parentId is missing but present in the comment tag [re:ID]
     if (parentId == null || parentId.isEmpty) {
       RegExp regExp = RegExp(r'\[re:\s*([^\]\s]+)\]');
       Match? match = regExp.firstMatch(commentText);
@@ -39,29 +47,72 @@ class CommentModel {
       }
     }
 
-    // Identify user name/identity (Priority: NIM -> Name -> Unknown)
-    // Based on UserSeeder: nim, user_id, name are available.
-    String identity = json['nim'] 
-        ?? json['user_nim']
-        ?? json['reporter_nim'] 
-        ?? json['user']?['nim'] 
-        ?? json['user']?['user_id']
-        ?? json['user_name'] 
-        ?? json['reporter_name'] 
-        ?? json['user']?['name'] 
-        ?? 'Unknown';
+    // --- Extract NIM (for students) ---
+    String? nim = json['nim']?.toString().trim();
+    if (nim == null || nim.isEmpty || nim == '-') {
+      nim = json['user_nim']?.toString().trim();
+    }
+    if (nim == null || nim.isEmpty || nim == '-') {
+      nim = json['reporter_nim']?.toString().trim();
+    }
+    if (nim == null || nim.isEmpty || nim == '-') {
+      nim = json['user']?['nim']?.toString().trim();
+    }
 
-    // Identify comment ID (try various common keys)
-    String commentId = json['id']?.toString() 
-        ?? json['comment_id']?.toString() 
+    // --- Extract Name (for web/admin users) ---
+    String? name = json['name']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['nama']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['username']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['full_name']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['user_name']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['reporter_name']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['user']?['name']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['user']?['username']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['user']?['nama']?.toString().trim();
+    if (name == null || name.isEmpty) name = json['user']?['full_name']?.toString().trim();
+
+    // --- Determine display identity ---
+    // Priority: NIM (student) > Name > Role from user_id prefix
+    String identity;
+    if (nim != null && nim.isNotEmpty) {
+      identity = nim;
+    } else if (name != null && name.isNotEmpty) {
+      identity = name;
+    } else {
+      // Fallback: derive role from user_id pattern (e.g., ADM0000001 → Admin)
+      final rawUserId = json['user_id']?.toString()
+          ?? json['reporter_id']?.toString()
+          ?? json['user']?['id']?.toString()
+          ?? '';
+      identity = rawUserId.isNotEmpty ? _roleFromUserId(rawUserId) : 'Pengguna';
+    }
+
+    // --- Extract Avatar ---
+    String? avatar = json['photo']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['photo_url']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['user_avatar']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['reporter_avatar']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['avatar']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['user']?['photo']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['user']?['photo_url']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['user']?['avatar']?.toString();
+    if (avatar == null || avatar.isEmpty) avatar = json['user']?['profile_picture']?.toString();
+    if (avatar != null && avatar.isEmpty) avatar = null;
+
+    // --- Identify comment ID ---
+    String commentId = json['id']?.toString()
+        ?? json['comment_id']?.toString()
         ?? '';
 
     return CommentModel(
       id: commentId,
       parentId: parentId,
-      userId: json['user_id']?.toString() ?? json['reporter_id']?.toString() ?? '',
+      userId: json['user_id']?.toString()
+          ?? json['reporter_id']?.toString()
+          ?? json['user']?['id']?.toString()
+          ?? '',
       userName: identity,
-      userAvatar: json['user_avatar'] ?? json['reporter_avatar'] ?? json['user']?['photo'] ?? json['user']?['photo_url'] ?? json['user']?['profile_picture'],
+      userAvatar: avatar,
       createdAt: json['created_at'] ?? '',
       comment: commentText,
     );

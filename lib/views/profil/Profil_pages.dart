@@ -173,20 +173,19 @@ class _ProfilPageState extends State<ProfilPage> {
             ? LostFoundApiService.getFullUrl(rawPhoto)
             : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
         
-        // Parse Angkatan and Bergabung
-        String angkatan = '-';
-        if (nim.length >= 5) {
-          angkatan = '20${nim.substring(3, 5)}';
-        }
-        
         String bergabung = '-';
         if (_userData?['created_at'] != null) {
           try {
             DateTime dt = DateTime.parse(_userData!['created_at']);
-            List<String> months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            bergabung = '${months[dt.month - 1]} ${dt.year}';
+            List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            bergabung = '${dt.day.toString().padLeft(2, '0')} ${months[dt.month - 1]} ${dt.year}';
           } catch (_) {}
         }
+        
+        String rawStatus = _userData?['status']?.toString() ?? 'Active';
+        String status = rawStatus.isNotEmpty 
+            ? '${rawStatus[0].toUpperCase()}${rawStatus.substring(1)}'
+            : 'Active';
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -224,38 +223,46 @@ class _ProfilPageState extends State<ProfilPage> {
                               ),
                             ],
                           ),
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.notifications_none, color: Colors.white, size: 24),
-                              ),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: EdgeInsets.all(4),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => NotifikasiPage()),
+                              );
+                            },
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.red,
+                                    color: Colors.white.withOpacity(0.1),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Color(0xFF3D5AF1), width: 2),
                                   ),
-                                  child: Text(
-                                    "2",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                  child: Icon(Icons.notifications_none, color: Colors.white, size: 24),
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Color(0xFF3D5AF1), width: 2),
+                                    ),
+                                    child: Text(
+                                      "2",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -352,9 +359,9 @@ class _ProfilPageState extends State<ProfilPage> {
                                   SizedBox(height: 12),
                                   Row(
                                     children: [
-                                      infoBox("Angkatan", angkatan),
-                                      SizedBox(width: 12),
                                       infoBox("Bergabung", bergabung),
+                                      SizedBox(width: 12),
+                                      infoBox("Status", status),
                                     ],
                                   ),
                                 ],

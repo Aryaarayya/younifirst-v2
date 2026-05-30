@@ -17,6 +17,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
   late TextEditingController _nameController;
   late TextEditingController _nimController;
   late TextEditingController _prodiController;
+  late TextEditingController _bergabungController;
   bool _isLoading = false;
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -27,6 +28,16 @@ class _EditProfilPageState extends State<EditProfilPage> {
     _nameController = TextEditingController(text: widget.userData['name']);
     _nimController = TextEditingController(text: widget.userData['nim'] ?? '');
     _prodiController = TextEditingController(text: widget.userData['prodi'] ?? '');
+    
+    String bergabung = '-';
+    if (widget.userData['created_at'] != null) {
+      try {
+        DateTime dt = DateTime.parse(widget.userData['created_at']);
+        List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        bergabung = '${dt.day.toString().padLeft(2, '0')} ${months[dt.month - 1]} ${dt.year}';
+      } catch (_) {}
+    }
+    _bergabungController = TextEditingController(text: bergabung);
   }
 
   @override
@@ -34,6 +45,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
     _nameController.dispose();
     _nimController.dispose();
     _prodiController.dispose();
+    _bergabungController.dispose();
     super.dispose();
   }
 
@@ -214,6 +226,8 @@ class _EditProfilPageState extends State<EditProfilPage> {
             buildTextField("NIM", _nimController),
             SizedBox(height: 20),
             buildTextField("Program Studi", _prodiController),
+            SizedBox(height: 20),
+            buildTextField("Tanggal Bergabung", _bergabungController),
             
             SizedBox(height: 40),
 
@@ -243,7 +257,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
     );
   }
 
-  Widget buildTextField(String label, TextEditingController controller) {
+  Widget buildTextField(String label, TextEditingController controller, {bool readOnly = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,6 +272,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          readOnly: readOnly,
           style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           decoration: InputDecoration(
             filled: true,
