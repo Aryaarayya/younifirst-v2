@@ -11,6 +11,7 @@ import 'package:younifirst_app/views/profil/PostinganAnda_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/profil_viewmodel.dart';
 import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
+import 'package:younifirst_app/widgets/notification_bell.dart';
 
 String _cacheBustedUrl(String url) {
   if (url.contains('?')) {
@@ -197,7 +198,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? const Color(0xFF121212)
-                      : const Color(0xFF3D5AF1),
+                      : const Color(0xFF3D5AFE),
                 ),
               ),
               SafeArea(
@@ -205,65 +206,28 @@ class _ProfilPageState extends State<ProfilPage> {
                   children: [
                     // Header
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.person_outline, color: Colors.white, size: 28),
-                              SizedBox(width: 12),
-                              Text(
+                              Image.asset(
+                                'assets/images/logo_putih.png',
+                                width: 35,
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
                                 "Profil",
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 22,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => NotifikasiPage()),
-                              );
-                            },
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.notifications_none, color: Colors.white, size: 24),
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  top: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Color(0xFF3D5AF1), width: 2),
-                                    ),
-                                    child: Text(
-                                      "2",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          const NotificationBell(iconColor: Colors.white),
                         ],
                       ),
                     ),
