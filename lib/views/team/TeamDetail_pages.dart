@@ -7,6 +7,8 @@ import 'package:younifirst_app/views/team/GlobalTeamApplications_pages.dart';
 import 'package:younifirst_app/views/team/TeamChat_pages.dart';
 import 'package:younifirst_app/views/team/DaftarTim_pages.dart';
 import 'package:younifirst_app/views/team/CreateReport_pages.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
+import 'package:younifirst_app/services/api/team_api_service.dart';
 
 class TeamDetailPage extends StatefulWidget {
   final String teamId;
@@ -70,6 +72,80 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
           ],
         ),
       );
+
+  String cacheBustedUrl(String url) {
+    if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  Widget _buildAvatar(TeamMember member) {
+    String initial = member.name.isNotEmpty ? member.name.substring(0, 1).toUpperCase() : '?';
+    Widget fallback = CircleAvatar(
+      radius: 20,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+
+    String? fullAvatarUrl;
+    if (member.avatar != null && member.avatar!.isNotEmpty && member.avatar != 'null') {
+      fullAvatarUrl = member.avatar!.startsWith('http') ? member.avatar : TeamApiService.getFullUrl(member.avatar!);
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.transparent,
+        backgroundImage: NetworkImage(cacheBustedUrl(fullAvatarUrl!)),
+      );
+    }
+
+    if (member.userId.isNotEmpty) {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: UserApiService.getUserByIdCached(member.userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.transparent,
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            );
+          }
+          String? fetchedPhoto;
+          if (snapshot.hasData && snapshot.data != null) {
+            final data = snapshot.data!;
+            fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : TeamApiService.getFullUrl(fetchedPhoto);
+            }
+          }
+          if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+            return CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto!)),
+            );
+          }
+          return fallback;
+        },
+      );
+    }
+    return fallback;
+  }
 
   Widget _buildBody() {
     final t = _team!;
@@ -236,16 +312,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Row(
                                     children: [
-                                      CircleAvatar(
-                                        radius: 20,
-                                        backgroundColor: const Color(0xFFE8EAFF),
-                                        child: Text(
-                                          member.name.isNotEmpty ? member.name.substring(0, 1).toUpperCase() : '?',
-                                          style: const TextStyle(
-                                              color: Color(0xFF3D5AFE),
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
+                                      _buildAvatar(member),
                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(

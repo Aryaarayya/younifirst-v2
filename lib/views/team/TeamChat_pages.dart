@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/chat_message_model.dart';
 import 'package:younifirst_app/services/api/chat_service.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
+import 'package:younifirst_app/services/api/team_api_service.dart';
 
 class TeamChatPage extends StatefulWidget {
   final String teamId;
@@ -247,6 +249,70 @@ class _TeamChatPageState extends State<TeamChatPage> {
     );
   }
 
+  String cacheBustedUrl(String url) {
+    if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  Widget _buildAvatar(String userId, String userName, double radius) {
+    String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : '?';
+    Widget fallback = CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: radius * 0.75,
+          ),
+        ),
+      ),
+    );
+
+    if (userId.isNotEmpty) {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: UserApiService.getUserByIdCached(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              child: SizedBox(width: radius, height: radius, child: const CircularProgressIndicator(strokeWidth: 2)),
+            );
+          }
+          String? fetchedPhoto;
+          if (snapshot.hasData && snapshot.data != null) {
+            final data = snapshot.data!;
+            fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : TeamApiService.getFullUrl(fetchedPhoto);
+            }
+          }
+          if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto!)),
+            );
+          }
+          return fallback;
+        },
+      );
+    }
+    return fallback;
+  }
+
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -447,19 +513,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: const Color(0xFF3D5AFE),
-              child: Text(
-                msg.senderName.isNotEmpty
-                    ? msg.senderName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
+            _buildAvatar(msg.senderId, msg.senderName, 16),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -549,19 +603,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
           ),
           if (isMe) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.grey.shade300,
-              child: Text(
-                msg.senderName.isNotEmpty
-                    ? msg.senderName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
+            _buildAvatar(msg.senderId, msg.senderName, 16),
           ],
         ],
       ),

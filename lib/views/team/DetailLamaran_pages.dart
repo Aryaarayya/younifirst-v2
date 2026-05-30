@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 
 class DetailLamaranPage extends StatefulWidget {
   final Map<String, dynamic> app;
@@ -47,18 +48,90 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
       cvUrl = cvUrl.startsWith('/') ? '$baseDomain$cvUrl' : '$baseDomain/storage/$cvUrl';
     }
 
-    // Parse Photo URL
-    String? photoUrl;
-    if (app['user_photo'] != null && app['user_photo'].toString().isNotEmpty) {
-      photoUrl = app['user_photo'].toString();
-    } else if (app['user'] is Map) {
-      final u = app['user'];
-      photoUrl = u['photo_url']?.toString() ?? u['photo']?.toString();
-    }
+    // Parse Photo URL comprehensively
+    String? photoUrl = app['user_photo']?.toString() ??
+        app['photo']?.toString() ??
+        app['photo_url']?.toString() ??
+        app['avatar']?.toString() ??
+        app['profile_picture']?.toString() ??
+        app['user']?['photo']?.toString() ??
+        app['user']?['photo_url']?.toString() ??
+        app['user']?['avatar']?.toString() ??
+        app['user_avatar']?.toString();
 
-    if (photoUrl != null && photoUrl.isNotEmpty && !photoUrl.startsWith('http')) {
+    if (photoUrl != null && photoUrl.isNotEmpty && photoUrl != 'null' && !photoUrl.startsWith('http')) {
       final baseDomain = ApiClient.baseUrl.replaceAll('/api', '');
       photoUrl = photoUrl.startsWith('/') ? '$baseDomain$photoUrl' : '$baseDomain/storage/$photoUrl';
+    }
+
+    String cacheBustedUrl(String url) {
+      if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+      return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+    }
+
+    Widget fallbackAvatar = CircleAvatar(
+      radius: 28,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+      ),
+    );
+
+    Widget buildAvatar() {
+      if (photoUrl != null && photoUrl!.isNotEmpty && photoUrl != 'null') {
+        return CircleAvatar(
+          radius: 28,
+          backgroundColor: Colors.transparent,
+          backgroundImage: NetworkImage(cacheBustedUrl(photoUrl!)),
+        );
+      }
+      if (memberId.isNotEmpty) {
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: UserApiService.getUserByIdCached(memberId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.transparent,
+                child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2)),
+              );
+            }
+            String? fetchedPhoto;
+            if (snapshot.hasData && snapshot.data != null) {
+              final data = snapshot.data!;
+              fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+              if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+                fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : TeamApiService.getFullUrl(fetchedPhoto);
+              }
+            }
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              return CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto!)),
+              );
+            }
+            return fallbackAvatar;
+          },
+        );
+      }
+      return fallbackAvatar;
     }
 
     // Parse relative time
@@ -121,23 +194,7 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                     // Profile Header
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor: const Color(0xFFE8EAFF),
-                          backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
-                              ? NetworkImage(photoUrl)
-                              : null,
-                          child: (photoUrl == null || photoUrl.isEmpty)
-                              ? Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                  style: const TextStyle(
-                                    color: Color(0xFF3D5AFE),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 22,
-                                  ),
-                                )
-                              : null,
-                        ),
+                        buildAvatar(),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(

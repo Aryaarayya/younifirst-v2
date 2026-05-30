@@ -6,6 +6,7 @@ class TeamMember {
   final String role;
   final String status;
   final String timeAgo;
+  final String? avatar;
 
   TeamMember({
     required this.userId,
@@ -13,6 +14,7 @@ class TeamMember {
     required this.role,
     required this.status,
     this.timeAgo = '',
+    this.avatar,
   });
 }
 
@@ -112,12 +114,22 @@ class TeamModel {
             } catch (_) {}
           }
           if (mName.isNotEmpty) {
+            String? mAvatar = m['photo']?.toString() ??
+                m['photo_url']?.toString() ??
+                m['avatar']?.toString() ??
+                m['profile_picture']?.toString() ??
+                m['user']?['photo']?.toString() ??
+                m['user']?['photo_url']?.toString() ??
+                m['user']?['avatar']?.toString() ??
+                m['user_avatar']?.toString();
+
             parsedMembers.add(TeamMember(
               userId: mUserId,
               name: mName,
               role: mRole,
               status: mStatus,
               timeAgo: timeAgo,
+              avatar: mAvatar,
             ));
           }
         } else {

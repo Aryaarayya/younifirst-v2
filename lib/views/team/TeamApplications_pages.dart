@@ -4,6 +4,7 @@ import 'package:younifirst_app/views/team/TambahTeams_pages.dart';
 import 'package:younifirst_app/views/team/DetailLamaran_pages.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -137,6 +138,89 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
     );
   }
 
+  String cacheBustedUrl(String url) {
+    if (url.contains('?')) return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  Widget _buildAvatar(Map<String, dynamic> app, String name, String userId) {
+    String initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    Widget fallback = CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+      ),
+    );
+
+    String? avatar = app['photo']?.toString() ??
+        app['photo_url']?.toString() ??
+        app['avatar']?.toString() ??
+        app['profile_picture']?.toString() ??
+        app['user']?['photo']?.toString() ??
+        app['user']?['photo_url']?.toString() ??
+        app['user']?['avatar']?.toString() ??
+        app['user_avatar']?.toString();
+    
+    if (avatar != null && avatar.isNotEmpty && avatar != 'null') {
+      final fullUrl = avatar.startsWith('http') ? avatar : TeamApiService.getFullUrl(avatar);
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.transparent,
+        backgroundImage: NetworkImage(cacheBustedUrl(fullUrl)),
+      );
+    }
+
+    if (userId.isNotEmpty) {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: UserApiService.getUserByIdCached(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.transparent,
+              child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+            );
+          }
+          String? fetchedPhoto;
+          if (snapshot.hasData && snapshot.data != null) {
+            final data = snapshot.data!;
+            fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : TeamApiService.getFullUrl(fetchedPhoto);
+            }
+          }
+          if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+            return CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(cacheBustedUrl(fetchedPhoto!)),
+            );
+          }
+          return fallback;
+        },
+      );
+    }
+
+    return fallback;
+  }
+
   Widget _buildFilterChip({
     required String label,
     required IconData icon,
@@ -228,17 +312,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: const Color(0xFFE8EAFF),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                      color: Color(0xFF3D5AFE),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                ),
-              ),
+              _buildAvatar(app, name, memberId),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

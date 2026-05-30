@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/Teams_model.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
+import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
 import 'package:younifirst_app/views/team/GlobalTeamApplications_pages.dart';
@@ -177,18 +178,82 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
-                        child: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: Colors.grey[300],
-                          child: t.memberNames.length > i
-                              ? Text(
-                                  t.memberNames[i][0].toUpperCase(),
+                        child: Builder(
+                          builder: (context) {
+                            String? avatarUrl;
+                            String initial = '';
+                            String userId = '';
+                            if (t.members.length > i) {
+                              final member = t.members[i];
+                              initial = member.name.isNotEmpty ? member.name[0].toUpperCase() : '';
+                              userId = member.userId;
+                              if (member.avatar != null && member.avatar!.isNotEmpty && member.avatar != 'null') {
+                                avatarUrl = member.avatar!.startsWith('http') ? member.avatar : TeamApiService.getFullUrl(member.avatar!);
+                              }
+                            } else if (t.memberNames.length > i) {
+                              initial = t.memberNames[i].isNotEmpty ? t.memberNames[i][0].toUpperCase() : '';
+                            }
+                            
+                            Widget fallbackAvatar = CircleAvatar(
+                              radius: 14,
+                              backgroundColor: Colors.transparent,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Colors.cyan.shade300, Colors.purple.shade400],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: initial.isNotEmpty ? Text(
+                                  initial,
                                   style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black54),
-                                )
-                              : null,
+                                      color: Colors.white),
+                                ) : null,
+                              ),
+                            );
+
+                            if (avatarUrl != null) {
+                              String cacheBustedUrl = avatarUrl!.contains('?') 
+                                  ? '$avatarUrl&v=${DateTime.now().millisecondsSinceEpoch}' 
+                                  : '$avatarUrl?v=${DateTime.now().millisecondsSinceEpoch}';
+                              return CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.transparent,
+                                backgroundImage: NetworkImage(cacheBustedUrl),
+                              );
+                            }
+
+                            if (userId.isNotEmpty) {
+                              return FutureBuilder<Map<String, dynamic>?>(
+                                future: UserApiService.getUserByIdCached(userId),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    final data = snapshot.data!;
+                                    String? fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+                                    if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+                                      fetchedPhoto = fetchedPhoto!.startsWith('http') ? fetchedPhoto : TeamApiService.getFullUrl(fetchedPhoto!);
+                                      String cacheBustedUrl = fetchedPhoto!.contains('?') 
+                                          ? '$fetchedPhoto&v=${DateTime.now().millisecondsSinceEpoch}' 
+                                          : '$fetchedPhoto?v=${DateTime.now().millisecondsSinceEpoch}';
+                                      return CircleAvatar(
+                                        radius: 14,
+                                        backgroundColor: Colors.transparent,
+                                        backgroundImage: NetworkImage(cacheBustedUrl),
+                                      );
+                                    }
+                                  }
+                                  return fallbackAvatar;
+                                },
+                              );
+                            }
+
+                            return fallbackAvatar;
+                          }
                         ),
                       ),
                     ),

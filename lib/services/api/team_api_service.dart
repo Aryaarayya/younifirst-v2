@@ -10,6 +10,13 @@ import 'package:younifirst_app/services/input/api_client.dart';
 class TeamApiService {
   static const String endpoint = 'teams';
 
+  static String getFullUrl(String path) {
+    if (path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final baseDomain = ApiClient.baseUrl.replaceAll('/api', '');
+    return path.startsWith('/') ? '$baseDomain$path' : '$baseDomain/storage/$path';
+  }
+
   // ─── GET semua tim (publik, approved) ─────────────────────────────────────
   static Future<List<TeamModel>> getTeams() async {
     try {
