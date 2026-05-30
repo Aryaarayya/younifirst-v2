@@ -134,11 +134,14 @@ class EventViewModel extends ChangeNotifier {
     }
 
     final categoryMapping = {
-      'Kompetisi': '1',
-      'Seminar': '2',
-      'Pameran': '3',
-      'Turnamen': '4',
-      'Konser': '5',
+      'Seminar': '1',
+      'Workshop': '2',
+      'Kompetisi': '3',
+      'Festival': '4',
+      'Olahraga': '5',
+      'Seni & Budaya': '6',
+      'Akademik': '7',
+      'Sosial': '8',
     };
     
     final catId = categoryMapping[_selectedCategory];

@@ -87,21 +87,12 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
 
     return GestureDetector(
       onTap: () {
-        if (t.isOwner) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => TeamDetailPage(teamId: t.id),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Halaman detail tim saya hanya dapat diakses oleh pembuat tim atau leader.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TeamDetailPage(teamId: t.id),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

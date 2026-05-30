@@ -59,11 +59,14 @@ class _PopularEventPageState extends State<PopularEventPage> {
       filteredEvents = List.from(events);
     } else {
       final categoryMapping = {
-        'Kompetisi': '1',
-        'Seminar': '2',
-        'Pameran': '3',
-        'Turnamen': '4',
-        'Konser': '5',
+        'Seminar': '1',
+        'Workshop': '2',
+        'Kompetisi': '3',
+        'Festival': '4',
+        'Olahraga': '5',
+        'Seni & Budaya': '6',
+        'Akademik': '7',
+        'Sosial': '8',
       };
       final catId = categoryMapping[_selectedCategory];
       
@@ -133,9 +136,14 @@ class _PopularEventPageState extends State<PopularEventPage> {
       child: Row(
         children: [
           _buildChip("Semua", Icons.check_circle, _selectedCategory == "Semua"),
+          _buildChip("Akademik", Icons.school_outlined, _selectedCategory == "Akademik"),
+          _buildChip("Festival", Icons.celebration_outlined, _selectedCategory == "Festival"),
           _buildChip("Kompetisi", Icons.emoji_events_outlined, _selectedCategory == "Kompetisi"),
-          _buildChip("Seminar", Icons.mic_none, _selectedCategory == "Seminar"),
-          _buildChip("Pameran", Icons.palette_outlined, _selectedCategory == "Pameran"),
+          _buildChip("Olahraga", Icons.sports_soccer_outlined, _selectedCategory == "Olahraga"),
+          _buildChip("Seminar", Icons.mic_external_on_outlined, _selectedCategory == "Seminar"),
+          _buildChip("Seni & Budaya", Icons.palette_outlined, _selectedCategory == "Seni & Budaya"),
+          _buildChip("Sosial", Icons.people_outline, _selectedCategory == "Sosial"),
+          _buildChip("Workshop", Icons.handyman_outlined, _selectedCategory == "Workshop"),
         ],
       ),
     );

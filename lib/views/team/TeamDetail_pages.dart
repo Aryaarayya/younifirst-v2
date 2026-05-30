@@ -78,48 +78,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
         (AuthService.loggedInUserId != null &&
             t.createdBy == AuthService.loggedInUserId);
             
-    final isMemberOrPending = t.isMember || t.isAcceptedMember;
-    
-    if (isMemberOrPending && !isOwner) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Text(
-            'Detail Tim',
-            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.lock_outline, size: 80, color: Color(0xFF3D5AFE)),
-                const SizedBox(height: 20),
-                const Text(
-                  'Akses Dibatasi',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Halaman detail tim ini hanya dapat diakses oleh pembuat tim atau leader.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+
 
     int maxMm = t.maxMembers > 0 ? t.maxMembers : 4;
     String displayStatus = t.status;
