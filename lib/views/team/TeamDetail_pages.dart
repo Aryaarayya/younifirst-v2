@@ -47,7 +47,7 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF3D5AFE)))
           : _error != null
@@ -269,17 +269,17 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                             const SizedBox(height: 16),
 
                             // Deskripsi / Persyaratan
-                            const Text(
+                            Text(
                               'Persyaratan',
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14),
+                                  fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               t.description,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.black87,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
                                   height: 1.5),
                             ),
                             const SizedBox(height: 20),
@@ -288,11 +288,12 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Anggota Tim',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14),
+                                      fontSize: 14,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color),
                                 ),
                                 Text(
                                   '(${t.joinedMembers})',
@@ -322,10 +323,10 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                               children: [
                                                 Text(
                                                   member.name,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                       fontSize: 15,
                                                       fontWeight: FontWeight.bold,
-                                                      color: Colors.black87),
+                                                      color: Theme.of(context).textTheme.bodyLarge?.color),
                                                 ),
                                                 if (isMe) ...[
                                                   const SizedBox(width: 8),
@@ -349,9 +350,9 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                             const SizedBox(height: 2),
                                             Text(
                                               member.role,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                   fontSize: 12,
-                                                  color: Colors.black54),
+                                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54),
                                             ),
                                             if (member.timeAgo.isNotEmpty) ...[
                                               const SizedBox(height: 2),
@@ -388,19 +389,19 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : Colors.grey.shade200),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      children: const [
+                                      children: [
                                         Text(
                                           '🏆 Laporan Juara',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15,
-                                            color: Colors.black87,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
                                           ),
                                         ),
                                       ],
@@ -456,21 +457,21 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                           margin: const EdgeInsets.only(top: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.orange.withValues(alpha: 0.1) : Colors.orange.shade50,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: Colors.orange.shade200, width: 1),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.orange.withValues(alpha: 0.3) : Colors.orange.shade200, width: 1),
                           ),
                           child: Row(
                             children: [
                               Icon(Icons.hourglass_top,
                                   color: Colors.orange.shade700),
                               const SizedBox(width: 12),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
                                   'Tim sedang dalam proses review admin. Notifikasi akan dikirim setelah disetujui.',
                                   style: TextStyle(
-                                      fontSize: 13, color: Colors.black87),
+                                      fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
                                 ),
                               ),
                             ],
@@ -483,9 +484,9 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                           margin: const EdgeInsets.only(top: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red.shade200, width: 1),
+                            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha: 0.3) : Colors.red.shade200, width: 1),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,14 +497,14 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Alasan Penolakan',
-                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       t.rejectionReason!,
-                                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                      style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
                                     ),
                                   ],
                                 ),
@@ -653,9 +654,9 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade600 : Colors.grey.shade300),
                       ),
                       child: const Center(
                         child: Text(
@@ -725,20 +726,21 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
 
   Widget _statusBadge(String status) {
     final s = status.toLowerCase();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Color bg;
     Color fg;
     if (s == 'open') {
-      bg = Colors.green.shade100;
-      fg = Colors.green.shade700;
+      bg = isDark ? Colors.green.withValues(alpha: 0.15) : Colors.green.shade100;
+      fg = isDark ? Colors.green.shade300 : Colors.green.shade700;
     } else if (s == 'pending') {
-      bg = Colors.orange.shade100;
-      fg = Colors.orange.shade800;
+      bg = isDark ? Colors.orange.withValues(alpha: 0.15) : Colors.orange.shade100;
+      fg = isDark ? Colors.orange.shade300 : Colors.orange.shade800;
     } else if (s == 'full') {
-      bg = Colors.red.shade100;
-      fg = Colors.red.shade700;
+      bg = isDark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade100;
+      fg = isDark ? Colors.red.shade300 : Colors.red.shade700;
     } else {
-      bg = Colors.red.shade100;
-      fg = Colors.red.shade700;
+      bg = isDark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade100;
+      fg = isDark ? Colors.red.shade300 : Colors.red.shade700;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),

@@ -276,6 +276,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
 
   // ─── STEP 1 ───────────────────────────────────────────────────────────────
   Widget _buildStep1() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -290,14 +291,14 @@ class _CreateReportPageState extends State<CreateReportPage> {
             readOnly: true,
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF3F6FF),
+              fillColor: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFF3F6FF),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               ),
             ),
           ),
@@ -312,14 +313,14 @@ class _CreateReportPageState extends State<CreateReportPage> {
             readOnly: true,
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF3F6FF),
+              fillColor: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFF3F6FF),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               ),
             ),
           ),
@@ -333,7 +334,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade400),
+              border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
             ),
             child: Column(
               children: List.generate(widget.team.memberNames.length, (index) {
@@ -345,7 +346,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: Colors.grey.shade300,
+                        backgroundColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                         child: Text(
                           memberName.isNotEmpty
                               ? memberName[0].toUpperCase()
@@ -362,8 +363,8 @@ class _CreateReportPageState extends State<CreateReportPage> {
                           children: [
                             Text(
                               memberName + (role == 'Leader' ? ' (Anda)' : ''),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color),
                             ),
                             Text(role,
                                 style: const TextStyle(
@@ -395,14 +396,14 @@ class _CreateReportPageState extends State<CreateReportPage> {
                 label: Text(
                   tingkat,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
+                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 selected: isSelected,
                 selectedColor: const Color(0xFF3D5AFE),
-                backgroundColor: Colors.grey.shade100,
+                backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
                 onSelected: (selected) {
                   setState(() {
                     _tingkatLomba = selected ? tingkat : '';
@@ -426,7 +427,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400),
+              border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButtonHideUnderline(
@@ -467,7 +468,11 @@ class _CreateReportPageState extends State<CreateReportPage> {
                   const TextStyle(color: Colors.grey, fontSize: 13),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
               ),
             ),
           ),
@@ -580,9 +585,9 @@ class _CreateReportPageState extends State<CreateReportPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 36),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F4FF),
+              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF23253A) : const Color(0xFFF0F4FF),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.shade200, width: 1.5),
+              border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.blue.withValues(alpha: 0.3) : Colors.blue.shade200, width: 1.5),
             ),
             child: Column(
               children: [
@@ -634,8 +639,8 @@ class _CreateReportPageState extends State<CreateReportPage> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: isPdf
-                          ? Colors.red.shade50
-                          : Colors.blue.shade50,
+                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade50)
+                          : (Theme.of(context).brightness == Brightness.dark ? Colors.blue.withValues(alpha: 0.15) : Colors.blue.shade50),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -668,8 +673,8 @@ class _CreateReportPageState extends State<CreateReportPage> {
                   // Tombol hapus
                   GestureDetector(
                     onTap: () => onRemove(i),
-                    child: const Icon(Icons.close,
-                        color: Colors.black54, size: 20),
+                    child: Icon(Icons.close,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54, size: 20),
                   ),
                 ],
               ),

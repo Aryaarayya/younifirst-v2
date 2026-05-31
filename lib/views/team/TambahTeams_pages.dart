@@ -200,31 +200,36 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
             const SizedBox(height: 20),
 
             // Info Card
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FE), // light blue background
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                   Container(
-                     padding: const EdgeInsets.all(6),
-                     decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
-                        shape: BoxShape.circle
-                     ),
-                     child: const Icon(Icons.edit_document, color: Colors.orange, size: 16),
-                   ),
-                   const SizedBox(width: 12),
-                   const Expanded(
-                     child: Text(
-                        "Submission tim akan ditinjau oleh admin sebelum dipublikasikan",
-                        style: TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500),
-                     ),
-                   )
-                ],
-              )
+            Builder(
+              builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFEEF2FE),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                       Container(
+                         padding: const EdgeInsets.all(6),
+                         decoration: BoxDecoration(
+                            color: isDark ? Colors.orange.withValues(alpha: 0.2) : Colors.orange.shade100,
+                            shape: BoxShape.circle
+                         ),
+                         child: const Icon(Icons.edit_document, color: Colors.orange, size: 16),
+                       ),
+                       const SizedBox(width: 12),
+                       Expanded(
+                         child: Text(
+                            "Submission tim akan ditinjau oleh admin sebelum dipublikasikan",
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13, fontWeight: FontWeight.w500),
+                         ),
+                       )
+                    ],
+                  )
+                );
+              }
             )
           ],
         ),
@@ -235,14 +240,16 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
+      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color),
     );
   }
 
   Widget _buildTextField(String hint, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
@@ -251,11 +258,11 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.6))
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6))
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.6))
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6))
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -266,10 +273,12 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
   }
 
   Widget _buildMultilineTextField(String hint, TextEditingController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       maxLines: 8,
       maxLength: 500,
+      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
@@ -278,11 +287,11 @@ class _TambahTeamsPageState extends State<TambahTeamsPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.6))
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6))
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.6))
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6))
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

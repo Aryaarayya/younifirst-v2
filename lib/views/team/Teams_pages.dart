@@ -185,7 +185,7 @@ class _TeamsPageState extends State<TeamsPage> {
                 ),
               ),
               VerticalDivider(
-                color: Colors.grey.shade200,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade200,
                 width: 1,
                 thickness: 1,
                 indent: 12,
@@ -245,8 +245,8 @@ class _TeamsPageState extends State<TeamsPage> {
                           fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87)),
                   const SizedBox(height: 2),
                   Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 10, color: Colors.black54),
+                      style: TextStyle(
+                          fontSize: 10, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54),
                       maxLines: 2),
                 ],
               ),

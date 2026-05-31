@@ -289,23 +289,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         Share.share(shareText, subject: 'Event: $title');
                       }
                     },
+                    color: Theme.of(context).cardColor,
                     itemBuilder: (BuildContext context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
-                          children: [Icon(Icons.edit_outlined, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Edit', style: TextStyle(color: Colors.black87))],
+                          children: [Icon(Icons.edit_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'hapus',
                         child: Row(
-                          children: [Icon(Icons.delete_outline, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Colors.black87))],
+                          children: [Icon(Icons.delete_outline, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'bagikan',
                         child: Row(
-                          children: [Icon(Icons.share_outlined, size: 18, color: Colors.black87), SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Colors.black87))],
+                          children: [Icon(Icons.share_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
                         ),
                       ),
                     ],
@@ -405,27 +406,27 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       margin: const EdgeInsets.only(top: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade50,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.shade200, width: 1),
+                        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha: 0.3) : Colors.red.shade200, width: 1),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.info_outline, color: Colors.red.shade700),
+                          Icon(Icons.info_outline, color: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade400 : Colors.red.shade700),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Alasan Penolakan',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade400 : Colors.black87),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   eventRejectionReason,
-                                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                  style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade400 : Colors.black87),
                                 ),
                               ],
                             ),
@@ -450,7 +451,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF23253A) : const Color(0xFFF3F6FF), shape: BoxShape.circle),
                                 child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 20),
                               ),
                               // Dotted line
@@ -479,7 +480,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54, fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -494,7 +495,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF23253A) : const Color(0xFFF3F6FF), shape: BoxShape.circle),
                             child: const Icon(Icons.calendar_month, color: Color(0xFF3D5AFE), size: 20),
                           ),
                           const SizedBox(width: 16),
@@ -511,7 +512,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(eventData!['start_date'], eventData!['end_date']),
-                                    style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54, fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -528,7 +529,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(color: Color(0xFFF3F6FF), shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF23253A) : const Color(0xFFF3F6FF), shape: BoxShape.circle),
                             child: const Icon(Icons.location_on_rounded, color: Color(0xFF3D5AFE), size: 20),
                           ),
                           const SizedBox(width: 16),
@@ -544,11 +545,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
 
                   const SizedBox(height: 24),
-                  const Divider(color: Colors.black12, height: 1),
+                  Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.black12, height: 1),
                   const SizedBox(height: 24),
 
                   // Description
-                  const Text("Tentang Event", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text("Tentang Event", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                   const SizedBox(height: 12),
                   AnimatedCrossFade(
                     duration: const Duration(milliseconds: 300),
@@ -645,9 +646,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "Event Lainnya",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
                         ),
                         TextButton(
                           onPressed: () {},
@@ -809,7 +810,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(height: 4),
             Text(
               _formatTimeAgo(eventData?['created_at'] ?? eventData?['createdAt']),
-              style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 14),
+              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54, fontSize: 14),
             ),
           ],
         ),
@@ -890,7 +891,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       Expanded(
                         child: Text(
                           dateText,
-                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
@@ -905,7 +906,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           locationText,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black.withOpacity(0.6), fontSize: 12),
                         ),
                       ),
                     ],
@@ -918,11 +919,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.favorite_border, size: 22, color: Colors.black.withOpacity(0.7)),
+                          Icon(Icons.favorite_border, size: 22, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black.withOpacity(0.7)),
                           const SizedBox(width: 8),
                           Text(
                             likes,
-                            style: TextStyle(color: Colors.black.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),

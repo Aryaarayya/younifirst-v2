@@ -284,28 +284,33 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
                 onTap: _pickImage,
                 child: CustomPaint(
                   painter: DashedRectPainter(color: Colors.blue.shade300, strokeWidth: 1, gap: 5.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF), // light blue bg
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: _imageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(_imageFile!, fit: BoxFit.cover),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.image_outlined, size: 36, color: Color(0xFF3D5AFE)),
-                              const SizedBox(height: 8),
-                              const Text("Tambahkan Gambar", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 4),
-                              Text("Format jpg/jpeg/png, Maks 2 GB", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                            ],
-                          ),
+                  child: Builder(
+                    builder: (context) {
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      return Container(
+                        width: double.infinity,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFEEF2FF), // light blue bg
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _imageFile != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(_imageFile!, fit: BoxFit.cover),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.image_outlined, size: 36, color: Color(0xFF3D5AFE)),
+                                  const SizedBox(height: 8),
+                                  const Text("Tambahkan Gambar", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  const SizedBox(height: 4),
+                                  Text("Format jpg/jpeg/png, Maks 2 GB", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                                ],
+                              ),
+                      );
+                    }
                   ),
                 ),
               ),
@@ -493,6 +498,7 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
 
   Widget _buildCategoryButton(String category) {
     bool isSelected = _selectedKategori == category;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -502,13 +508,13 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D5AFE) : Colors.grey.shade200,
+          color: isSelected ? const Color(0xFF3D5AFE) : (isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade200),
            borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           category,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey.shade600,
+            color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -522,21 +528,23 @@ class _BarangHilangPageState extends State<BarangHilangPage> {
     int maxLines = 1,
     int? maxLength,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       maxLines: maxLines,
       maxLength: maxLength,
+      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500),
         contentPadding: const EdgeInsets.all(16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black87, width: 1),
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.black.withValues(alpha: 0.6)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

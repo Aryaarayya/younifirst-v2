@@ -310,19 +310,20 @@ class _TambahEventPageState extends State<TambahEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).iconTheme.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Posting Event",
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -347,7 +348,7 @@ class _TambahEventPageState extends State<TambahEventPage> {
                   width: double.infinity,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4FA),
+                    color: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFF0F4FA),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: _selectedImageBytes == null 
@@ -362,9 +363,9 @@ class _TambahEventPageState extends State<TambahEventPage> {
                           children: [
                             const Icon(Icons.add_photo_alternate_outlined, size: 40, color: Color(0xFF3D5AFE)),
                             const SizedBox(height: 12),
-                            const Text(
+                            Text(
                               "Tambahkan Poster Event",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -413,13 +414,13 @@ class _TambahEventPageState extends State<TambahEventPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF3D5AFE) : const Color(0xFFF3F4F6),
+                        color: isSelected ? const Color(0xFF3D5AFE) : (isDark ? Colors.grey.shade800 : const Color(0xFFF3F4F6)),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         cat,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
+                          color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -506,11 +507,11 @@ class _TambahEventPageState extends State<TambahEventPage> {
                   contentPadding: const EdgeInsets.all(16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
+                    borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
+                    borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -560,7 +561,7 @@ class _TambahEventPageState extends State<TambahEventPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF2F9),
+                  color: isDark ? const Color(0xFF23253A) : const Color(0xFFEFF2F9),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -574,12 +575,12 @@ class _TambahEventPageState extends State<TambahEventPage> {
                       child: const Icon(Icons.edit_document, color: Color(0xFFB5701B), size: 18),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         "Submission event akan ditinjau oleh admin sebelum dipublikasikan.",
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white70 : Colors.black87,
                           height: 1.4,
                         ),
                       ),
@@ -604,11 +605,11 @@ class _TambahEventPageState extends State<TambahEventPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -636,11 +637,11 @@ class _TambahEventPageState extends State<TambahEventPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

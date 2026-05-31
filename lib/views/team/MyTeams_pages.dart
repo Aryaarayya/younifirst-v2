@@ -158,10 +158,10 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
               t.description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87),
             ),
             const SizedBox(height: 12),
-            Divider(color: Colors.grey.shade200, height: 1),
+            Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade200, height: 1),
             const SizedBox(height: 12),
   
             // Stats (Avatars + Count)
@@ -501,74 +501,89 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                   ),
                 )
               else if (t.isRejectedMember)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 18),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Lamaran Ditolak',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600),
+                Builder(
+                  builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.red.withValues(alpha: 0.15) : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDark ? Colors.red.withValues(alpha: 0.3) : Colors.red.shade200),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, color: isDark ? Colors.red.shade400 : Colors.red.shade700, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Lamaran Ditolak',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.red.shade400 : Colors.red,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 )
               else
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.hourglass_bottom,
-                          color: Colors.blue.shade700, size: 18),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Menunggu Persetujuan Tim',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600),
+                Builder(
+                  builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.blue.withValues(alpha: 0.15) : Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDark ? Colors.blue.withValues(alpha: 0.3) : Colors.blue.shade200),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.hourglass_bottom,
+                              color: isDark ? Colors.blue.shade400 : Colors.blue.shade700, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Menunggu Persetujuan Tim',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.blue.shade400 : Colors.blue,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 )
             else
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.hourglass_top,
-                        color: Colors.orange.shade700, size: 16),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Menunggu persetujuan admin...',
-                      style: TextStyle(fontSize: 12, color: Colors.black87),
+              Builder(
+                builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.orange.withValues(alpha: 0.15) : Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isDark ? Colors.orange.withValues(alpha: 0.3) : Colors.orange.shade200),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.hourglass_top,
+                            color: isDark ? Colors.orange.shade400 : Colors.orange.shade700, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Menunggu persetujuan admin...',
+                          style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87),
+                        ),
+                      ],
+                    ),
+                  );
+                }
               ),
           ],
         ),

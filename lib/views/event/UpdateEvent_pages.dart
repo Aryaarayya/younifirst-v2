@@ -241,19 +241,20 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).iconTheme.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Update Event",
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -279,7 +280,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                   width: double.infinity,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4FA),
+                    color: isDark ? const Color(0xFF2A2A3E) : const Color(0xFFF0F4FA),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.blue.shade300, width: 1.5),
                   ),
@@ -300,9 +301,9 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                               children: [
                                 const Icon(Icons.add_photo_alternate_outlined, size: 40, color: Color(0xFF3D5AFE)),
                                 const SizedBox(height: 12),
-                                const Text(
+                                Text(
                                   "Ubah Poster Event",
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
                                 ),
                               ],
                             ),
@@ -327,13 +328,13 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF3D5AFE) : const Color(0xFFF3F4F6),
+                        color: isSelected ? const Color(0xFF3D5AFE) : (isDark ? Colors.grey.shade800 : const Color(0xFFF3F4F6)),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         cat,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
+                          color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -398,8 +399,8 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                   hintText: "Jelaskan detail event...",
                   hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                   contentPadding: const EdgeInsets.all(16),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade400)),
                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5AFE), width: 2)),
                 ),
               ),
@@ -435,8 +436,8 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5AFE), width: 2)),
       ),
     );
@@ -455,8 +456,8 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
         suffixIcon: Icon(icon, size: 20, color: const Color(0xFF3D5AFE)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade400)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5AFE), width: 2)),
       ),
     );

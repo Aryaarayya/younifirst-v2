@@ -122,29 +122,30 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).iconTheme.color,
         elevation: 0,
         centerTitle: false,
-        title: const Text('Lamaran Masuk',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text('Lamaran Masuk',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, size: 18, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, size: 24),
+            icon: Icon(Icons.search, size: 24, color: Theme.of(context).iconTheme.color),
             onPressed: () {},
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Container(
-            color: Colors.white,
+            color: Theme.of(context).scaffoldBackgroundColor,
             height: 60,
             padding: const EdgeInsets.only(bottom: 12),
             child: ListView.separated(
@@ -160,6 +161,7 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                   icon: f['icon'],
                   isSelected: isSelected,
                   onTap: () => _onFilterChanged(f['label']),
+                  isDark: isDark,
                 );
               },
             ),
@@ -193,16 +195,17 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
     required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D5AFE) : Colors.white,
+          color: isSelected ? const Color(0xFF3D5AFE) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected ? const Color(0xFF3D5AFE) : const Color(0xFF3D5AFE).withOpacity(0.4),
+            color: isSelected ? const Color(0xFF3D5AFE) : (isDark ? Colors.grey.shade700 : const Color(0xFF3D5AFE).withOpacity(0.4)),
             width: 1,
           ),
         ),
@@ -212,13 +215,13 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
             Icon(
               icon,
               size: 18,
-              color: isSelected ? Colors.white : const Color(0xFF3D5AFE),
+              color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : const Color(0xFF3D5AFE)),
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF3D5AFE),
+                color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : const Color(0xFF3D5AFE)),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 14,
               ),
@@ -232,20 +235,21 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
   Widget _buildTeamSection(TeamModel team) {
     final apps = _groupedApplications[team.id] ?? [];
     final isExpanded = _expandedTeamIds.contains(team.id);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDark ? Colors.transparent : Colors.grey.shade100),
       ),
       child: Column(
         children: [
@@ -273,10 +277,10 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                       children: [
                         Text(
                           team.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: Color(0xFF1A1A1A),
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                         Text(
@@ -452,10 +456,10 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: Color(0xFF1A1A1A),
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       _statusBadge(status),

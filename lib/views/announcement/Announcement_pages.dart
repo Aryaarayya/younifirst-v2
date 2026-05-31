@@ -32,11 +32,11 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: Theme.of(context).iconTheme.color,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -90,10 +90,10 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
-          color: Colors.black54,
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54,
         ),
       ),
     );
@@ -274,7 +274,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
         text,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 13, color: Colors.black87),
+        style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87),
       );
     }
 
@@ -306,7 +306,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
         }
         spans.add(TextSpan(
           text: matchedKeyword,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87),
         ));
         currentText = currentText.substring(earliestIndex + matchedKeyword.length);
       }
@@ -320,7 +320,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+        style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87, height: 1.4),
         children: spans,
       ),
     );
@@ -365,9 +365,11 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isNew ? const Color(0xFFF0F3FF) : Colors.white,
-          border: const Border(
-            bottom: BorderSide(color: Colors.black12, width: 0.5),
+          color: isNew 
+              ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E2244) : const Color(0xFFF0F3FF)) 
+              : Theme.of(context).cardColor,
+          border: Border(
+            bottom: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.black12, width: 0.5),
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -402,10 +404,10 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 children: [
                   Text(
                     _categoryLabel(category),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -510,12 +512,12 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
           Icon(Icons.notifications_none,
               size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Belum ada pengumuman',
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.black54),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54),
           ),
           const SizedBox(height: 8),
           const Text(

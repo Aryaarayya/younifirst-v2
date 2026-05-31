@@ -81,7 +81,7 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     final category = getEffectiveCategory(_item);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Header biru
@@ -132,7 +132,7 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: const [
                               BoxShadow(
@@ -172,10 +172,10 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                                       children: [
                                         Text(
                                           _item.userNama ?? 'Sistem Notifikasi',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.black87),
+                                              color: Theme.of(context).textTheme.bodyLarge?.color),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -206,10 +206,10 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                               // Judul
                               Text(
                                 _item.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -228,7 +228,7 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                                         margin: const EdgeInsets.only(bottom: 16),
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF3F4F6),
+                                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF23253A) : const Color(0xFFF3F4F6),
                                           borderRadius: BorderRadius.circular(12),
                                           border: Border.all(color: Colors.grey.shade300),
                                         ),
@@ -292,9 +292,9 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
                               // Isi konten
                               Text(
                                 _item.content,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.black87,
+                                  color: Theme.of(context).textTheme.bodyMedium?.color,
                                   height: 1.6,
                                 ),
                               ),
