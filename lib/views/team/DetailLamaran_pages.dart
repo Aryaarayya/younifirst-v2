@@ -29,7 +29,11 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
         app['applicant_name'] ??
         'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? app['id']?.toString() ?? '';
+    final memberId = app['user_id']?.toString() ?? 
+                     app['member_id']?.toString() ?? 
+                     (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
+                     (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? 
+                     (app['member'] is Map ? app['member']['id']?.toString() : null) ?? '';
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
 
@@ -54,10 +58,11 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
         app['photo_url']?.toString() ??
         app['avatar']?.toString() ??
         app['profile_picture']?.toString() ??
-        app['user']?['photo']?.toString() ??
-        app['user']?['photo_url']?.toString() ??
-        app['user']?['avatar']?.toString() ??
-        app['user_avatar']?.toString();
+        app['applicant_photo']?.toString() ??
+        app['user_avatar']?.toString() ??
+        (app['user'] is Map ? (app['user']['photo'] ?? app['user']['photo_url'] ?? app['user']['avatar'] ?? app['user']['profile_picture'])?.toString() : null) ??
+        (app['member'] is Map ? (app['member']['photo'] ?? app['member']['photo_url'] ?? app['member']['avatar'] ?? app['member']['profile_picture'])?.toString() : null) ??
+        (app['applicant'] is Map ? (app['applicant']['photo'] ?? app['applicant']['photo_url'] ?? app['applicant']['avatar'] ?? app['applicant']['profile_picture'])?.toString() : null);
 
     if (photoUrl != null && photoUrl.isNotEmpty && photoUrl != 'null' && !photoUrl.startsWith('http')) {
       final baseDomain = ApiClient.baseUrl.replaceAll('/api', '');
@@ -75,11 +80,7 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Colors.cyan.shade300, Colors.purple.shade400],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.grey.shade400,
         ),
         alignment: Alignment.center,
         child: Text(

@@ -326,7 +326,11 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
   Widget _buildApplicationCard(Map<String, dynamic> app) {
     final name = app['user_name'] ?? app['user']?['name'] ?? 'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['member_id']?.toString() ?? app['user_id']?.toString() ?? '';
+    final memberId = app['user_id']?.toString() ?? 
+                     app['member_id']?.toString() ?? 
+                     (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
+                     (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? 
+                     (app['member'] is Map ? app['member']['id']?.toString() : null) ?? '';
     final teamId = app['team_id'] ?? '';
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final createdAt = app['created_at']?.toString() ?? '';
@@ -367,17 +371,17 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
           children: [
             Builder(
               builder: (context) {
-                String? photoUrl = app['user_photo']?.toString();
-                if (photoUrl == null || photoUrl.isEmpty || photoUrl == 'null') {
-                  if (app['user'] is Map) {
-                    photoUrl = app['user']['photo_url']?.toString() ?? app['user']['photo']?.toString() ?? app['user']['avatar']?.toString();
-                  }
-                }
-                if (photoUrl == null || photoUrl.isEmpty || photoUrl == 'null') {
-                  if (app['member'] is Map) {
-                    photoUrl = app['member']['photo_url']?.toString() ?? app['member']['photo']?.toString() ?? app['member']['avatar']?.toString();
-                  }
-                }
+                String? photoUrl = app['user_photo']?.toString() ??
+                    app['photo']?.toString() ??
+                    app['photo_url']?.toString() ??
+                    app['avatar']?.toString() ??
+                    app['profile_picture']?.toString() ??
+                    app['applicant_photo']?.toString() ??
+                    app['user_avatar']?.toString() ??
+                    (app['user'] is Map ? (app['user']['photo'] ?? app['user']['photo_url'] ?? app['user']['avatar'] ?? app['user']['profile_picture'])?.toString() : null) ??
+                    (app['member'] is Map ? (app['member']['photo'] ?? app['member']['photo_url'] ?? app['member']['avatar'] ?? app['member']['profile_picture'])?.toString() : null) ??
+                    (app['applicant'] is Map ? (app['applicant']['photo'] ?? app['applicant']['photo_url'] ?? app['applicant']['avatar'] ?? app['applicant']['profile_picture'])?.toString() : null);
+
                 if (photoUrl == 'null') photoUrl = null;
                 
                 if (photoUrl != null && photoUrl.isNotEmpty && !photoUrl.startsWith('http')) {
@@ -390,11 +394,7 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Colors.cyan.shade300, Colors.purple.shade400],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: Colors.grey.shade400,
                     ),
                     alignment: Alignment.center,
                     child: Text(
