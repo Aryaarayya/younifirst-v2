@@ -9,6 +9,8 @@ import 'package:younifirst_app/views/team/DaftarTim_pages.dart';
 import 'package:younifirst_app/views/team/CreateReport_pages.dart';
 import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:younifirst_app/views/team/UpdateTeam_pages.dart';
 
 class TeamDetailPage extends StatefulWidget {
   final String teamId;
@@ -41,6 +43,141 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
       if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _deleteTeam() async {
+    final teamName = _team?.name ?? 'Tim';
+    bool confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Theme.of(context).dialogBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/pop-up/hapus-event.png',
+                    height: 150,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 150,
+                        width: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.delete_outline, size: 80, color: Colors.red),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Hapus Tim?',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87,
+                      height: 1.5,
+                      fontFamily: 'Inter',
+                    ),
+                    children: [
+                      const TextSpan(text: 'Tim '),
+                      TextSpan(
+                        text: teamName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const TextSpan(text: ' akan dihapus secara permanen dan tidak dapat dipulihkan kembali. Apakah kamu yakin ingin melanjutkan?'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF3B30),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Hapus Tim',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : Colors.white,
+                    ),
+                    child: Text(
+                      'Batalkan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ) ?? false;
+
+    if (!confirm) return;
+
+    try {
+      await TeamApiService.deleteTeam(widget.teamId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tim berhasil dihapus')),
+        );
+        Navigator.pop(context, true); 
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -211,7 +348,72 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                           fontWeight: FontWeight.bold,
                           fontSize: 16),
                     ),
-                    const SizedBox(width: 48),
+                    if (isOwner)
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          offset: const Offset(0, 50),
+                          onSelected: (value) async {
+                            if (value == 'edit') {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => UpdateTeamPage(team: t)),
+                              );
+                              if (result == true) {
+                                _load();
+                              }
+                            } else if (value == 'hapus') {
+                              _deleteTeam();
+                            } else if (value == 'bagikan') {
+                              final textToShare = "Yuk gabung tim ${t.name}! Cek di Younifirst sekarang.";
+                              Share.share(textToShare);
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+                                  const SizedBox(width: 8),
+                                  Text('Edit', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'hapus',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+                                  const SizedBox(width: 8),
+                                  Text('Hapus', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'bagikan',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+                                  const SizedBox(width: 8),
+                                  Text('Bagikan', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 40),
                   ],
                 ),
               ),

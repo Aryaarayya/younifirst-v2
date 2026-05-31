@@ -87,13 +87,19 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
     final isPending = displayStatus.toLowerCase() == 'pending';
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => TeamDetailPage(teamId: t.id),
           ),
         );
+        if (result == true) {
+          if (context.mounted) {
+            context.read<TeamViewModel>().fetchMyTeams();
+            context.read<TeamViewModel>().fetchAllTeams();
+          }
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

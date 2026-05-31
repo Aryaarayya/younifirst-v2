@@ -320,11 +320,18 @@ class _TeamsPageState extends State<TeamsPage> {
     final uid = AuthService.loggedInUserId ?? 'Unknown';
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => TeamDetailPage(teamId: t.id)),
-      ),
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => TeamDetailPage(teamId: t.id)),
+        );
+        if (result == true) {
+          if (context.mounted) {
+            context.read<TeamViewModel>().fetchAllTeams();
+          }
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

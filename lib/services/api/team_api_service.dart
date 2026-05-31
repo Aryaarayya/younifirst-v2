@@ -309,6 +309,37 @@ class TeamApiService {
       throw Exception('Gagal mengirim laporan: $e');
     }
   }
+
+  // ─── PUT update tim ───────────────────────────────────────────────────────
+  static Future<bool> updateTeam(String teamId, Map<String, dynamic> data) async {
+    try {
+      final response = await ApiClient.put(
+        '$endpoint/$teamId',
+        body: jsonEncode(data),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      } else {
+        throw Exception('Status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Gagal mengubah tim: $e');
+    }
+  }
+
+  // ─── DELETE hapus tim ─────────────────────────────────────────────────────
+  static Future<bool> deleteTeam(String teamId) async {
+    try {
+      final response = await ApiClient.delete('$endpoint/$teamId');
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      } else {
+        throw Exception('Status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Gagal menghapus tim: $e');
+    }
+  }
 }
 
 
