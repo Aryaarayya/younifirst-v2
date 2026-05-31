@@ -99,6 +99,98 @@ class _Login_pagesState extends State<Login_pages> {
     );
   }
   
+  // Fungsi untuk menampilkan dialog gagal login
+  void _showLoginFailedDialog([String? customMessage]) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Ilustrasi gagal
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/pop-up/gagal-login.png',
+                    height: 150,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback icon jika gambar belum ada
+                      return Container(
+                        height: 150,
+                        width: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.error_outline, size: 80, color: Color(0xFF3D5AF1)),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Judul
+                const Text(
+                  'Login Gagal',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Deskripsi
+                Text(
+                  customMessage ?? 'Email atau password yang Anda masukkan tidak sesuai. Silakan periksa kembali dan coba login ulang.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Tombol Mengerti
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3D5AF1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
   // Fungsi untuk handle login
   Future<void> _handleLogin() async {
     setState(() {
@@ -129,12 +221,7 @@ class _Login_pagesState extends State<Login_pages> {
         );
       } else {
         // Jika login gagal, tampilkan pesan error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Email atau password salah'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showLoginFailedDialog();
       }
     } catch (e) {
       // Handle error
@@ -146,12 +233,7 @@ class _Login_pagesState extends State<Login_pages> {
         if (errorMessage.startsWith('Exception: ')) {
           errorMessage = errorMessage.substring(11);
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showLoginFailedDialog(errorMessage);
       }
     } finally {
       setState(() {

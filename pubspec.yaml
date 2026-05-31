@@ -54,6 +54,8 @@ flutter:
   - assets/images/logo_aplikasi.png
   - assets/pop-up/pengajuan-event-tim.png
   - assets/pop-up/lamaran-tim.png
+  - assets/pop-up/gagal-login.png
+  - assets/pop-up/hapus-event.png
   
   uses-material-design: true
   

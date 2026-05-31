@@ -73,22 +73,119 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   Future<void> _deleteEvent() async {
-    bool confirm = await showDialog(
+    final eventName = eventData?['title'] ?? 'Event';
+    bool confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Event'),
-        content: const Text('Apakah Anda yakin ingin menghapus event ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          backgroundColor: Theme.of(context).dialogBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/pop-up/hapus-event.png',
+                    height: 150,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 150,
+                        width: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.delete_outline, size: 80, color: Colors.red),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Hapus Event?',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87,
+                      height: 1.5,
+                      fontFamily: 'Inter',
+                    ),
+                    children: [
+                      const TextSpan(text: 'Event '),
+                      TextSpan(
+                        text: eventName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const TextSpan(text: ' akan dihapus secara permanen dan tidak dapat dipulihkan kembali. Apakah kamu yakin ingin melanjutkan?'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF3B30),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Hapus Event',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : Colors.white,
+                    ),
+                    child: Text(
+                      'Batalkan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     ) ?? false;
 
     if (!confirm) return;
