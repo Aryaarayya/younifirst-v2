@@ -3,6 +3,7 @@ import 'package:younifirst_app/views/event/UpdateEvent_pages.dart';
 import 'package:younifirst_app/services/api/event_api_service.dart';
 import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:younifirst_app/services/input/api_client.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:younifirst_app/viewmodels/event_viewmodel.dart';
 import 'package:share_plus/share_plus.dart';
@@ -344,6 +345,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final String eventStatus = eventData!['status']?.toString().toLowerCase() ?? 'open';
     final String? eventRejectionReason = eventData!['rejection_reason']?.toString() ?? eventData!['reason']?.toString() ?? eventData!['alasan']?.toString() ?? eventData!['admin_note']?.toString();
 
+    final String creatorId = eventData!['creator_id']?.toString() ?? eventData!['created_by']?.toString() ?? '';
+    final String myId = AuthService.loggedInUserId ?? '';
+    final bool isOwner = myId.isNotEmpty && creatorId.isNotEmpty && myId == creatorId;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
@@ -392,28 +397,30 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     ),
                     offset: const Offset(0, 50),
                     itemBuilder: (BuildContext context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
-                            const SizedBox(width: 16), 
-                            Text('Edit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
-                          ],
+                      if (isOwner) ...[
+                        PopupMenuItem(
+                          value: 'edit',
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                              const SizedBox(width: 16), 
+                              Text('Edit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
+                            ],
+                          ),
                         ),
-                      ),
-                      PopupMenuItem(
-                        value: 'hapus',
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
-                            const SizedBox(width: 16), 
-                            Text('Hapus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
-                          ],
+                        PopupMenuItem(
+                          value: 'hapus',
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                              const SizedBox(width: 16), 
+                              Text('Hapus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                       PopupMenuItem(
                         value: 'bagikan',
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
