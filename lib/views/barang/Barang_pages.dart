@@ -528,7 +528,7 @@ class _BarangPageState extends State<BarangPage> {
                 avatarUrl: item.userAvatar,
                 userId: item.userId,
                 userName: item.userName,
-                radius: 24,
+                radius: 18,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -537,12 +537,12 @@ class _BarangPageState extends State<BarangPage> {
                   children: [
                     Text(
                       item.userName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       _formatTimestamp(item.createdAt),
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
