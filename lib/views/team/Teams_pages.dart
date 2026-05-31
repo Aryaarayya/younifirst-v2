@@ -148,10 +148,6 @@ class _TeamsPageState extends State<TeamsPage> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          const Icon(Icons.description, color: Colors.white, size: 24),
-          const SizedBox(width: 12),
-          const Icon(Icons.menu, color: Colors.white, size: 24),
         ],
       ),
     );

@@ -249,20 +249,6 @@ class _BarangPageState extends State<BarangPage> {
               ),
             );
           }),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: const [
-                Icon(Icons.insert_drive_file_outlined, color: Colors.white, size: 20),
-                SizedBox(width: 4),
-                Icon(Icons.sort, color: Colors.white, size: 20),
-              ],
-            ),
-          )
         ]
       ),
     );
