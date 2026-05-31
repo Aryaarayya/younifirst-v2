@@ -387,23 +387,42 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       }
                     },
                     color: Theme.of(context).cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    offset: const Offset(0, 50),
                     itemBuilder: (BuildContext context) => [
                       PopupMenuItem(
                         value: 'edit',
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         child: Row(
-                          children: [Icon(Icons.edit_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
+                          children: [
+                            Icon(Icons.edit, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                            const SizedBox(width: 16), 
+                            Text('Edit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
+                          ],
                         ),
                       ),
                       PopupMenuItem(
                         value: 'hapus',
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         child: Row(
-                          children: [Icon(Icons.delete_outline, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
+                          children: [
+                            Icon(Icons.delete_outline, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                            const SizedBox(width: 16), 
+                            Text('Hapus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
+                          ],
                         ),
                       ),
                       PopupMenuItem(
                         value: 'bagikan',
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         child: Row(
-                          children: [Icon(Icons.share_outlined, size: 18, color: Theme.of(context).textTheme.bodyLarge?.color), const SizedBox(width: 8), Text('Bagikan', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))],
+                          children: [
+                            Icon(Icons.share_outlined, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                            const SizedBox(width: 16), 
+                            Text('Bagikan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color))
+                          ],
                         ),
                       ),
                     ],
