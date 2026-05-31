@@ -427,8 +427,63 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
   }
 
   Future<void> _handleRespond(String memberId, String action) async {
+    String? rejectionReason;
+    if (action == 'reject') {
+      rejectionReason = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          final TextEditingController reasonController = TextEditingController();
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Tolak Lamaran', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Berikan alasan penolakan (Wajib):', style: TextStyle(fontSize: 14)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: reasonController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Kuota tim sudah penuh',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (reasonController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Alasan penolakan wajib diisi'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
+                  Navigator.pop(context, reasonController.text.trim());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Tolak', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (rejectionReason == null) return; // Batal ditekan
+    }
+
     try {
-      await TeamApiService.respondToJoin(widget.teamId, memberId, action);
+      await TeamApiService.respondToJoin(widget.teamId, memberId, action, rejectionReason: rejectionReason);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -217,15 +217,21 @@ class TeamApiService {
   }
 
   // ─── POST accept/reject lamaran ───────────────────────────────────────────
-  static Future<bool> respondToJoin(String teamId, String memberId, String action) async {
+  static Future<bool> respondToJoin(String teamId, String memberId, String action, {String? rejectionReason}) async {
     try {
       final statusVal = action == 'accept' ? 'active' : 'rejected';
+      final Map<String, dynamic> bodyData = {
+        'action': action,
+        'status': statusVal,
+      };
+      
+      if (action == 'reject' && rejectionReason != null && rejectionReason.isNotEmpty) {
+        bodyData['rejection_reason'] = rejectionReason;
+      }
+
       final response = await ApiClient.post(
         '$endpoint/$teamId/members/$memberId/respond',
-        body: jsonEncode({
-          'action': action, 
-          'status': statusVal,
-        }), 
+        body: jsonEncode(bodyData), 
       );
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;

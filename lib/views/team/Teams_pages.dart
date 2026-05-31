@@ -40,8 +40,12 @@ class _TeamsPageState extends State<TeamsPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<TeamViewModel>(
         builder: (context, viewModel, child) {
-          return SingleChildScrollView(
-            child: Stack(
+          return RefreshIndicator(
+            onRefresh: viewModel.fetchAllTeams,
+            color: const Color(0xFF3D5AFE),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Stack(
               children: [
                 // Blue Background Top
                 Container(
@@ -68,6 +72,7 @@ class _TeamsPageState extends State<TeamsPage> {
                   ),
                 ),
               ],
+            ),
             ),
           );
         },
@@ -284,11 +289,9 @@ class _TeamsPageState extends State<TeamsPage> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: RefreshIndicator(
-        onRefresh: viewModel.fetchAllTeams,
-        child: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
           itemCount: filtered.length,
           itemBuilder: (context, index) {
             final t = filtered[index];
@@ -303,7 +306,6 @@ class _TeamsPageState extends State<TeamsPage> {
             );
           },
         ),
-      ),
     );
   }
 
