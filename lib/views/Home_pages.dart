@@ -175,18 +175,11 @@ class _HomePageState extends State<HomePage> {
             },
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: avatar.isNotEmpty 
-                    ? Image.network(
-                        avatar,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const CircleAvatar(radius: 25, child: Icon(Icons.person)),
-                      )
-                    : const CircleAvatar(radius: 25, child: Icon(Icons.person)),
+                _buildUserAvatar(
+                  avatarUrl: avatar,
+                  userId: AuthService.loggedInUserId,
+                  userName: name,
+                  radius: 25,
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -253,18 +246,11 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
               // Profile Picture
-              ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: avatar.isNotEmpty
-                    ? Image.network(
-                        avatar,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
-                      )
-                    : const CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
+              _buildUserAvatar(
+                avatarUrl: avatar,
+                userId: AuthService.loggedInUserId,
+                userName: name,
+                radius: 40,
               ),
               const SizedBox(height: 16),
               // Name
@@ -842,51 +828,82 @@ class _HomePageState extends State<HomePage> {
     required String userName,
     required double radius,
   }) {
-    final bool isCurrentUser = userId != null && userId == AuthService.loggedInUserId;
-    final List<Color> avatarColors = [
-      const Color(0xFF3D5AFE), const Color(0xFF00BCD4), const Color(0xFF4CAF50),
-      const Color(0xFFFF5722), const Color(0xFF9C27B0), const Color(0xFFFF9800),
-      const Color(0xFFE91E63), const Color(0xFF795548),
-    ];
-    Color bgColor = avatarColors[(userName.isNotEmpty ? userName.codeUnitAt(0) : 0) % avatarColors.length];
-    String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'U';
+    String initial = userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : '?';
+    
+    Widget buildGradientFallback() {
+      return Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.cyan.shade300, Colors.purple.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: radius * 0.8,
+          ),
+        ),
+      );
+    }
 
-    if (isCurrentUser) {
-      return Consumer<ProfilViewModel>(
-        builder: (context, profilVM, _) {
-          String? displayPhotoUrl;
-          if (profilVM.userData != null) {
-            final String? rawPhoto = profilVM.userData!['photo']?.toString();
-            final String? photoUrl = profilVM.userData!['photo_url']?.toString();
-            displayPhotoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
-                ? LostFoundApiService.getFullUrl(rawPhoto)
-                : (photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null);
+    String? fullAvatarUrl;
+    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl != 'null') {
+      fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : LostFoundApiService.getFullUrl(avatarUrl);
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.transparent,
+        backgroundImage: NetworkImage(_cacheBustedUrl(fullAvatarUrl)),
+      );
+    }
+
+    if (userId != null && userId.isNotEmpty) {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: UserApiService.getUserByIdCached(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              child: SizedBox(
+                width: radius, height: radius,
+                child: const CircularProgressIndicator(strokeWidth: 2)
+              ),
+            );
+          }
+          String? fetchedPhoto;
+          if (snapshot.hasData && snapshot.data != null) {
+            final data = snapshot.data!;
+            fetchedPhoto = data['photo']?.toString() ?? data['photo_url']?.toString() ?? data['avatar']?.toString() ?? data['profile_picture']?.toString();
+            if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+              fetchedPhoto = fetchedPhoto.startsWith('http') ? fetchedPhoto : LostFoundApiService.getFullUrl(fetchedPhoto);
+            }
+          }
+          if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(_cacheBustedUrl(fetchedPhoto)),
+            );
           }
           return CircleAvatar(
             radius: radius,
-            backgroundColor: bgColor,
-            backgroundImage: displayPhotoUrl != null ? NetworkImage(displayPhotoUrl) : null,
-            child: displayPhotoUrl == null
-                ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
-                : null,
+            backgroundColor: Colors.transparent,
+            child: buildGradientFallback(),
           );
         },
       );
     }
 
-    // For other users: use avatarUrl if available, else show colorful initial
-    String? fullAvatarUrl;
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : LostFoundApiService.getFullUrl(avatarUrl);
-    }
-
     return CircleAvatar(
       radius: radius,
-      backgroundColor: bgColor,
-      backgroundImage: fullAvatarUrl != null ? NetworkImage(fullAvatarUrl) : null,
-      child: fullAvatarUrl == null
-          ? Text(initial, style: TextStyle(color: Colors.white, fontSize: radius * 0.75, fontWeight: FontWeight.bold))
-          : null,
+      backgroundColor: Colors.transparent,
+      child: buildGradientFallback(),
     );
   }
 
