@@ -265,11 +265,10 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         app['applicant_name'] ??
         'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['user_id']?.toString() ?? 
-                     app['member_id']?.toString() ?? 
-                     (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['id']?.toString() : null) ?? '';
+    final applicationId = app['id']?.toString() ?? app['member_id']?.toString() ?? '';
+    final userId = app['user_id']?.toString() ?? 
+                   (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
+                   (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? '';
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
     final email = app['user_email']?.toString() ?? '';
@@ -314,7 +313,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
         children: [
           Row(
             children: [
-              _buildAvatar(app, name, memberId),
+              _buildAvatar(app, name, userId),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -354,10 +353,10 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
           const SizedBox(height: 14),
           Row(
             children: [
-              if (status == 'pending' && memberId.isNotEmpty) ...[
+              if (status == 'pending' && applicationId.isNotEmpty) ...[
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => _handleRespond(memberId, 'reject'),
+                    onPressed: () => _handleRespond(applicationId, 'reject'),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.red),
                       shape: RoundedRectangleBorder(
@@ -374,7 +373,7 @@ class _TeamApplicationsPageState extends State<TeamApplicationsPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _handleRespond(memberId, 'accept'),
+                    onPressed: () => _handleRespond(applicationId, 'accept'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(

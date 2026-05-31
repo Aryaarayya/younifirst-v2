@@ -29,11 +29,10 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
         app['applicant_name'] ??
         'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['user_id']?.toString() ?? 
-                     app['member_id']?.toString() ?? 
-                     (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['id']?.toString() : null) ?? '';
+    final applicationId = app['id']?.toString() ?? app['member_id']?.toString() ?? '';
+    final userId = app['user_id']?.toString() ?? 
+                   (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
+                   (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? '';
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final bio = app['description'] ?? app['keterangan'] ?? app['member_description'] ?? app['user']?['bio'] ?? 'Halo! saya tertarik bergabung...';
 
@@ -102,9 +101,9 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
           backgroundImage: NetworkImage(cacheBustedUrl(photoUrl!)),
         );
       }
-      if (memberId.isNotEmpty) {
+      if (userId.isNotEmpty) {
         return FutureBuilder<Map<String, dynamic>?>(
-          future: UserApiService.getUserByIdCached(memberId),
+          future: UserApiService.getUserByIdCached(userId),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircleAvatar(
@@ -405,7 +404,7 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () => _handleAction(memberId, 'reject'),
+                              onPressed: () => _handleAction(applicationId, 'reject'),
                               icon: const Icon(Icons.close, color: Colors.red, size: 18),
                               label: const Text(
                                 'Tolak',
@@ -427,7 +426,7 @@ class _DetailLamaranPageState extends State<DetailLamaranPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () => _handleAction(memberId, 'accept'),
+                              onPressed: () => _handleAction(applicationId, 'accept'),
                               icon: const Icon(Icons.check, color: Colors.white, size: 18),
                               label: const Text(
                                 'Terima',

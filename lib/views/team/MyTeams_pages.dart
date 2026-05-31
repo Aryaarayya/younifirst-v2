@@ -88,6 +88,117 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
 
     return GestureDetector(
       onTap: () async {
+        if (!t.isOwner && !t.isAcceptedMember) {
+          if (t.isRejectedMember) {
+            showDialog(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return Dialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  backgroundColor: Theme.of(context).cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cancel_outlined, color: Colors.red.shade400, size: 80),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Lamaran Ditolak',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Lamaran Anda untuk bergabung dengan tim ini telah ditolak oleh ketua tim.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade600,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            onPressed: () => Navigator.pop(dialogContext),
+                            child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return Dialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  backgroundColor: Theme.of(context).cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.hourglass_empty_rounded, color: const Color(0xFF3D5AFE), size: 80),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Menunggu Persetujuan',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Anda belum dapat mengakses halaman tim ini karena status lamaran Anda masih menunggu persetujuan ketua tim.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : Colors.black54,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF3D5AFE),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            onPressed: () => Navigator.pop(dialogContext),
+                            child: const Text('Mengerti', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+          return;
+        }
+
         final result = await Navigator.push(
           context,
           MaterialPageRoute(

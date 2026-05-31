@@ -326,11 +326,10 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
   Widget _buildApplicationCard(Map<String, dynamic> app) {
     final name = app['user_name'] ?? app['user']?['name'] ?? 'Pelamar';
     final status = (app['member_status'] ?? app['status'] ?? app['membership_status'] ?? 'pending').toString().toLowerCase();
-    final memberId = app['user_id']?.toString() ?? 
-                     app['member_id']?.toString() ?? 
-                     (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? 
-                     (app['member'] is Map ? app['member']['id']?.toString() : null) ?? '';
+    final applicationId = app['id']?.toString() ?? app['member_id']?.toString() ?? '';
+    final userId = app['user_id']?.toString() ?? 
+                   (app['user'] is Map ? app['user']['id']?.toString() : null) ?? 
+                   (app['member'] is Map ? app['member']['user_id']?.toString() : null) ?? '';
     final teamId = app['team_id'] ?? '';
     final role = app['proposed_role'] ?? app['role'] ?? app['peran'] ?? app['member_role'] ?? app['position'] ?? 'Pelamar';
     final createdAt = app['created_at']?.toString() ?? '';
@@ -419,9 +418,9 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                   );
                 }
 
-                if (memberId.isNotEmpty) {
+                if (userId.isNotEmpty) {
                   return FutureBuilder<Map<String, dynamic>?>(
-                    future: UserApiService.getUserByIdCached(memberId),
+                    future: UserApiService.getUserByIdCached(userId),
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
                         final data = snapshot.data!;
@@ -505,14 +504,14 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         const SizedBox(height: 16),
         Row(
           children: [
-            if (status == 'pending') ...[
+            if (status == 'pending' && applicationId.isNotEmpty) ...[
               Expanded(
                 child: _actionButton(
                   label: 'Tolak',
                   icon: Icons.close_rounded,
                   color: Colors.red,
                   isFilled: false,
-                  onTap: () => _handleRespond(teamId, memberId, 'reject'),
+                  onTap: () => _handleRespond(teamId, applicationId, 'reject'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -522,7 +521,7 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
                   icon: Icons.check_rounded,
                   color: Colors.green,
                   isFilled: false,
-                  onTap: () => _handleRespond(teamId, memberId, 'accept'),
+                  onTap: () => _handleRespond(teamId, applicationId, 'accept'),
                 ),
               ),
               const SizedBox(width: 8),
