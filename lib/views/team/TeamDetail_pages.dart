@@ -609,6 +609,45 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
                       ),
                     ),
                   ),
+                ] else if (t.isRejectedMember) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Text('Lamaran Ditolak', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                            content: Text(
+                              t.memberRejectionReason ?? 'Tidak ada alasan spesifik yang diberikan oleh ketua tim.',
+                              style: const TextStyle(fontSize: 14, height: 1.5),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Tutup', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.info_outline, color: Colors.white),
+                      label: const Text(
+                        'LAMARAN DITOLAK',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
                 ] else if (t.isMember) ...[
                   Expanded(
                     child: Container(

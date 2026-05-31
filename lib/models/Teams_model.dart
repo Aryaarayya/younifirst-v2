@@ -7,6 +7,7 @@ class TeamMember {
   final String status;
   final String timeAgo;
   final String? avatar;
+  final String? rejectionReason;
 
   TeamMember({
     required this.userId,
@@ -15,6 +16,7 @@ class TeamMember {
     required this.status,
     this.timeAgo = '',
     this.avatar,
+    this.rejectionReason,
   });
 }
 
@@ -30,10 +32,12 @@ class TeamModel {
   final bool isOwner;
   final bool isMember;
   final bool isAcceptedMember;
+  final bool isRejectedMember;
   final bool isLiked;
   final List<String> memberNames;
   final List<TeamMember> members;
   final String? rejectionReason;
+  final String? memberRejectionReason;
 
   TeamModel({
     required this.id,
@@ -47,10 +51,12 @@ class TeamModel {
     this.isOwner = false,
     this.isMember = false,
     this.isAcceptedMember = false,
+    this.isRejectedMember = false,
     this.isLiked = false,
     this.memberNames = const [],
     this.members = const [],
     this.rejectionReason,
+    this.memberRejectionReason,
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json, {String? currentUserId}) {
@@ -82,6 +88,8 @@ class TeamModel {
                       json['is_joined'] == '1';
 
     bool isAcceptedByList = false;
+    bool isRejectedByList = false;
+    String? myRejectionReason;
 
     if (members is List || members is Map) {
       final List<dynamic> memberList = members is Map ? members.values.toList() : (members as List);
@@ -124,6 +132,10 @@ class TeamModel {
                 m['user']?['photo_url']?.toString() ??
                 m['user']?['avatar']?.toString() ??
                 m['user_avatar']?.toString();
+                
+            String? mReason = m['rejection_reason']?.toString() ?? 
+                m['reason']?.toString() ?? 
+                m['alasan_penolakan']?.toString();
 
             parsedMembers.add(TeamMember(
               userId: mUserId,
@@ -132,6 +144,7 @@ class TeamModel {
               status: mStatus,
               timeAgo: timeAgo,
               avatar: mAvatar,
+              rejectionReason: mReason,
             ));
           }
         } else {
@@ -158,6 +171,7 @@ class TeamModel {
             }
             if (match) {
               mStatus = (m['member_status'] ?? m['status'] ?? m['membership_status'] ?? '').toString().toLowerCase();
+              myRejectionReason = (m['rejection_reason'] ?? m['reason'] ?? m['alasan_penolakan'])?.toString();
             }
           } else {
             final mStr = m.toString().trim();
@@ -168,6 +182,8 @@ class TeamModel {
             memberFound = true;
             if (['approved', 'accepted', 'active', 'diterima', 'setuju'].contains(mStatus)) {
               isAcceptedByList = true;
+            } else if (['rejected', 'ditolak', 'declined'].contains(mStatus)) {
+              isRejectedByList = true;
             }
           }
         }
@@ -192,10 +208,12 @@ class TeamModel {
       isOwner: isOwner,
       isMember: isOwner || memberFound,
       isAcceptedMember: isOwner || isAcceptedRaw || isAcceptedByList,
+      isRejectedMember: isRejectedByList,
       isLiked: json['is_liked'] == true || json['is_liked'] == 1 || json['liked_by_user'] == true,
       memberNames: names,
       members: parsedMembers,
       rejectionReason: json['rejection_reason']?.toString() ?? json['reason']?.toString() ?? json['alasan']?.toString() ?? json['admin_note']?.toString() ?? json['catatan_admin']?.toString() ?? json['alasan_penolakan']?.toString(),
+      memberRejectionReason: myRejectionReason,
     );
   }
 }

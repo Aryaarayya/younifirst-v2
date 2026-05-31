@@ -500,6 +500,30 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                     ),
                   ),
                 )
+              else if (t.isRejectedMember)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Lamaran Ditolak',
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                )
               else
                 Container(
                   width: double.infinity,
