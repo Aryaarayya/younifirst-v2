@@ -255,11 +255,11 @@ class TeamApiService {
 
       request.fields.addAll(data);
 
-      // Kirim semua file Bukti Menang — field: photo_certificate[]
+      // Kirim semua file Bukti Menang — field: photo_certificate
       for (final f in buktiMenangFiles) {
         if (f.path != null && f.path!.isNotEmpty) {
           request.files.add(await http.MultipartFile.fromPath(
-            'photo_certificate[]',
+            'photo_certificate',
             f.path!,
             filename: f.name,
           ));
@@ -268,7 +268,7 @@ class TeamApiService {
           final mime = ext == 'pdf' ? 'application/pdf' : 'image/$ext';
           final parts = mime.split('/');
           request.files.add(http.MultipartFile.fromBytes(
-            'photo_certificate[]',
+            'photo_certificate',
             f.bytes!,
             filename: f.name,
             contentType: MediaType(parts[0], parts[1]),
@@ -276,11 +276,11 @@ class TeamApiService {
         }
       }
 
-      // Kirim semua file Dokumentasi — field: photo_activity[]
+      // Kirim semua file Dokumentasi — field: photo_activity
       for (final f in dokumentasiFiles) {
         if (f.path != null && f.path!.isNotEmpty) {
           request.files.add(await http.MultipartFile.fromPath(
-            'photo_activity[]',
+            'photo_activity',
             f.path!,
             filename: f.name,
           ));
@@ -289,7 +289,7 @@ class TeamApiService {
           final mime = ext == 'pdf' ? 'application/pdf' : 'image/$ext';
           final parts = mime.split('/');
           request.files.add(http.MultipartFile.fromBytes(
-            'photo_activity[]',
+            'photo_activity',
             f.bytes!,
             filename: f.name,
             contentType: MediaType(parts[0], parts[1]),

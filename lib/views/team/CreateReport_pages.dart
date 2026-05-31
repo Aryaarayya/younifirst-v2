@@ -67,17 +67,13 @@ class _CreateReportPageState extends State<CreateReportPage> {
   Future<void> _pickBuktiMenang() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      allowMultiple: true,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+      allowMultiple: false,
     );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        // Tambahkan file baru, hindari duplikat berdasarkan nama
-        for (final f in result.files) {
-          if (!_buktiMenangFiles.any((e) => e.name == f.name)) {
-            _buktiMenangFiles.add(f);
-          }
-        }
+        _buktiMenangFiles.clear();
+        _buktiMenangFiles.add(result.files.first);
       });
     }
   }
@@ -85,16 +81,13 @@ class _CreateReportPageState extends State<CreateReportPage> {
   Future<void> _pickDokumentasi() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      allowMultiple: true,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+      allowMultiple: false,
     );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        for (final f in result.files) {
-          if (!_dokumentasiFiles.any((e) => e.name == f.name)) {
-            _dokumentasiFiles.add(f);
-          }
-        }
+        _dokumentasiFiles.clear();
+        _dokumentasiFiles.add(result.files.first);
       });
     }
   }
@@ -574,7 +567,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
             style:
                 const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
         const SizedBox(height: 4),
-        const Text('(Upload minimal 1 file)',
+        const Text('(Upload 1 file gambar: jpg, png, webp)',
             style: TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 12),
 
