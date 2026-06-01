@@ -221,13 +221,13 @@ class _EditProfilPageState extends State<EditProfilPage> {
             
             SizedBox(height: 32),
 
-            buildTextField("Nama Lengkap", _nameController),
+            buildTextField("Nama Lengkap", _nameController, readOnly: false),
             SizedBox(height: 20),
-            buildTextField("NIM", _nimController),
+            buildTextField("NIM", _nimController, readOnly: true),
             SizedBox(height: 20),
-            buildTextField("Program Studi", _prodiController),
+            buildTextField("Program Studi", _prodiController, readOnly: true),
             SizedBox(height: 20),
-            buildTextField("Tanggal Bergabung", _bergabungController),
+            buildTextField("Tanggal Bergabung", _bergabungController, readOnly: true),
             
             SizedBox(height: 40),
 
