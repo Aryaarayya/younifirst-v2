@@ -43,6 +43,15 @@ class UserApiService {
 
   /// Ambil data profil user berdasarkan ID
   static Future<Map<String, dynamic>?> getUserById(String userId) async {
+    if (userId == AuthService.loggedInUserId) {
+      try {
+        final currentUserData = await getCurrentUser();
+        return currentUserData;
+      } catch (e) {
+        debugPrint('⚠️ Gagal mengambil current user sbg fallback: $e');
+      }
+    }
+
     // Coba berbagai endpoint yang mungkin ada di backend
     final endpoints = [
       'users/$userId',

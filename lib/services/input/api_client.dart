@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:younifirst_app/services/input/auth_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'https://reggae-overflow-splurge.ngrok-free.dev/api';
+  static const String baseUrl = 'https://younifirstappv2-production.up.railway.app/api';
 
   static Map<String, String> get headers {
     Map<String, String> h = {
