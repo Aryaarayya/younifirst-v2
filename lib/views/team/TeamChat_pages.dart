@@ -4,6 +4,8 @@ import 'package:younifirst_app/services/api/chat_service.dart';
 import 'package:younifirst_app/services/input/auth_service.dart';
 import 'package:younifirst_app/services/api/user_api_service.dart';
 import 'package:younifirst_app/services/api/team_api_service.dart';
+import 'package:younifirst_app/models/Teams_model.dart';
+import 'package:younifirst_app/views/team/TeamDetail_pages.dart';
 
 class TeamChatPage extends StatefulWidget {
   final String teamId;
@@ -31,6 +33,9 @@ class _TeamChatPageState extends State<TeamChatPage> {
   bool _isAuthenticating = true;
   String? _authError;
 
+  int? _activeMembers;
+  TeamModel? _teamModel;
+
   @override
   void initState() {
     super.initState();
@@ -41,9 +46,12 @@ class _TeamChatPageState extends State<TeamChatPage> {
     try {
       // Pastikan kita mendapatkan token dari Laravel dan login ke Firebase Auth
       await AuthService.loginToFirebaseWithCustomToken();
+      final team = await TeamApiService.getTeamDetail(widget.teamId);
       if (mounted) {
         setState(() {
           _messagesStream = ChatService.getMessagesStream(widget.teamId);
+          _activeMembers = team.joinedMembers;
+          _teamModel = team;
           _isAuthenticating = false;
         });
       }
@@ -349,9 +357,9 @@ class _TeamChatPageState extends State<TeamChatPage> {
                     color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
-                const Text(
-                  '4 aktif',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                Text(
+                  _activeMembers != null ? '$_activeMembers aktif' : 'Memuat...',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
@@ -359,12 +367,108 @@ class _TeamChatPageState extends State<TeamChatPage> {
         ],
       ),
       actions: [
-        IconButton(
+        PopupMenuButton<String>(
           icon: Icon(Icons.more_vert, color: Theme.of(context).textTheme.bodyLarge?.color),
-          onPressed: () {},
-        )
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onSelected: (value) {
+            if (value == 'info') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TeamDetailPage(teamId: widget.teamId),
+                ),
+              );
+            } else if (value == 'delete') {
+              _showDeleteTeamConfirmDialog();
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            PopupMenuItem<String>(
+              value: 'info',
+              child: Row(
+                children: [
+                  Icon(Icons.people_outline, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
+                  const SizedBox(width: 12),
+                  const Text('Info Tim'),
+                ],
+              ),
+            ),
+            if (_teamModel?.isOwner == true)
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    SizedBox(width: 12),
+                    Text('Hapus Tim', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ],
     );
+  }
+
+  void _showDeleteTeamConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Hapus Tim',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          content: const Text('Apakah Anda yakin ingin menghapus tim ini beserta semua data di dalamnya? Tindakan ini tidak dapat dibatalkan.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(context); // close dialog
+                _deleteTeamAndExit();
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteTeamAndExit() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.red)),
+    );
+    try {
+      await TeamApiService.deleteTeam(widget.teamId);
+      if (!mounted) return;
+      Navigator.pop(context); // close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tim berhasil dihapus'), backgroundColor: Colors.green),
+      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus tim: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildSystemWelcomeMessage() {
