@@ -142,7 +142,13 @@ class AuthService {
         throw Exception(errorMessage);
       }
     } catch (e) {
-      throw Exception('Koneksi bermasalah: $e');
+      String errMsg = e.toString().replaceAll('Exception: ', '');
+      if (errMsg.contains('Email atau password salah') || 
+          errMsg.contains('suspend') || 
+          errMsg.contains('Gagal login')) {
+        throw Exception(errMsg);
+      }
+      throw Exception('Koneksi bermasalah: $errMsg');
     }
   }
 
