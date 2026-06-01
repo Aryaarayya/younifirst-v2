@@ -28,16 +28,9 @@ class EventApiService {
           debugPrint('🚨 EVENT API JSON FIRST ITEM: ${jsonList.first}');
         }
 
-        // Filter out pending events by checking multiple possible status keys
+        // Hanya filter deleted_at. Status pending dibiarkan agar bisa diakses oleh pembuatnya di halaman profil.
         var filteredList = jsonList.where((data) {
           if (data['deleted_at'] != null) return false;
-
-          final statusVal = data['status'] ?? data['event_status'] ?? data['approval_status'] ?? data['is_published'] ?? data['is_approved'];
-          final status = statusVal?.toString().toLowerCase().trim();
-          
-          if (status == 'pending' || status == '0' || status == 'false' || status == 'menunggu' || status == 'review' || status == 'cancelled') {
-            return false;
-          }
           return true;
         }).toList();
 
@@ -52,7 +45,7 @@ class EventApiService {
 
   static Future<List<EventModel>> getMyPendingEvents() async {
     try {
-      final response = await ApiClient.get('$endpoint?status=pending');
+      final response = await ApiClient.get(endpoint);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final dynamic decodedData = jsonDecode(response.body);
@@ -64,15 +57,18 @@ class EventApiService {
           jsonList = decodedData;
         }
 
-        final myUserId = AuthService.userId;
+        final myUserId = AuthService.userId?.toString().trim().toLowerCase();
         
-        var filteredList = jsonList.where((data) {
-          if (data['deleted_at'] != null) return false;
-          final createdBy = data['created_by']?.toString();
-          return createdBy == myUserId;
+        var parsedList = jsonList.map((data) => EventModel.fromJson(data)).toList();
+        var filteredList = parsedList.where((e) {
+          // Hanya ambil yang benar-benar milik user ini dan yang statusnya pending/bukan open
+          final status = e.status.toLowerCase();
+          final isPending = status == 'pending' || status == 'menunggu' || status == 'review' || status == '0' || status == 'false';
+          final eventCreatorId = e.createdBy.trim().toLowerCase();
+          return eventCreatorId == myUserId && isPending;
         }).toList();
 
-        return filteredList.map((data) => EventModel.fromJson(data)).toList();
+        return filteredList;
       } else {
         throw Exception('Status ${response.statusCode}: ${response.body}');
       }

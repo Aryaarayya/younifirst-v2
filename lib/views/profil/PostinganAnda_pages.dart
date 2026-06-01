@@ -141,11 +141,18 @@ class _PostinganAndaPageState extends State<PostinganAndaPage> {
           final bool isAnyLoading = eventVM.isLoading || teamVM.isLoadingAll || barangVM.isLoading;
 
           // 1. EVENT DATA
-          final eventDibuat = eventVM.events.where((e) {
+          final eventDibuatMap = <String, EventModel>{};
+          for (var e in eventVM.events) {
             final eCreatedBy = e.createdBy.trim().toLowerCase();
             final curId = currentUserId.trim().toLowerCase();
-            return eCreatedBy.isNotEmpty && curId.isNotEmpty && eCreatedBy == curId;
-          }).toList();
+            if (eCreatedBy.isNotEmpty && curId.isNotEmpty && eCreatedBy == curId) {
+              eventDibuatMap[e.id] = e;
+            }
+          }
+          for (var e in eventVM.myPendingEvents) {
+            eventDibuatMap[e.id] = e;
+          }
+          final eventDibuat = eventDibuatMap.values.toList();
           final eventDisukai = eventVM.events.where((e) => e.isLiked).toList();
 
           // 2. TEAM DATA

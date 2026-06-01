@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:younifirst_app/models/Event_model.dart';
 import 'package:younifirst_app/services/api/event_api_service.dart';
+import 'package:younifirst_app/services/input/auth_service.dart';
 
 class EventViewModel extends ChangeNotifier {
   List<EventModel> _events = [];
+  List<EventModel> _myPendingEvents = [];
   bool _isLoading = true;
   String _errorMessage = "";
   String _selectedCategory = "Semua";
 
   List<EventModel> get events => _events;
+  List<EventModel> get myPendingEvents => _myPendingEvents;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   String get selectedCategory => _selectedCategory;
@@ -29,6 +32,10 @@ class EventViewModel extends ChangeNotifier {
       // Jangan override dengan local cache — itu menyebabkan mismatch
       // yang membuat like malah jadi unlike di server.
       _events = fetchedEvents;
+
+      if (AuthService.userId != null) {
+        _myPendingEvents = await EventApiService.getMyPendingEvents();
+      }
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       debugPrint("Fetch Error: $e");
@@ -45,6 +52,7 @@ class EventViewModel extends ChangeNotifier {
 
   void clear() {
     _events = [];
+    _myPendingEvents = [];
     _isLoading = true;
     _errorMessage = "";
     _selectedCategory = "Semua";
@@ -53,7 +61,13 @@ class EventViewModel extends ChangeNotifier {
 
   /// Popular events: diurutkan berdasarkan likes terbanyak
   List<EventModel> get popularEvents {
-    final sorted = List<EventModel>.from(_events);
+    // Hanya tampilkan event yang active/open di feed publik
+    final activeEvents = _events.where((e) {
+      final status = e.status.toLowerCase();
+      return status != 'pending' && status != 'menunggu' && status != 'review' && status != '0' && status != 'false' && status != 'cancelled';
+    }).toList();
+
+    final sorted = List<EventModel>.from(activeEvents);
     sorted.sort((a, b) {
       final likesA = int.tryParse(a.likesCount) ?? 0;
       final likesB = int.tryParse(b.likesCount) ?? 0;
@@ -63,8 +77,14 @@ class EventViewModel extends ChangeNotifier {
   }
 
   List<EventModel> get filteredEvents {
+    // Hanya tampilkan event yang active/open di feed publik
+    final activeEvents = _events.where((e) {
+      final status = e.status.toLowerCase();
+      return status != 'pending' && status != 'menunggu' && status != 'review' && status != '0' && status != 'false' && status != 'cancelled';
+    }).toList();
+
     if (_selectedCategory == "Semua") {
-      return List.from(_events);
+      return List.from(activeEvents);
     }
 
     final categoryMapping = {
@@ -79,7 +99,7 @@ class EventViewModel extends ChangeNotifier {
     };
 
     final catId = categoryMapping[_selectedCategory];
-    return _events.where((e) => e.categoryId == catId).toList();
+    return activeEvents.where((e) => e.categoryId == catId).toList();
   }
 
   /// Toggle like/unlike event (Optimistic UI + API Call)

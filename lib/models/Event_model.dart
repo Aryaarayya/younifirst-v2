@@ -90,9 +90,18 @@ class EventModel {
         return (json['likes_count'] ?? json['likesCount'] ?? '0').toString();
       }(),
       categoryId: json['category_id']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'Open',
+      status: () {
+        final statusVal = json['status'] ?? json['event_status'] ?? json['approval_status'] ?? json['is_published'] ?? json['is_approved'];
+        final statusStr = statusVal?.toString().toLowerCase().trim() ?? 'open';
+        if (statusStr == '0' || statusStr == 'false') return 'pending';
+        if (statusStr == '1' || statusStr == 'true') return 'approved';
+        return statusVal?.toString() ?? 'Open';
+      }(),
       rejectionReason: json['rejection_reason']?.toString() ?? json['reason']?.toString() ?? json['alasan']?.toString() ?? json['admin_note']?.toString() ?? json['catatan_admin']?.toString() ?? json['alasan_penolakan']?.toString(),
       createdBy: () {
+        final rawCreatorId = json['creator_id'];
+        if (rawCreatorId != null) return rawCreatorId.toString();
+        
         final rawCreatedBy = json['created_by'];
         if (rawCreatedBy != null) {
           if (rawCreatedBy is Map) {
