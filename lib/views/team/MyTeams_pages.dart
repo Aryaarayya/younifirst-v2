@@ -18,6 +18,9 @@ class MyTeamsPage extends StatefulWidget {
 }
 
 class _MyTeamsPageState extends State<MyTeamsPage> {
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -38,18 +41,42 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
           icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).textTheme.bodyLarge?.color, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Tim Saya',
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: _isSearching
+            ? TextField(
+                autofocus: true,
+                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                decoration: InputDecoration(
+                  hintText: 'Cari tim...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              )
+            : Text(
+                'Tim Saya',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Theme.of(context).textTheme.bodyLarge?.color),
-            onPressed: () {},
+            icon: Icon(_isSearching ? Icons.close : Icons.search, color: Theme.of(context).textTheme.bodyLarge?.color),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchQuery = '';
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
           ),
         ],
       ),
@@ -62,15 +89,28 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                     ? _buildError(viewModel)
                     : viewModel.myTeams.isEmpty
                         ? _buildEmpty()
-                        : RefreshIndicator(
-                            onRefresh: viewModel.fetchMyTeams,
-                            color: const Color(0xFF3D5AFE),
-                            child: ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: viewModel.myTeams.length,
-                              itemBuilder: (_, i) => _buildTeamCard(viewModel.myTeams[i]),
-                            ),
-                          ),
+                        : (() {
+                            final filteredList = viewModel.myTeams.where((t) {
+                              return t.name.toLowerCase().contains(_searchQuery) ||
+                                     t.lombaName.toLowerCase().contains(_searchQuery);
+                            }).toList();
+                            
+                            if (filteredList.isEmpty) {
+                              return Center(
+                                child: Text("Tidak ada tim yang cocok dengan '$_searchQuery'"),
+                              );
+                            }
+                            
+                            return RefreshIndicator(
+                              onRefresh: viewModel.fetchMyTeams,
+                              color: const Color(0xFF3D5AFE),
+                              child: ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: filteredList.length,
+                                itemBuilder: (_, i) => _buildTeamCard(filteredList[i]),
+                              ),
+                            );
+                          })(),
           );
         },
       ),

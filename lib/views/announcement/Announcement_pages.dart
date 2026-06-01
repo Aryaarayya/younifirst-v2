@@ -329,10 +329,12 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
   Widget _buildNotifCard(AnnouncementModel item, AnnouncementViewModel viewModel) {
     final category = getEffectiveCategory(item);
-    final isNew = item.isNew;
+    final isNew = item.isNew && !viewModel.isRead(item.id);
 
     return InkWell(
       onTap: () async {
+        viewModel.markAsRead(item.id);
+        
         final targetId = item.targetId;
         if (isEventNotification(item) && targetId != null && targetId.isNotEmpty) {
           final result = await Navigator.push<bool>(

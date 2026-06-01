@@ -26,6 +26,8 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
   bool _isLoading = true;
   String? _error;
   String _selectedFilter = 'Semua';
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   final List<Map<String, dynamic>> _filters = [
     {'label': 'Semua', 'icon': Icons.check_circle_rounded},
@@ -130,16 +132,40 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
         foregroundColor: Theme.of(context).iconTheme.color,
         elevation: 0,
         centerTitle: false,
-        title: Text('Lamaran Masuk',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color)),
+        title: _isSearching
+            ? TextField(
+                autofocus: true,
+                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                decoration: InputDecoration(
+                  hintText: 'Cari lamaran...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              )
+            : Text('Lamaran Masuk',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color)),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, size: 18, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, size: 24, color: Theme.of(context).iconTheme.color),
-            onPressed: () {},
+            icon: Icon(_isSearching ? Icons.close : Icons.search, size: 24, color: Theme.of(context).iconTheme.color),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchQuery = '';
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
           ),
         ],
         bottom: PreferredSize(
@@ -175,18 +201,24 @@ class _GlobalTeamApplicationsPageState extends State<GlobalTeamApplicationsPage>
               ? _buildError()
               : _myTeams.isEmpty
                   ? _buildEmptyNoTeams()
-                  : RefreshIndicator(
-                      onRefresh: _loadData,
-                      color: const Color(0xFF3D5AFE),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                        itemCount: _myTeams.length,
-                        itemBuilder: (_, i) {
-                          final team = _myTeams[i];
-                          return _buildTeamSection(team);
-                        },
-                      ),
-                    ),
+                  : (() {
+                      final filteredTeams = _myTeams.where((t) => t.name.toLowerCase().contains(_searchQuery)).toList();
+                      if (filteredTeams.isEmpty) {
+                        return Center(child: Text("Tidak ada lamaran yang cocok dengan '$_searchQuery'"));
+                      }
+                      return RefreshIndicator(
+                        onRefresh: _loadData,
+                        color: const Color(0xFF3D5AFE),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          itemCount: filteredTeams.length,
+                          itemBuilder: (_, i) {
+                            final team = filteredTeams[i];
+                            return _buildTeamSection(team);
+                          },
+                        ),
+                      );
+                    })(),
     );
   }
 

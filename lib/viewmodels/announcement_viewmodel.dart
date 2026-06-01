@@ -8,6 +8,7 @@ class AnnouncementViewModel extends ChangeNotifier {
   List<AnnouncementModel> _announcements = [];
   bool _isLoading = true;
   String? _error;
+  final Set<String> _readIds = {};
 
   List<AnnouncementModel> get announcements => _announcements;
   bool get isLoading => _isLoading;
@@ -16,6 +17,15 @@ class AnnouncementViewModel extends ChangeNotifier {
   AnnouncementViewModel() {
     loadAnnouncements();
     NotificationService.markAnnouncementsAsRead();
+  }
+
+  bool isRead(String id) => _readIds.contains(id);
+
+  void markAsRead(String id) {
+    if (!_readIds.contains(id)) {
+      _readIds.add(id);
+      notifyListeners();
+    }
   }
 
   Future<void> loadAnnouncements() async {
