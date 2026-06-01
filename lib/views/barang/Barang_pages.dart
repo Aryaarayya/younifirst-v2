@@ -263,7 +263,7 @@ class _BarangPageState extends State<BarangPage> {
             child: CircularProgressIndicator(color: Colors.white),
           ))
         : viewModel.allData.isEmpty
-          ? _buildStaticFallbackList(viewModel)
+          ? _buildEmptyState()
           : viewModel.filteredData.isEmpty
             ? _buildNoResultsFound()
             : ListView.builder(
@@ -298,76 +298,25 @@ class _BarangPageState extends State<BarangPage> {
     );
   }
 
-  // Fallback List statis agar UI tetap bisa dilihat sesuai screenshot
-  // meskipun backend API tidak tersedia / error
-  Widget _buildStaticFallbackList(BarangViewModel viewModel) {
-    final List<LostFoundModel> dummyData = [
-      LostFoundModel(
-        lostfoundId: 'LF00000001',
-        userName: 'Rafayel Qi',
-        userAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=150',
-        type: 'Ditemukan',
-        itemName: 'Earphone Putih',
-        location: 'Gedung TI Politeknik Negeri Jember',
-        description: 'Earphone ditemukan di Gedung TI Lantai 3 Ruangan 3 sekitar jam 12 siang tadi. aku pegang dulu bentar kalau ga ada info atau reach out sampe jam 4 aku bawa',
-        imageUrl: 'https://images.unsplash.com/photo-1605464315542-bda3e2f4e605?auto=format&fit=crop&q=80&w=400',
-        createdAt: 'Hari ini • 25 mnt yang lalu',
-        commentsCount: 0,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 80),
+          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            "Belum ada laporan",
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Belum ada laporan barang hilang atau ditemukan saat ini.",
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
-      LostFoundModel(
-        lostfoundId: 'LF00000002',
-        userName: 'rona_naa',
-        userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
-        type: 'Hilang',
-        itemName: 'Dompet Soft Pink Cream',
-        location: 'Teras JTI Politeknik Negeri Jember',
-        description: 'HELP!! URGENT!! Dompet aku hilang sepertinya jatuh habis dari teras jti bagi yang melihat atau menemukan tolong segera kontak nomor ini "1234567890"',
-        imageUrl: 'https://images.unsplash.com/photo-1628191010210-a59de33e5941?auto=format&fit=crop&q=80&w=400',
-        createdAt: 'Hari ini • 1 jam yang lalu',
-        commentsCount: 12,
-      ),
-      LostFoundModel(
-        lostfoundId: 'LF00000003',
-        userName: 'Xavier Shen',
-        userAvatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=150',
-        type: 'Hilang',
-        itemName: 'Kotak Pensil Hitam + KTM',
-        location: 'Gedung TI Politeknik Negeri Jember',
-        description: 'Balik pulang kerasa ada yng janggal ternyata kotak pensilku ketinggalan huhu.. mana ada KTM ku disana atas nama "Xavier Shen Prodi Teknik Informatika" anyon',
-        imageUrl: null, 
-        createdAt: 'Kemarin • 1 hari yang lalu',
-        commentsCount: 22,
-      ),
-    ];
-
-    String query = viewModel.searchQuery.toLowerCase();
-    List<LostFoundModel> displayed = dummyData.where((item) {
-      // Filter by type
-      bool matchesFilter = true;
-      if (viewModel.selectedFilterIndex != 0) {
-        matchesFilter = item.type == viewModel.filters[viewModel.selectedFilterIndex];
-      }
-
-      // Filter by search query
-      bool matchesSearch = item.itemName.toLowerCase().contains(query) ||
-          item.description.toLowerCase().contains(query) ||
-          item.location.toLowerCase().contains(query) ||
-          item.userName.toLowerCase().contains(query);
-
-      return matchesFilter && matchesSearch;
-    }).toList();
-
-    if (displayed.isEmpty && (viewModel.searchQuery.isNotEmpty || viewModel.selectedFilterIndex != 0)) {
-      return _buildNoResultsFound();
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: displayed.length,
-      itemBuilder: (context, index) {
-        return _buildBarangCard(displayed[index]);
-      },
     );
   }
 

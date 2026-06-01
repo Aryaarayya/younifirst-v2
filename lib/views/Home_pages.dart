@@ -786,8 +786,212 @@ class _HomePageState extends State<HomePage> {
     if (filtered.isEmpty) {
       return Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(_searchQuery.isEmpty ? "Tidak ada event ditemukan" : "Tidak ada event yang cocok dengan '$_searchQuery'")));
     }
-    return Column(
-      children: filtered.map<Widget>((event) => _buildFullWidthEventCard(event)).toList() + [const SizedBox(height: 100)],
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: GridView.builder(
+        padding: const EdgeInsets.only(bottom: 100),
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.6,
+        ),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final ev = filtered[index];
+          return _buildGridEventCard(ev);
+        },
+      ),
+    );
+  }
+
+  Widget _buildGridEventCard(EventModel event) {
+    bool isSkeleton = event.title == "Loading...";
+    bool isNetworkImage = event.imageUrl.toLowerCase().startsWith('http');
+
+    return GestureDetector(
+      onTap: () async {
+        if (!isSkeleton) {
+          if (event.id.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID event tidak valid dari server')));
+            return;
+          }
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventDetailPage(eventId: event.id),
+            ),
+          );
+          if (result == true) {
+             context.read<EventViewModel>().fetchEvents();
+          }
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      height: 100,
+                      width: double.infinity,
+                      color: Colors.grey[200],
+                      child: isSkeleton
+                          ? null
+                          : (isNetworkImage
+                              ? Image.network(
+                                  event.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.image, color: Colors.grey),
+                                )
+                              : Image.asset(
+                                  'assets/images/icon_login.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.image, color: Colors.grey),
+                                )),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  isSkeleton
+                      ? Container(height: 12, width: 80, color: Colors.grey[200])
+                      : Text(
+                          event.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87),
+                        ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_month,
+                          size: 12,
+                          color: isSkeleton
+                              ? Colors.grey[300]
+                              : const Color(0xFF3D5AFE)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: isSkeleton
+                            ? Container(height: 10, color: Colors.grey[200])
+                            : Text(
+                                event.time.isNotEmpty ? "${event.date}" : event.date,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54, fontSize: 10),
+                              ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_rounded,
+                          size: 12,
+                          color: isSkeleton
+                              ? Colors.grey[300]
+                              : const Color(0xFF3D5AFE)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: isSkeleton
+                            ? Container(height: 10, color: Colors.grey[200])
+                            : Text(
+                                event.location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54, fontSize: 10),
+                              ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Divider(color: Colors.grey.withValues(alpha: 0.15), thickness: 1),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              if (!isSkeleton) context.read<EventViewModel>().toggleLike(event.id);
+                            },
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              child: Icon(
+                                event.isLiked ? Icons.favorite : Icons.favorite_border,
+                                key: ValueKey(event.isLiked),
+                                size: 16,
+                                color: event.isLiked ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withValues(alpha: 0.6)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          isSkeleton
+                              ? Container(height: 10, width: 20, color: Colors.grey[200])
+                              : Text(
+                                  event.likesCount,
+                                  style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black.withValues(alpha: 0.8),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12),
+                                ),
+                        ],
+                      ),
+                      Container(
+                        height: 28,
+                        width: 28,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3D5AFE),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3D5AFE).withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: const Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 
@@ -1984,7 +2188,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFullWidthEventCard(EventModel event) {
-    return _buildMiniEventCard(event);
+    return _buildBigEventCard(event);
   }
 
   Widget _buildEventsHorizontalList() {
