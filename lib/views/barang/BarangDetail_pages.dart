@@ -66,64 +66,42 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // 🔥 HERO SLIVER APP BAR
               SliverAppBar(
-                expandedHeight: 400,
                 pinned: true,
-                stretch: true,
                 backgroundColor: const Color(0xFF3D5AFE),
+                title: const Text("Detail Barang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                centerTitle: true,
                 leading: IconButton(
-                  icon: const CircleAvatar(
-                    backgroundColor: Colors.white24,
-                    child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-                  ),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const [StretchMode.zoomBackground],
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      item.imageUrl != null
-                          ? Image.network(
-                              item.imageUrl!,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              color: const Color(0xFFF0F4FA),
-                              child: const Icon(Icons.image_outlined, size: 100, color: Colors.grey),
-                            ),
-                      // Gradient overlay for better text readability
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.black26, Colors.transparent, Colors.black54],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
 
               // 🔥 CONTENT SLIVER
               SliverToBoxAdapter(
-                child: Transform.translate(
-                  offset: const Offset(0, -30),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (item.imageUrl != null && item.imageUrl!.isNotEmpty) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            item.imageUrl!,
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 250,
+                              width: double.infinity,
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.image, color: Colors.grey, size: 50),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                         // Kategori & Tanggal
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -274,11 +252,6 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                                 ),
                               ],
                             ),
-                            const Spacer(),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF3D5AFE)),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 32),
@@ -298,42 +271,14 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                             letterSpacing: 0.2,
                           ),
                         ),
-                        const SizedBox(height: 100), // Space for bottom button
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
                 ),
-              ),
             ],
           );
         },
-      ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
-          ],
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: () {
-              // Action Hubungi
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3D5AFE),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-            ),
-            child: const Text(
-              "HUBUNGI PELAPOR",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-        ),
       ),
     );
   }

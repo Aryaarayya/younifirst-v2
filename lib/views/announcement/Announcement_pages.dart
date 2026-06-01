@@ -121,6 +121,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   bool isBarangNotification(AnnouncementModel item) {
     final cat = item.category?.toLowerCase() ?? 'umum';
     if (cat == 'barang') return true;
+    if (item.targetId != null && item.targetId!.startsWith('LF')) return true;
     final title = item.title.toLowerCase();
     final content = item.content.toLowerCase();
     if (title.contains('barang') || content.contains('barang') || title.contains('lost') || content.contains('lost')) return true;
