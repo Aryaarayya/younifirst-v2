@@ -731,11 +731,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.grey),
-                    onPressed: () {},
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _msgController,
@@ -746,16 +742,12 @@ class _TeamChatPageState extends State<TeamChatPage> {
                         hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12),
                       ),
                       onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.attach_file, color: Colors.grey),
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 16),
                 ],
               ),
             ),
