@@ -15,7 +15,7 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
   late List<TextEditingController> _otpControllers;
   late List<FocusNode> _focusNodes;
   bool _isLoading = false;
-  int _resendTime = 25;
+  int _resendTime = 60;
   bool _canResend = false;
   
   @override
@@ -109,7 +109,7 @@ class _VerifikasiKodeState extends State<VerifikasiKode> {
       if (result['success']) {
         setState(() {
           _canResend = false;
-          _resendTime = 25;
+          _resendTime = 60;
           _clearOtp();
         });
         _startResendTimer();
